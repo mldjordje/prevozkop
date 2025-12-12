@@ -13,6 +13,7 @@ import {
   Textarea,
 } from "@heroui/react";
 import type { Project } from "@/lib/api";
+import { getProjects } from "@/lib/api";
 import {
   ApiError,
   adminCreateProject,
@@ -21,6 +22,8 @@ import {
   adminLogin,
   adminLogout,
   adminUpdateProject,
+  uploadGalleryImage,
+  uploadHeroImage,
 } from "@/lib/admin-client";
 
 const statusOptions = [
@@ -33,8 +36,12 @@ type ViewState = "loading" | "login" | "ready";
 export default function AdminPage() {
   const [view, setView] = useState<ViewState>("loading");
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isFetching, setIsFetching] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [uploading, setUploading] = useState<{ id: number; type: "hero" | "gallery" } | null>(
+    null
+  );
 
   const [loginEmail, setLoginEmail] = useState("admin@prevozkop.rs");
   const [loginPassword, setLoginPassword] = useState("");
@@ -57,11 +64,18 @@ export default function AdminPage() {
     try {
       const res = await adminListProjects();
       setProjects(res.data);
+      setIsAuthenticated(true);
       setView("ready");
     } catch (error) {
+      setIsAuthenticated(false);
       if (error instanceof ApiError && error.status === 401) {
+        try {
+          const published = await getProjects(50, 0);
+          setProjects(published.data);
+        } catch {
+          setProjects([]);
+        }
         setView("login");
-        setProjects([]);
       } else {
         setMessage("Neuspešno učitavanje projekata.");
       }
@@ -120,6 +134,7 @@ export default function AdminPage() {
   }
 
   async function handleStatusChange(project: Project, status: string) {
+    if (!isAuthenticated) return;
     setIsFetching(true);
     setMessage(null);
     try {
@@ -133,6 +148,7 @@ export default function AdminPage() {
   }
 
   async function handleDeleteProject(project: Project) {
+    if (!isAuthenticated) return;
     if (!confirm(`Obrisati projekat "${project.title}"?`)) return;
     setIsFetching(true);
     setMessage(null);
@@ -146,9 +162,40 @@ export default function AdminPage() {
     }
   }
 
+  async function handleHeroUpload(projectId: number, files: FileList | null) {
+    if (!isAuthenticated || !files?.length) return;
+    setUploading({ id: projectId, type: "hero" });
+    setMessage(null);
+    try {
+      await uploadHeroImage(projectId, files[0]);
+      await refreshProjects();
+      setMessage("Hero fotografija je postavljena.");
+    } catch {
+      setMessage("Nije uspelo postavljanje hero fotografije.");
+      setUploading(null);
+    }
+  }
+
+  async function handleGalleryUpload(projectId: number, files: FileList | null) {
+    if (!isAuthenticated || !files?.length) return;
+    setUploading({ id: projectId, type: "gallery" });
+    setMessage(null);
+    try {
+      for (const file of Array.from(files)) {
+        await uploadGalleryImage(projectId, file);
+      }
+      await refreshProjects();
+      setMessage("Galerija je ažurirana.");
+    } catch {
+      setMessage("Nije uspelo slanje galerije.");
+      setUploading(null);
+    }
+  }
+
   async function handleLogout() {
     await adminLogout();
     setView("login");
+    setIsAuthenticated(false);
   }
 
   return (
@@ -198,52 +245,65 @@ export default function AdminPage() {
         </Card>
       ) : (
         <>
-          <Card>
-            <CardHeader className="font-semibold">Kreiraj novi projekat</CardHeader>
-            <CardBody>
-              <form className="grid gap-4" onSubmit={handleCreateProject}>
-                <Input
-                  label="Naslov"
-                  value={newProject.title}
-                  onChange={(e) => setNewProject((prev) => ({ ...prev, title: e.target.value }))}
-                  isRequired
-                />
-                <Input
-                  label="Slug"
-                  description="Ako se ne unese, biće generisan automatski."
-                  value={newProject.slug}
-                  onChange={(e) => setNewProject((prev) => ({ ...prev, slug: e.target.value }))}
-                />
-                <Textarea
-                  label="Kratki opis"
-                  value={newProject.excerpt}
-                  onChange={(e) => setNewProject((prev) => ({ ...prev, excerpt: e.target.value }))}
-                  minRows={2}
-                />
-                <Textarea
-                  label="Detaljan opis"
-                  value={newProject.body}
-                  onChange={(e) => setNewProject((prev) => ({ ...prev, body: e.target.value }))}
-                  minRows={4}
-                />
-                <Select
-                  label="Status"
-                  selectedKeys={[newProject.status]}
-                  onSelectionChange={(keys) => {
-                    const value = Array.from(keys).at(0)?.toString() || "draft";
-                    setNewProject((prev) => ({ ...prev, status: value }));
-                  }}
-                >
-                  {statusOptions.map((item) => (
-                    <SelectItem key={item.key}>{item.label}</SelectItem>
-                  ))}
-                </Select>
-                <Button color="primary" type="submit" isDisabled={isFetching}>
-                  Sačuvaj
-                </Button>
-              </form>
-            </CardBody>
-          </Card>
+          {isAuthenticated ? (
+            <Card>
+              <CardHeader className="font-semibold">Kreiraj novi projekat</CardHeader>
+              <CardBody>
+                <form className="grid gap-4" onSubmit={handleCreateProject}>
+                  <Input
+                    label="Naslov"
+                    value={newProject.title}
+                    onChange={(e) => setNewProject((prev) => ({ ...prev, title: e.target.value }))}
+                    isRequired
+                  />
+                  <Input
+                    label="Slug"
+                    description="Ako se ne unese, biće generisan automatski."
+                    value={newProject.slug}
+                    onChange={(e) => setNewProject((prev) => ({ ...prev, slug: e.target.value }))}
+                  />
+                  <Textarea
+                    label="Kratki opis"
+                    value={newProject.excerpt}
+                    onChange={(e) =>
+                      setNewProject((prev) => ({ ...prev, excerpt: e.target.value }))
+                    }
+                    minRows={2}
+                  />
+                  <Textarea
+                    label="Detaljan opis"
+                    value={newProject.body}
+                    onChange={(e) => setNewProject((prev) => ({ ...prev, body: e.target.value }))}
+                    minRows={4}
+                  />
+                  <Select
+                    label="Status"
+                    selectedKeys={[newProject.status]}
+                    onSelectionChange={(keys) => {
+                      const value = Array.from(keys).at(0)?.toString() || "draft";
+                      setNewProject((prev) => ({ ...prev, status: value }));
+                    }}
+                  >
+                    {statusOptions.map((item) => (
+                      <SelectItem key={item.key}>{item.label}</SelectItem>
+                    ))}
+                  </Select>
+                  <Button color="primary" type="submit" isDisabled={isFetching}>
+                    Sačuvaj
+                  </Button>
+                </form>
+              </CardBody>
+            </Card>
+          ) : (
+            <Card className="border border-dashed border-primary bg-white/60">
+              <CardBody>
+                <p className="text-sm text-gray-600">
+                  Za kreiranje novih projekata potrebno je da se prijavite. Trenutno prikazujemo
+                  samo objavljene projekte sa sajta.
+                </p>
+              </CardBody>
+            </Card>
+          )}
 
           <section className="space-y-4">
             <div className="flex items-center justify-between">
@@ -253,49 +313,95 @@ export default function AdminPage() {
               </Button>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              {projects.map((project) => (
-                <Card key={project.id}>
-                  <CardHeader className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-semibold">{project.title}</p>
-                      <p className="text-xs text-gray-500">{project.slug}</p>
-                    </div>
-                    <Chip
-                      color={project.published_at ? "success" : "default"}
-                      variant="flat"
-                    >
-                      {project.published_at ? "Objavljeno" : "Draft"}
-                    </Chip>
-                  </CardHeader>
-                  <CardBody className="space-y-4">
-                    <p className="text-sm text-gray-600">{project.excerpt || "Bez opisa."}</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="flat"
-                        size="sm"
-                        onPress={() =>
-                          handleStatusChange(
-                            project,
-                            project.published_at ? "draft" : "published"
-                          )
-                        }
-                        isDisabled={isFetching}
-                      >
-                        {project.published_at ? "Postavi kao draft" : "Objavi"}
-                      </Button>
-                      <Button
-                        color="danger"
-                        variant="light"
-                        size="sm"
-                        onPress={() => handleDeleteProject(project)}
-                        isDisabled={isFetching}
-                      >
-                        Obriši
-                      </Button>
-                    </div>
-                  </CardBody>
-                </Card>
-              ))}
+              {projects.map((project) => {
+                const isUploadingHero =
+                  uploading?.id === project.id && uploading.type === "hero";
+                const isUploadingGallery =
+                  uploading?.id === project.id && uploading.type === "gallery";
+
+                return (
+                  <Card key={project.id}>
+                    <CardHeader className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold">{project.title}</p>
+                        <p className="text-xs text-gray-500">{project.slug}</p>
+                      </div>
+                      <Chip color={project.published_at ? "success" : "default"} variant="flat">
+                        {project.published_at ? "Objavljeno" : "Draft"}
+                      </Chip>
+                    </CardHeader>
+                    <CardBody className="space-y-4">
+                      {project.hero_image && (
+                        <img
+                          src={project.hero_image}
+                          alt={project.title}
+                          className="h-40 w-full rounded-lg object-cover"
+                        />
+                      )}
+                      <p className="text-sm text-gray-600">{project.excerpt || "Bez opisa."}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="flat"
+                          size="sm"
+                          onPress={() =>
+                            handleStatusChange(project, project.published_at ? "draft" : "published")
+                          }
+                          isDisabled={isFetching || !isAuthenticated}
+                        >
+                          {project.published_at ? "Postavi kao draft" : "Objavi"}
+                        </Button>
+                        <Button
+                          color="danger"
+                          variant="light"
+                          size="sm"
+                          onPress={() => handleDeleteProject(project)}
+                          isDisabled={isFetching || !isAuthenticated}
+                        >
+                          Obriši
+                        </Button>
+                      </div>
+
+                      {isAuthenticated && (
+                        <div className="space-y-3 border-t border-black/5 pt-3">
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                              Hero fotografija
+                            </p>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={(event) => handleHeroUpload(project.id, event.target.files)}
+                              isDisabled={isUploadingHero}
+                            />
+                            {isUploadingHero && (
+                              <p className="text-xs text-gray-500">Otpremanje hero fotografije...</p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                              Galerija
+                            </p>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(event) =>
+                                handleGalleryUpload(project.id, event.target.files)
+                              }
+                              isDisabled={isUploadingGallery}
+                            />
+                            {isUploadingGallery && (
+                              <p className="text-xs text-gray-500">
+                                Otpremanje slika galerije...
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </CardBody>
+                  </Card>
+                );
+              })}
             </div>
             {projects.length === 0 && (
               <p className="text-sm text-gray-600">
