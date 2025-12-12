@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import "@heroui/theme/styles.css";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import HeroUIProviders from "@/components/heroui-provider";

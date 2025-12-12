@@ -174,24 +174,26 @@ export default function AdminPage() {
       {view === "login" ? (
         <Card className="max-w-xl">
           <CardHeader className="font-semibold">Prijava</CardHeader>
-          <CardBody as="form" className="space-y-4" onSubmit={handleLogin}>
-            <Input
-              label="Email"
-              type="email"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-              isRequired
-            />
-            <Input
-              label="Lozinka"
-              type="password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              isRequired
-            />
-            <Button color="primary" type="submit" isDisabled={isFetching}>
-              Prijavi se
-            </Button>
+          <CardBody>
+            <form className="space-y-4" onSubmit={handleLogin}>
+              <Input
+                label="Email"
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                isRequired
+              />
+              <Input
+                label="Lozinka"
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                isRequired
+              />
+              <Button color="primary" type="submit" isDisabled={isFetching}>
+                Prijavi se
+              </Button>
+            </form>
           </CardBody>
         </Card>
       ) : (
