@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "@heroui/theme/styles.css";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
+import HeroUIProviders from "@/components/heroui-provider";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -24,9 +26,11 @@ export default function RootLayout({
   return (
     <html lang="sr" className={inter.variable}>
       <body className="bg-light text-dark antialiased">
-        <Navigation />
-        <main>{children}</main>
-        <Footer />
+        <HeroUIProviders>
+          <Navigation />
+          <main>{children}</main>
+          <Footer />
+        </HeroUIProviders>
       </body>
     </html>
   );

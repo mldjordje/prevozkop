@@ -9,10 +9,12 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@heroui/react": "^2.8.5",
+    "clsx": "^2.1.0",
+    "framer-motion": "^12.23.26",
     "next": "16.0.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "clsx": "^2.1.0",
     "swr": "^2.3.7"
   },
   "devDependencies": {

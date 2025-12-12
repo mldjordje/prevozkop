@@ -7,6 +7,9 @@ export type Project = {
   hero_image?: string | null;
   gallery?: { src: string; alt?: string | null; sort_order?: number }[];
   published_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  status?: string;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
