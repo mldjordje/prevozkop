@@ -1,62 +1,174 @@
-export const metadata = {
-  title: "Usluge | Prevoz Kop",
-  description: "Proizvodnja i isporuka betona, pumpanje, iskopi, tamponiranje i prevoz materijala.",
-};
+import Link from "next/link";
+import PageHero from "@/components/page-hero";
+import { services, stats } from "@/content/site";
 
-const services = [
+const processSteps = [
   {
-    title: "Proizvodnja i isporuka betona",
-    desc: "Sopstvena betonska baza i kontrola kvaliteta. Tacna dostava mikserima prema rasporedu gradilista.",
+    title: "Procena i planiranje",
+    description:
+      "Dolazimo na lokaciju, merimo i predlažemo optimalnu vrstu betona i vozila.",
   },
   {
-    title: "Pumpanje betona",
-    desc: "Pumpe za beton za brzo i precizno plasiranje na trazenu visinu ili dubinu.",
+    title: "Brza isporuka",
+    description:
+      "Flota miksera, pumpi i kipera kreće odmah nakon dogovora — bez čekanja.",
   },
   {
-    title: "Iskopi i tamponiranje",
-    desc: "Priprema terena, iskopi, tampon i nivelacija kao siguran temelj za izgradnju.",
-  },
-  {
-    title: "Rusenje i priprema terena",
-    desc: "Bezbedno rusenje objekata, odvoz otpada i priprema lokacije za nove radove.",
-  },
-  {
-    title: "Prevoz rasutih materijala",
-    desc: "Pesak, sljunak, rizla, zemlja i drugi materijali u svim kolicinama, pravovremeno.",
-  },
-  {
-    title: "Izgradnja temelja",
-    desc: "Izlivanje temelja i ploca sa proverom nosivosti i ujednacenosti smese.",
+    title: "Kontrola kvaliteta",
+    description:
+      "Nadziremo svaki korak na terenu i obezbeđujemo da beton stigne u traženoj klasi.",
   },
 ];
 
-export default function UslugePage() {
+export default function ServicesPage() {
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12 space-y-10">
-      <header className="space-y-3">
-        <p className="text-primary uppercase tracking-widest text-xs font-semibold">Usluge</p>
-        <h1 className="text-3xl font-bold">Kompletna podrska za gradiliste</h1>
-        <p className="text-lg text-gray-700">
-          Od pripreme terena do gotovih ploca. Beton, pumpe, iskopi i transport materijala sa jedne adrese.
-        </p>
-      </header>
+    <div className="space-y-16 sm:space-y-24">
+      <PageHero
+        title="Naše usluge"
+        kicker="Ponuda"
+        description="Proizvodnja betona, iskopi, tamponiranje, rušenje objekata i transport rasutih materijala."
+        background="/img/kamionislika2.jpg"
+        actions={[{ label: "Zakaži isporuku", href: "/kontakt" }]}
+      />
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {services.map((service) => (
-          <div key={service.title} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-2">
-            <h3 className="text-lg font-semibold">{service.title}</h3>
-            <p className="text-gray-700">{service.desc}</p>
+      <section className="content-section space-y-8">
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Šta radimo
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Građevinske usluge na jednom mestu
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            Od temelja do završnih radova — naša baza, vozni park i tim omogućavaju da
+            projekti napreduju bez zastoja.
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {services.map((service) => (
+            <div
+              key={service.title}
+              className="group flex h-full flex-col overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
+            >
+              <div className="h-44 overflow-hidden">
+                <img
+                  src={service.image}
+                  alt={service.title}
+                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+              <div className="flex flex-1 flex-col gap-3 p-5">
+                <h3 className="text-xl font-semibold text-dark">{service.title}</h3>
+                <p className="text-sm text-gray-700">{service.description}</p>
+                <div className="flex-1" />
+                <Link
+                  href="/kontakt"
+                  className="inline-flex w-fit items-center text-sm font-semibold text-primary"
+                >
+                  Pošalji upit →
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="content-section">
+        <div className="grid gap-6 rounded-3xl border border-black/5 bg-white px-6 py-10 shadow-xl sm:px-10 lg:grid-cols-[0.85fr_1.15fr]">
+          <div className="space-y-3">
+            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+              Proces
+            </span>
+            <h3 className="text-2xl font-bold text-dark sm:text-3xl">Kako radimo</h3>
+            <p className="text-sm text-gray-700">
+              Svaki posao počinjemo planom, a završavamo proverom kvaliteta. Vreme
+              isporuke je prioritet, jer znamo koliko svaka minuta znači na gradilištu.
+            </p>
           </div>
-        ))}
-      </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {processSteps.map((step, idx) => (
+              <div
+                key={step.title}
+                className="rounded-2xl border border-black/5 bg-gray-50 px-4 py-5 text-sm shadow-sm"
+              >
+                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                  {String(idx + 1).padStart(2, "0")}
+                </div>
+                <h4 className="text-base font-semibold text-dark">{step.title}</h4>
+                <p className="text-gray-700">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 shadow-inner space-y-3">
-        <h2 className="text-xl font-semibold">Zasto mi</h2>
-        <p className="text-gray-700">
-          Kombinujemo sopstvenu proizvodnju, transport i specijalizovanu opremu da bismo isporucili beton i usluge bez kasnjenja.
-          Uz planiranje i jasan raspored, prilagodjavamo se dinamici svakog gradilista.
-        </p>
-      </div>
+      <section className="content-section space-y-6">
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Rezultati
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Brojevi koji nas izdvajaju
+          </h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((item) => (
+            <div
+              key={item.label}
+              className="rounded-2xl border border-black/5 bg-white px-4 py-6 text-center shadow-sm"
+            >
+              <div className="text-3xl font-bold text-dark">{item.value}</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                {item.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="content-section">
+        <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-dark text-white shadow-2xl">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(244,161,0,0.3),_transparent_35%)]" />
+          <div className="grid gap-8 px-6 py-10 sm:px-10 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="space-y-4">
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                Hitna isporuka
+              </span>
+              <h3 className="text-3xl font-bold sm:text-4xl">
+                Potreban vam je beton ili tampon odmah?
+              </h3>
+              <p className="text-sm text-gray-200">
+                Dežurni smo za brze reakcije i noćne isporuke. Kontaktirajte nas za
+                rezervaciju termina.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="tel:+381605887471"
+                  className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.4)] transition hover:translate-y-[-2px]"
+                >
+                  Pozovi odmah
+                </Link>
+                <Link
+                  href="/kontakt"
+                  className="inline-flex items-center rounded-full border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-dark"
+                >
+                  Pošalji upit
+                </Link>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <ul className="space-y-3 text-sm text-gray-200">
+                <li>• Dostava mikserima i pumpama za beton</li>
+                <li>• Iskopi, tamponiranje, priprema nasipa</li>
+                <li>• Rušenje objekata i odvoz šuta</li>
+                <li>• Transport rasutih materijala</li>
+                <li>• Priprema i izgradnja temelja</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
