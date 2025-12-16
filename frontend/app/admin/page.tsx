@@ -21,6 +21,7 @@ import {
   adminListProjects,
   adminLogin,
   adminLogout,
+  adminGetProject,
   adminUpdateProject,
   uploadGalleryImage,
   uploadHeroImage,
@@ -42,6 +43,8 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState<{ id: number; type: "hero" | "gallery" } | null>(
     null
   );
+  const [projectDetails, setProjectDetails] = useState<Record<number, Project>>({});
+  const [detailsLoading, setDetailsLoading] = useState<Record<number, boolean>>({});
 
   const [loginEmail, setLoginEmail] = useState("admin@prevozkop.rs");
   const [loginPassword, setLoginPassword] = useState("");
@@ -66,6 +69,8 @@ export default function AdminPage() {
       setProjects(res.data);
       setIsAuthenticated(true);
       setView("ready");
+      // Fetch full project data (including galerija) so admin can dodati vise slika.
+      void loadProjectDetails(res.data);
     } catch (error) {
       setIsAuthenticated(false);
       if (error instanceof ApiError && error.status === 401) {
@@ -82,6 +87,41 @@ export default function AdminPage() {
     } finally {
       setIsFetching(false);
     }
+  }
+
+  async function loadProjectDetails(list: Project[]) {
+    if (!list.length) return;
+    setDetailsLoading((prev) => {
+      const next = { ...prev };
+      list.forEach((proj) => {
+        next[proj.id] = true;
+      });
+      return next;
+    });
+
+    const details = await Promise.all(
+      list.map(async (proj) => {
+        try {
+          return await adminGetProject(proj.id);
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    setProjectDetails((prev) => {
+      const next = { ...prev };
+      details.forEach((item) => {
+        if (item) next[item.id] = item;
+      });
+      return next;
+    });
+
+    setDetailsLoading((prev) => {
+      const next = { ...prev };
+      list.forEach((proj) => delete next[proj.id]);
+      return next;
+    });
   }
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
@@ -320,6 +360,8 @@ export default function AdminPage() {
                   uploading?.id === project.id && uploading.type === "hero";
                 const isUploadingGallery =
                   uploading?.id === project.id && uploading.type === "gallery";
+                const gallery = projectDetails[project.id]?.gallery || [];
+                const isLoadingGallery = !!detailsLoading[project.id];
 
                 return (
                   <Card key={project.id}>
@@ -383,6 +425,29 @@ export default function AdminPage() {
                           <div className="space-y-2">
                             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                               Galerija
+                            </p>
+                            {isLoadingGallery && (
+                              <p className="text-xs text-gray-500">Učitavanje galerije...</p>
+                            )}
+                            {gallery.length > 0 && (
+                              <div className="grid grid-cols-3 gap-2">
+                                {gallery.map((img, idx) => (
+                                  <div
+                                    key={`${img.src}-${idx}`}
+                                    className="relative h-20 overflow-hidden rounded-md border border-gray-200 bg-gray-50"
+                                  >
+                                    <img
+                                      src={img.src}
+                                      alt={img.alt || project.title}
+                                      className="h-full w-full object-cover"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <p className="text-[11px] text-gray-600">
+                              Možete odabrati više fajlova odjednom (držite Ctrl/Shift ili označite
+                              više na mobilnom).
                             </p>
                             <input
                               type="file"

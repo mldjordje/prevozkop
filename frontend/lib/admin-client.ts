@@ -87,6 +87,12 @@ export async function adminDeleteProject(id: number) {
   });
 }
 
+export async function adminGetProject(id: number) {
+  return adminFetch<Project>(`/admin/projects/${id}`, {
+    method: "GET",
+  });
+}
+
 export async function uploadHeroImage(id: number, file: File) {
   const form = new FormData();
   form.append("file", file);
