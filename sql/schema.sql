@@ -34,6 +34,18 @@ CREATE TABLE IF NOT EXISTS project_media (
   FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS orders (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(190) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  phone VARCHAR(50) DEFAULT NULL,
+  subject VARCHAR(255) DEFAULT NULL,
+  concrete_type VARCHAR(190) DEFAULT NULL,
+  message TEXT NOT NULL,
+  status ENUM('new','in_progress','done') DEFAULT 'new',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Seed primera (uklonite u produkciji):
 -- INSERT INTO admins (email, password_hash) VALUES ('admin@example.com', '<hash>');
 -- Primer kreiranja hash-a u PHP: password_hash('lozinka123', PASSWORD_DEFAULT);

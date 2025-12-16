@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import clsx from "clsx";
+import type { Order } from "@/lib/api";
 
 type FormState = "idle" | "loading" | "success" | "error";
 
@@ -19,6 +20,7 @@ const concreteTypes = [
 export default function ContactForm() {
   const [state, setState] = useState<FormState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,20 +29,24 @@ export default function ContactForm() {
 
     const form = event.currentTarget;
     const data = new FormData(form);
+    const payload: Partial<Order> = {
+      name: (data.get("name") as string) || "",
+      email: (data.get("email") as string) || "",
+      phone: (data.get("phone") as string) || "",
+      subject: (data.get("subject") as string) || "",
+      concrete_type: (data.get("concrete_type") as string) || "",
+      message: (data.get("message") as string) || "",
+    };
 
     try {
-      const res = await fetch("https://api.prevozkop.rs/mail/contact-form.php", {
+      const res = await fetch(`${API_BASE}/orders`, {
         method: "POST",
-        body: data,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-      const text = (await res.text()).trim();
-      if (text === "Y") {
-        setState("success");
-        form.reset();
-      } else {
-        setState("error");
-        setError("Došlo je do greške, pokušajte ponovo.");
-      }
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      setState("success");
+      form.reset();
     } catch (err) {
       console.error(err);
       setState("error");
@@ -135,13 +141,9 @@ export default function ContactForm() {
           {state === "loading" ? "Slanje..." : "Pošalji upit"}
         </button>
         {state === "success" && (
-          <p className="text-sm font-semibold text-green-600">
-            Vaš upit je uspešno poslat!
-          </p>
+          <p className="text-sm font-semibold text-green-600">Vaš upit je uspešno poslat!</p>
         )}
-        {state === "error" && (
-          <p className="text-sm font-semibold text-red-600">{error}</p>
-        )}
+        {state === "error" && <p className="text-sm font-semibold text-red-600">{error}</p>}
       </div>
     </form>
   );

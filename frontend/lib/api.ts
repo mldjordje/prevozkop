@@ -5,11 +5,23 @@ export type Project = {
   excerpt?: string;
   body?: string;
   hero_image?: string | null;
-  gallery?: { src: string; alt?: string | null; sort_order?: number }[];
+  gallery?: { id?: number; src: string; alt?: string | null; sort_order?: number }[];
   published_at?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   status?: string;
+};
+
+export type Order = {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+  subject?: string | null;
+  concrete_type?: string | null;
+  message: string;
+  status: "new" | "in_progress" | "done";
+  created_at: string;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";

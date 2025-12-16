@@ -1,4 +1,4 @@
-import type { Project } from "./api";
+import type { Order, Project } from "./api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 
@@ -106,9 +106,26 @@ export async function uploadGalleryImage(id: number, file: File, alt?: string) {
   const form = new FormData();
   form.append("file", file);
   if (alt) form.append("alt", alt);
-  return adminFetch<{ file: string }>(`/admin/projects/${id}/media`, {
+  return adminFetch<{ id: number; file: string; file_path: string }>(`/admin/projects/${id}/media`, {
     method: "POST",
     body: form,
+  });
+}
+
+export async function deleteGalleryImage(projectId: number, mediaId: number) {
+  return adminFetch<{ ok: boolean }>(`/admin/projects/${projectId}/media/${mediaId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function adminListOrders(status: string = "all") {
+  return adminFetch<{ data: Order[] }>(`/admin/orders?status=${status}`, { method: "GET" });
+}
+
+export async function adminUpdateOrderStatus(id: number, status: Order["status"]) {
+  return adminFetch<Order>(`/admin/orders/${id}`, {
+    method: "PUT",
+    json: { status },
   });
 }
 

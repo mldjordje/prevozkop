@@ -19,6 +19,11 @@ if ($path === '' || $path === 'health') {
     send_json(['status' => 'ok', 'time' => gmdate('c')]);
 }
 
+// Public create order
+if ($method === 'POST' && $path === 'orders') {
+    create_order($pdo);
+}
+
 // Public endpoints
 if ($method === 'GET' && $path === 'projects') {
     list_projects($pdo, $config);
@@ -108,6 +113,14 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
         list_projects($pdo, $config);
     }
 
+    if ($sub === 'orders' && $method === 'GET') {
+        list_orders($pdo);
+    }
+
+    if (preg_match('#^orders/(\d+)$#', $sub, $m) && $method === 'PUT') {
+        update_order_status($pdo, (int) $m[1]);
+    }
+
     if ($sub === 'projects' && $method === 'POST') {
         create_project($pdo, $config);
     }
@@ -129,6 +142,10 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
 
     if (preg_match('#^projects/(\d+)/media$#', $sub, $m) && $method === 'POST') {
         upload_media($pdo, $config, (int) $m[1]);
+    }
+
+    if (preg_match('#^projects/(\d+)/media/(\d+)$#', $sub, $m) && $method === 'DELETE') {
+        delete_media($pdo, $config, (int) $m[1], (int) $m[2]);
     }
 
     error_json(404, 'Admin route not found');
@@ -240,7 +257,7 @@ function get_project_by_id(PDO $pdo, array $config, int $id, int $status = 200):
         error_json(404, 'Project not found');
     }
 
-    $mediaStmt = $pdo->prepare('SELECT file_path, alt_text, sort_order FROM project_media WHERE project_id = :id ORDER BY sort_order ASC, id ASC');
+    $mediaStmt = $pdo->prepare('SELECT id, file_path, alt_text, sort_order FROM project_media WHERE project_id = :id ORDER BY sort_order ASC, id ASC');
     $mediaStmt->execute([':id' => $id]);
     $media = $mediaStmt->fetchAll();
 
@@ -288,7 +305,93 @@ function upload_media(PDO $pdo, array $config, int $projectId): void
         ':sort_order' => (int) ($_POST['sort'] ?? 0),
     ]);
 
-    send_json(['file' => build_file_url($config, $relative)]);
+    $id = (int) $pdo->lastInsertId();
+
+    send_json([
+        'id' => $id,
+        'file' => build_file_url($config, $relative),
+        'file_path' => $relative,
+    ]);
+}
+
+function delete_media(PDO $pdo, array $config, int $projectId, int $mediaId): void
+{
+    $stmt = $pdo->prepare('SELECT id, project_id, file_path FROM project_media WHERE id = :id AND project_id = :project_id LIMIT 1');
+    $stmt->execute([':id' => $mediaId, ':project_id' => $projectId]);
+    $media = $stmt->fetch();
+
+    if (!$media) {
+        error_json(404, 'Media not found');
+    }
+
+    $stmt = $pdo->prepare('DELETE FROM project_media WHERE id = :id');
+    $stmt->execute([':id' => $mediaId]);
+
+    $fullPath = rtrim($config['uploads']['dir'], '/\\') . '/' . ltrim($media['file_path'], '/\\');
+    if (is_file($fullPath)) {
+        @unlink($fullPath);
+    }
+
+    send_json(['ok' => true]);
+}
+
+function create_order(PDO $pdo): void
+{
+    $data = read_json_body();
+    $name = trim($data['name'] ?? '');
+    $email = trim($data['email'] ?? '');
+    $phone = trim($data['phone'] ?? '');
+    $subject = trim($data['subject'] ?? '');
+    $concreteType = trim($data['concrete_type'] ?? '');
+    $message = trim($data['message'] ?? '');
+
+    if ($name === '' || $email === '' || $message === '') {
+        error_json(400, 'Name, email and message are required');
+    }
+
+    $stmt = $pdo->prepare('INSERT INTO orders (name, email, phone, subject, concrete_type, message, status) VALUES (:name, :email, :phone, :subject, :concrete_type, :message, :status)');
+    $stmt->execute([
+        ':name' => $name,
+        ':email' => $email,
+        ':phone' => $phone,
+        ':subject' => $subject,
+        ':concrete_type' => $concreteType,
+        ':message' => $message,
+        ':status' => 'new',
+    ]);
+
+    send_json(['ok' => true, 'id' => (int) $pdo->lastInsertId()], 201);
+}
+
+function list_orders(PDO $pdo): void
+{
+    $status = $_GET['status'] ?? 'all';
+    $where = $status === 'all' ? '1=1' : 'status = :status';
+    $stmt = $pdo->prepare("SELECT id, name, email, phone, subject, concrete_type, message, status, created_at FROM orders WHERE {$where} ORDER BY created_at DESC");
+    if ($status !== 'all') {
+        $stmt->bindValue(':status', $status, PDO::PARAM_STR);
+    }
+    $stmt->execute();
+    $rows = $stmt->fetchAll();
+    send_json(['data' => array_map('map_order', $rows)]);
+}
+
+function update_order_status(PDO $pdo, int $id): void
+{
+    $data = read_json_body();
+    $status = $data['status'] ?? '';
+    if (!in_array($status, ['new', 'in_progress', 'done'], true)) {
+        error_json(400, 'Invalid status');
+    }
+    $stmt = $pdo->prepare('UPDATE orders SET status = :status WHERE id = :id');
+    $stmt->execute([':status' => $status, ':id' => $id]);
+    $stmt = $pdo->prepare('SELECT id, name, email, phone, subject, concrete_type, message, status, created_at FROM orders WHERE id = :id');
+    $stmt->execute([':id' => $id]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Order not found');
+    }
+    send_json(map_order($row));
 }
 
 // --- Utilities ---
@@ -333,6 +436,7 @@ function map_project_full(array $project, array $media, array $config): array
 {
     $gallery = array_map(function ($item) use ($config) {
         return [
+            'id' => (int) $item['id'],
             'src' => build_file_url($config, $item['file_path']),
             'alt' => $item['alt_text'],
             'sort_order' => (int) $item['sort_order'],
@@ -352,5 +456,20 @@ function map_project_full(array $project, array $media, array $config): array
         'published_at' => $project['published_at'],
         'created_at' => $project['created_at'],
         'updated_at' => $project['updated_at'],
+    ];
+}
+
+function map_order(array $row): array
+{
+    return [
+        'id' => (int) $row['id'],
+        'name' => $row['name'],
+        'email' => $row['email'],
+        'phone' => $row['phone'],
+        'subject' => $row['subject'],
+        'concrete_type' => $row['concrete_type'],
+        'message' => $row['message'],
+        'status' => $row['status'],
+        'created_at' => $row['created_at'],
     ];
 }
