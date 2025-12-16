@@ -41,28 +41,32 @@ export default async function ProjectsPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <article
+              <Link
                 key={project.id}
-                className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
+                href={`/projekti/${project.slug}`}
+                className="group block overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="h-52 overflow-hidden">
-                  <img
-                    src={project.hero_image || "/img/napolje1.jpg"}
-                    alt={project.title}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="space-y-1 p-5">
-                  <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                    {project.published_at
-                      ? `Objavljeno ${new Date(project.published_at).toLocaleDateString("sr-RS")}`
-                      : "Projekat"}
-                  </p>
-                  <h3 className="text-lg font-semibold text-dark">{project.title}</h3>
-                  {project.excerpt && <p className="text-sm text-gray-600">{project.excerpt}</p>}
-                </div>
-              </article>
+                <article>
+                  <div className="h-52 overflow-hidden">
+                    <img
+                      src={project.hero_image || "/img/napolje1.jpg"}
+                      alt={project.title}
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="space-y-1 p-5">
+                    <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                      {project.published_at
+                        ? `Objavljeno ${new Date(project.published_at).toLocaleDateString("sr-RS")}`
+                        : "Projekat"}
+                    </p>
+                    <h3 className="text-lg font-semibold text-dark">{project.title}</h3>
+                    {project.excerpt && <p className="text-sm text-gray-600">{project.excerpt}</p>}
+                    <p className="pt-1 text-sm font-semibold text-primary">Pogledaj projekat →</p>
+                  </div>
+                </article>
+              </Link>
             ))}
           </div>
         )}
@@ -112,4 +116,3 @@ export default async function ProjectsPage() {
     </div>
   );
 }
-
