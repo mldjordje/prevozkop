@@ -13,7 +13,11 @@ return [
     ],
     'cors' => [
         // Comma-separated origins, e.g. "https://prevozkop.rs,https://www.prevozkop.rs,https://your-vercel.app"
-        'origins' => array_filter(array_map('trim', explode(',', getenv('CORS_ORIGINS') ?: 'https://prevozkop.rs,https://www.prevozkop.rs'))),
+        // Dodato i vercel preview domen da bi admin radio sa Vercel-a.
+        'origins' => array_filter(array_map('trim', explode(
+            ',',
+            getenv('CORS_ORIGINS') ?: 'https://prevozkop.rs,https://www.prevozkop.rs,https://prevozkop.vercel.app'
+        ))),
     ],
     'uploads' => [
         // Absolute path to uploads/projects
