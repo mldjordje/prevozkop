@@ -51,10 +51,10 @@ export default async function HomePage() {
                 Više o nama
               </Link>
               <Link
-                href="/kontakt"
+                href="/porucivanje-betona#forma"
                 className="inline-flex items-center rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
               >
-                Pozovite {company.phone}
+                Poruci beton
               </Link>
             </div>
           </div>
@@ -212,7 +212,7 @@ export default async function HomePage() {
                   Pozovi {company.phone}
                 </Link>
                 <Link
-                  href="/kontakt"
+                  href="/porucivanje-betona#forma"
                   className="inline-flex items-center rounded-full border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-dark"
                 >
                   Pošalji upit

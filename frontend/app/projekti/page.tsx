@@ -20,7 +20,7 @@ export default async function ProjectsPage() {
         description="Betoniranje, tamponiranje, rušenje i transport rasutih materijala širom regiona."
         background="/img/volvonov2.jpg"
         priority
-        actions={[{ label: "Zatraži ponudu", href: "/kontakt" }]}
+        actions={[{ label: "Zatraži ponudu", href: "/porucivanje-betona#forma" }]}
       />
 
       <section className="content-section space-y-8">
@@ -85,7 +85,7 @@ export default async function ProjectsPage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/kontakt"
+                  href="/porucivanje-betona#forma"
                   className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.4)] transition hover:translate-y-[-2px]"
                 >
                   Kontaktiraj tim

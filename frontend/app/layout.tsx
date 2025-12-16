@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/navigation";
@@ -12,9 +12,18 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Prevoz Kop | Betonska baza i građevinske usluge",
+  title: "Prevoz Kop | Betonska baza i gradevinske usluge",
   description:
-    "Proizvodnja i isporuka betona, iskopi, tamponiranje, rušenje objekata i transport rasutih materijala u Nišu i okolini.",
+    "Proizvodnja i isporuka betona, iskopi, tamponiranje, rusenje objekata i transport rasutih materijala u Nisu i okolini.",
+  keywords: [
+    "beton",
+    "beton nis",
+    "porucivanje betona",
+    "beton pumpa",
+    "nasipanje betona",
+    "zemljani radovi",
+    "tamponiranje",
+  ],
 };
 
 export default function RootLayout({

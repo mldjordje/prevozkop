@@ -10,7 +10,7 @@ export default function VideoProjectsPage() {
         description="YouTube snimci sa isporuke betona, pumpi, tamponiranja i pripreme terena."
         background="/img/kamion3.jpg"
         priority
-        actions={[{ label: "Pošalji upit", href: "/kontakt" }]}
+        actions={[{ label: "Pošalji upit", href: "/porucivanje-betona#forma" }]}
       />
 
       <section className="content-section space-y-8">

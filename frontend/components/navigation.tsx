@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,7 +12,7 @@ type NavLink = {
 };
 
 const links: NavLink[] = [
-  { href: "/", label: "Početna" },
+  { href: "/", label: "Pocetna" },
   { href: "/o-nama", label: "O nama" },
   { href: "/usluge", label: "Usluge" },
   { href: "/projekti", label: "Projekti" },
@@ -26,10 +26,7 @@ export default function Navigation() {
 
   const active = useMemo(() => {
     return links.reduce<Record<string, boolean>>((map, link) => {
-      map[link.href] =
-        link.href === "/"
-          ? pathname === "/"
-          : pathname?.startsWith(link.href) ?? false;
+      map[link.href] = link.href === "/" ? pathname === "/" : pathname?.startsWith(link.href) ?? false;
       return map;
     }, {});
   }, [pathname]);
@@ -40,9 +37,7 @@ export default function Navigation() {
         <Link href="/" className="flex items-center gap-3">
           <img src="/img/logo.png" alt="Prevoz Kop" className="h-11 w-auto" />
           <div className="hidden sm:block">
-            <p className="text-xs uppercase tracking-[0.2em] text-primary">
-              {company.tagline}
-            </p>
+            <p className="text-xs uppercase tracking-[0.2em] text-primary">{company.tagline}</p>
             <p className="text-sm font-semibold text-dark">{company.name}</p>
           </div>
         </Link>
@@ -73,9 +68,7 @@ export default function Navigation() {
                   onClick={() => setOpen(false)}
                   className={clsx(
                     "text-sm font-semibold transition-colors",
-                    active[link.href]
-                      ? "text-dark"
-                      : "text-gray-600 hover:text-dark"
+                    active[link.href] ? "text-dark" : "text-gray-600 hover:text-dark"
                   )}
                 >
                   {link.label}
@@ -85,11 +78,11 @@ export default function Navigation() {
           </ul>
 
           <Link
-            href="/kontakt"
+            href="/porucivanje-betona#forma"
             onClick={() => setOpen(false)}
             className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-dark shadow-[0_10px_40px_rgba(244,161,0,0.3)] transition hover:translate-y-[-2px]"
           >
-            Poruči beton
+            Poruci beton
           </Link>
         </div>
       </nav>

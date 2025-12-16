@@ -29,7 +29,7 @@ export default function ServicesPage() {
         description="Proizvodnja betona, iskopi, tamponiranje, rušenje objekata i transport rasutih materijala."
         background="/img/kamionislika2.jpg"
         priority
-        actions={[{ label: "Zakaži isporuku", href: "/kontakt" }]}
+        actions={[{ label: "Poruci beton", href: "/porucivanje-betona#forma" }]}
       />
 
       <section className="content-section space-y-8">
@@ -64,7 +64,7 @@ export default function ServicesPage() {
                 <p className="text-sm text-gray-700">{service.description}</p>
                 <div className="flex-1" />
                 <Link
-                  href="/kontakt"
+                  href="/porucivanje-betona#forma"
                   className="inline-flex w-fit items-center text-sm font-semibold text-primary"
                 >
                   Pošalji upit →
@@ -151,7 +151,7 @@ export default function ServicesPage() {
                   Pozovi odmah
                 </Link>
                 <Link
-                  href="/kontakt"
+                  href="/porucivanje-betona#forma"
                   className="inline-flex items-center rounded-full border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-dark"
                 >
                   Pošalji upit

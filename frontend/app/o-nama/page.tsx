@@ -18,7 +18,7 @@ export default function AboutPage() {
         background="/img/napolje5.jpg"
         priority
         actions={[
-          { label: "Kontakt", href: "/kontakt" },
+          { label: "Poruci beton", href: "/porucivanje-betona#forma" },
           { label: "Naše usluge", href: "/usluge" },
         ]}
       />
@@ -159,7 +159,7 @@ export default function AboutPage() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/kontakt"
+                href="/porucivanje-betona#forma"
                 className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.4)] transition hover:translate-y-[-2px]"
               >
                 Pošalji upit
