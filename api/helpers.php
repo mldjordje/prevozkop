@@ -88,6 +88,7 @@ function store_upload(array $config, array $file, int $projectId, array $allowed
         throw new RuntimeException('Failed to move upload');
     }
 
-    $relative = 'uploads/projects/' . $projectId . '/' . basename($target);
+    // Store relative path (without uploads/projects prefix) so base_url can prepend correctly.
+    $relative = $projectId . '/' . basename($target);
     return $relative;
 }
