@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
 import type { HeroSlide } from "@/content/site";
@@ -22,13 +23,19 @@ export default function HeroSlider({ slides }: Props) {
   const current = slides[index];
 
   return (
-    <section className="relative isolate overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-700"
-        style={{ backgroundImage: `url(${current.image})` }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/40" />
-      <div className="relative mx-auto flex min-h-[70vh] max-w-6xl flex-col justify-center gap-6 px-4 py-16 sm:px-6 lg:px-8">
+    <section className="relative isolate overflow-hidden bg-zinc-900 text-white">
+      <div className="absolute inset-0">
+        <Image
+          src={current.image}
+          alt={current.title}
+          fill
+          priority={index === 0}
+          sizes="100vw"
+          className="object-cover"
+        />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/60 to-black/40" />
+      <div className="relative z-10 mx-auto flex min-h-[70vh] max-w-6xl flex-col justify-center gap-6 px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center gap-3">
           <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
             {current.kicker}

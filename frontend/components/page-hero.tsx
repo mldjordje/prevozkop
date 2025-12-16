@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
 
@@ -7,6 +8,7 @@ type Props = {
   description?: string;
   background: string;
   actions?: { label: string; href: string }[];
+  priority?: boolean;
 };
 
 export default function PageHero({
@@ -15,15 +17,22 @@ export default function PageHero({
   description,
   background,
   actions,
+  priority = false,
 }: Props) {
   return (
-    <section className="relative isolate overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${background})` }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
-      <div className="mx-auto flex min-h-[320px] max-w-6xl flex-col justify-center gap-4 px-4 py-16 sm:px-6 lg:px-8">
+    <section className="relative isolate overflow-hidden bg-zinc-900 text-white">
+      <div className="absolute inset-0">
+        <Image
+          src={background}
+          alt=""
+          fill
+          priority={priority}
+          sizes="100vw"
+          className="object-cover"
+        />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/60 to-black/30" />
+      <div className="relative z-10 mx-auto flex min-h-[320px] max-w-6xl flex-col justify-center gap-4 px-4 py-16 sm:px-6 lg:px-8">
         {kicker && (
           <span className="inline-flex w-fit rounded-full border border-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
             {kicker}

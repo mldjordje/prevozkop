@@ -16,6 +16,7 @@ export default function AboutPage() {
         kicker="O nama"
         description="Betonska baza, iskopi, tamponiranje, rušenje i kompletna podrška na terenu."
         background="/img/napolje5.jpg"
+        priority
         actions={[
           { label: "Kontakt", href: "/kontakt" },
           { label: "Naše usluge", href: "/usluge" },

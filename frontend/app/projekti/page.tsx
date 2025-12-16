@@ -1,15 +1,25 @@
 import Link from "next/link";
 import PageHero from "@/components/page-hero";
-import { projectGallery } from "@/content/site";
+import { getProjects } from "@/lib/api";
+import type { Project } from "@/lib/api";
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  let projects: Project[] = [];
+  try {
+    const response = await getProjects(60, 0);
+    projects = response.data || [];
+  } catch (error) {
+    console.error("Neuspelo učitavanje projekata:", error);
+  }
+
   return (
     <div className="space-y-16 sm:space-y-24">
       <PageHero
         title="Galerija projekata"
         kicker="Radovi"
-        description="Izbor terenskih radova: betoniranje, tamponiranje, rušenje i transport rasutih materijala."
+        description="Betoniranje, tamponiranje, rušenje i transport rasutih materijala širom regiona."
         background="/img/volvonov2.jpg"
+        priority
         actions={[{ label: "Zatraži ponudu", href: "/kontakt" }]}
       />
 
@@ -18,39 +28,44 @@ export default function ProjectsPage() {
           <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
             Na terenu
           </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Poslednji završeni projekti
-          </h2>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">Poslednji završeni projekti</h2>
           <p className="max-w-3xl text-sm text-gray-700">
-            Prikaz delova flote, procesa pripreme terena i isporuka betona širom juga
-            Srbije.
+            Projekti direktno iz baze – kada objavite novi rad u admin panelu, pojaviće se i ovde.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {projectGallery.map((project) => (
-            <div
-              key={project.title}
-              className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="h-52 overflow-hidden">
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-              <div className="space-y-1 p-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                  {project.category || "Projekat"}
-                </p>
-                <h3 className="text-lg font-semibold text-dark">{project.title}</h3>
-                <p className="text-sm text-gray-600">{project.location}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        {projects.length === 0 ? (
+          <p className="text-sm text-gray-600">
+            Još uvek nema objavljenih projekata. Dodajte prvi projekat kroz admin panel.
+          </p>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <article
+                key={project.id}
+                className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="h-52 overflow-hidden">
+                  <img
+                    src={project.hero_image || "/img/napolje1.jpg"}
+                    alt={project.title}
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="space-y-1 p-5">
+                  <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                    {project.published_at
+                      ? `Objavljeno ${new Date(project.published_at).toLocaleDateString("sr-RS")}`
+                      : "Projekat"}
+                  </p>
+                  <h3 className="text-lg font-semibold text-dark">{project.title}</h3>
+                  {project.excerpt && <p className="text-sm text-gray-600">{project.excerpt}</p>}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="content-section">
@@ -97,3 +112,4 @@ export default function ProjectsPage() {
     </div>
   );
 }
+

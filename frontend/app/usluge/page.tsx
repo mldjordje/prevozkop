@@ -28,6 +28,7 @@ export default function ServicesPage() {
         kicker="Ponuda"
         description="Proizvodnja betona, iskopi, tamponiranje, rušenje objekata i transport rasutih materijala."
         background="/img/kamionislika2.jpg"
+        priority
         actions={[{ label: "Zakaži isporuku", href: "/kontakt" }]}
       />
 

@@ -1,17 +1,19 @@
 import Link from "next/link";
 import HeroSlider from "@/components/hero-slider";
-import {
-  aboutHighlights,
-  company,
-  heroSlides,
-  projectGallery,
-  services,
-  stats,
-} from "@/content/site";
+import { aboutHighlights, company, heroSlides, services, stats } from "@/content/site";
+import { getProjects } from "@/lib/api";
+import type { Project } from "@/lib/api";
 
-export default function HomePage() {
-  const featuredProjects = projectGallery.slice(0, 6);
+export default async function HomePage() {
   const featuredServices = services.slice(0, 4);
+  let featuredProjects: Project[] = [];
+
+  try {
+    const response = await getProjects(6, 0);
+    featuredProjects = response.data || [];
+  } catch (error) {
+    console.error("Neuspelo učitavanje projekata:", error);
+  }
 
   return (
     <div className="space-y-16 sm:space-y-24">
@@ -153,30 +155,38 @@ export default function HomePage() {
             Pogledaj sve →
           </Link>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {featuredProjects.map((project) => (
-            <div
-              key={project.title}
-              className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="h-52 overflow-hidden">
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  loading="lazy"
-                />
+        {featuredProjects.length === 0 ? (
+          <p className="text-sm text-gray-600">
+            Još uvek nema objavljenih projekata. Pratite nas za nove radove.
+          </p>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {featuredProjects.map((project) => (
+              <div
+                key={project.id}
+                className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="h-52 overflow-hidden">
+                  <img
+                    src={project.hero_image || "/img/napolje1.jpg"}
+                    alt={project.title}
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="space-y-1 p-5">
+                  <p className="text-xs uppercase tracking-[0.2em] text-primary">Projekat</p>
+                  <h3 className="text-lg font-semibold text-dark">{project.title}</h3>
+                  {project.published_at && (
+                    <p className="text-sm text-gray-600">
+                      Objavljeno: {new Date(project.published_at).toLocaleDateString("sr-RS")}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="space-y-1 p-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                  {project.category || "Projekat"}
-                </p>
-                <h3 className="text-lg font-semibold text-dark">{project.title}</h3>
-                <p className="text-sm text-gray-600">{project.location}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="content-section">

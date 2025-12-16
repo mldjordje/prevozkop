@@ -123,62 +123,8 @@ export const aboutHighlights = [
   "Sigurnost i preciznost na svakom gradilištu",
 ];
 
-export const projectGallery: ProjectCard[] = [
-  {
-    title: "Nasipanje betona – stambeni temelj",
-    image: "/img/nasipanje1.webp",
-    location: "Niš",
-    category: "Beton",
-  },
-  {
-    title: "Isporuka mikserima",
-    image: "/img/mikseri.jpg",
-    location: "Južna Srbija",
-    category: "Logistika",
-  },
-  {
-    title: "Rušenje objekta i čišćenje terena",
-    image: "/img/rad4.webp",
-    location: "Niš",
-    category: "Rušenje",
-  },
-  {
-    title: "Transport tampona",
-    image: "/img/nasipanje2.webp",
-    location: "Krušce",
-    category: "Transport",
-  },
-  {
-    title: "Priprema nasipa za put",
-    image: "/img/nasipanje4.webp",
-    location: "Toplica",
-    category: "Infrastruktura",
-  },
-  {
-    title: "Terenski rad sa pumpom",
-    image: "/img/nasipanje5.webp",
-    location: "Niš",
-    category: "Beton",
-  },
-  {
-    title: "Betoniranje ploče",
-    image: "/img/portfolio/portfolio-05.jpg",
-    location: "Srbija",
-    category: "Beton",
-  },
-  {
-    title: "Industrijski objekat",
-    image: "/img/portfolio/portfolio-08.jpg",
-    location: "Srbija",
-    category: "Industrija",
-  },
-  {
-    title: "Armatura i temelj",
-    image: "/img/portfolio/portfolio-11.jpg",
-    location: "Srbija",
-    category: "Temeljenje",
-  },
-];
+export const projectGallery: ProjectCard[] = [];
+
 
 export const videos: Video[] = [
   { title: "Dovoz i istovar betona", youtubeId: "07E0MTRD5PI", ratio: "portrait" },

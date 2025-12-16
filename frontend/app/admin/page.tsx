@@ -172,6 +172,7 @@ export default function AdminPage() {
       setMessage("Hero fotografija je postavljena.");
     } catch {
       setMessage("Nije uspelo postavljanje hero fotografije.");
+    } finally {
       setUploading(null);
     }
   }
@@ -188,6 +189,7 @@ export default function AdminPage() {
       setMessage("Galerija je ažurirana.");
     } catch {
       setMessage("Nije uspelo slanje galerije.");
+    } finally {
       setUploading(null);
     }
   }
@@ -367,11 +369,12 @@ export default function AdminPage() {
                             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                               Hero fotografija
                             </p>
-                            <Input
+                            <input
                               type="file"
                               accept="image/*"
+                              disabled={isUploadingHero}
                               onChange={(event) => handleHeroUpload(project.id, event.target.files)}
-                              isDisabled={isUploadingHero}
+                              className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
                             />
                             {isUploadingHero && (
                               <p className="text-xs text-gray-500">Otpremanje hero fotografije...</p>
@@ -381,14 +384,15 @@ export default function AdminPage() {
                             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                               Galerija
                             </p>
-                            <Input
+                            <input
                               type="file"
                               accept="image/*"
                               multiple
+                              disabled={isUploadingGallery}
                               onChange={(event) =>
                                 handleGalleryUpload(project.id, event.target.files)
                               }
-                              isDisabled={isUploadingGallery}
+                              className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
                             />
                             {isUploadingGallery && (
                               <p className="text-xs text-gray-500">

@@ -10,6 +10,7 @@ export default function ContactPage() {
         kicker="Kontakt"
         description="Brzo odgovaramo na upite i dogovaramo isporuku betona, zemljanih radova i transporta."
         background="/img/volvonov2.jpg"
+        priority
         actions={[
           { label: "Pozovi", href: "tel:+381605887471" },
           { label: "Pošalji upit", href: "#forma" },
