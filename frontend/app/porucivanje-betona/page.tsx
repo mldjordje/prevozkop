@@ -1,15 +1,15 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import PageHero from "@/components/page-hero";
 import ContactForm from "@/components/contact-form";
 import { company } from "@/content/site";
 
 export const metadata: Metadata = {
-  title: "Porucivanje betona Nis | Prevoz Kop",
+  title: "Poručivanje betona Niš | Prevoz Kop",
   description:
-    "Porucite beton u Nisu i okolini: isporuka mikserima i pumpama, nasipanje betona, zemljani radovi i tamponiranje. Brza logistika, tacne kolicine i sigurnost na terenu.",
+    "Poručite beton u Nišu i okolini: isporuka mikserima i pumpama, nasipanje betona, zemljani radovi i tamponiranje. Brza logistika, tačne količine i sigurnost na terenu.",
   keywords: [
-    "porucivanje betona",
-    "beton nis",
+    "poručivanje betona",
+    "beton niš",
     "beton nish",
     "isporuka betona",
     "beton pumpa",
@@ -22,14 +22,14 @@ export const metadata: Metadata = {
 
 const benefits = [
   "Beton iz sopstvene baze, klase po zahtevu (MB10-MB40)",
-  "Brza isporuka u Nisu i okolini mikserima i pumpama",
+  "Brza isporuka u Nišu i okolini mikserima i pumpama",
   "Nasipanje betona, tamponiranje i kompletni zemljani radovi",
-  "Precizno zakazivanje termina i podrska na terenu",
+  "Precizno zakazivanje termina i podrška na terenu",
 ];
 
 const steps = [
-  "Posaljite porudzbinu ili pozovite – javlja se operater",
-  "Definisemo kolicinu, klasu betona i vreme isporuke",
+  "Pošaljite porudžbinu ili pozovite - javlja se operater",
+  "Definišemo količinu, klasu betona i vreme isporuke",
   "Na teren izlaze mikseri/pumpe, nadzor prati isporuku",
 ];
 
@@ -37,13 +37,13 @@ export default function OrderConcretePage() {
   return (
     <div className="space-y-16 sm:space-y-24">
       <PageHero
-        title="Porucivanje betona Nis - isporuka danas"
-        kicker="Porudzbina betona"
-        description="Brza isporuka betona mikserima i pumpama, nasipanje betona i kompletni zemljani radovi. Posaljite zahtev online ili pozovite."
+        title="Poručivanje betona Niš - isporuka danas"
+        kicker="Porudžbina betona"
+        description="Brza isporuka betona mikserima i pumpama, nasipanje betona i kompletni zemljani radovi. Pošaljite zahtev online ili pozovite."
         background="/img/kamionislika2.jpg"
         priority
         actions={[
-          { label: "Popuni porudzbinu", href: "#forma" },
+          { label: "Popuni porudžbinu", href: "#forma" },
           { label: "Pozovi odmah", href: "tel:+381605887471" },
         ]}
       />
@@ -54,12 +54,12 @@ export default function OrderConcretePage() {
             Beton, pumpe, zemljani radovi
           </span>
           <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Beton Nis, porucivanje betona i nasipanje na jednom mestu
+            Beton Niš, poručivanje betona i nasipanje na jednom mestu
           </h2>
           <p className="max-w-3xl text-base text-gray-700">
-            Prevoz Kop obezbedjuje beton iz sopstvene baze, transport mikserima i pumpama,
-            kao i zemljane radove i tamponiranje. Radimo brzo i precizno da bi beton stigao
-            u tacnoj klasi i terminu.
+            Prevoz Kop obezbeđuje beton iz sopstvene baze, transport mikserima i pumpama, kao i
+            zemljane radove i tamponiranje. Radimo brzo i precizno da bi beton stigao u tačnoj klasi
+            i terminu.
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -73,7 +73,7 @@ export default function OrderConcretePage() {
           ))}
         </div>
         <div className="rounded-3xl border border-black/5 bg-white px-5 py-5 shadow-lg sm:px-7 sm:py-6">
-          <h3 className="text-xl font-bold text-dark">Kako poruciti beton</h3>
+          <h3 className="text-xl font-bold text-dark">Kako poručiti beton</h3>
           <ul className="mt-3 grid gap-2 text-sm text-gray-700 sm:grid-cols-3">
             {steps.map((step) => (
               <li key={step} className="flex items-start gap-2">
@@ -88,12 +88,12 @@ export default function OrderConcretePage() {
       <section id="forma" className="content-section space-y-6">
         <div className="space-y-2">
           <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Online porudzbina
+            Online porudžbina
           </span>
           <h2 className="text-3xl font-bold text-dark sm:text-4xl">Popunite zahtev za beton</h2>
           <p className="max-w-3xl text-sm text-gray-700">
-            Navedite kolicinu, klasu, lokaciju i da li je potrebna pumpa ili samo mikser.
-            Nas dispecer potvrdjuje termin i organizuje isporuku.
+            Navedite količinu, klasu, lokaciju i da li je potrebna pumpa ili samo mikser. Naš
+            dispečer potvrđuje termin i organizuje isporuku.
           </p>
           <div className="flex flex-wrap gap-3">
             <a

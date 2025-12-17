@@ -39,35 +39,35 @@ export type Video = {
 
 export const company = {
   name: "Prevoz Kop",
-  tagline: "Betonska baza i gradevinske usluge",
+  tagline: "Betonska baza i građevinske usluge",
   phone: "+381 60 588 7471",
   email: "prevozkopbb@gmail.com",
-  address: "Krusce, Nis 18000",
+  address: "Krušce, Niš 18000",
   workingHours: "Pon - Sub, 08:00 - 20:00",
 };
 
 export const heroSlides: HeroSlide[] = [
   {
-    title: "Gradimo vasu buducnost",
+    title: "Gradimo vašu budućnost",
     kicker: "Kvalitet - Pouzdanost - Inovacija",
-    description: "Betonska baza u Nisu sa brzom isporukom mikserima i pumpama za beton.",
-    ctaLabel: "Poruci beton",
+    description: "Betonska baza u Nišu sa brzom isporukom mikserima i pumpama za beton.",
+    ctaLabel: "Poruči beton",
     ctaHref: "/porucivanje-betona#forma",
     image: "/img/rad1.jpg",
   },
   {
-    title: "Resenja po vasoj meri",
+    title: "Rešenja po vašoj meri",
     kicker: "Iskustvo - Preciznost - Efikasnost",
-    description: "Planiranje, iskopi, tamponiranje i kompletna priprema terena za gradiliste.",
-    ctaLabel: "Poruci beton",
+    description: "Planiranje, iskopi, tamponiranje i kompletna priprema terena za gradilište.",
+    ctaLabel: "Poruči beton",
     ctaHref: "/porucivanje-betona#forma",
     image: "/img/kamino4.jpg",
   },
   {
-    title: "Vas partner u izgradnji",
+    title: "Vaš partner u izgradnji",
     kicker: "Profesionalizam - Brzina - Sigurnost",
-    description: "Pouzdana dostava betona, rasutih materijala i podrska na licu mesta.",
-    ctaLabel: "Poruci beton",
+    description: "Pouzdana dostava betona, rasutih materijala i podrška na licu mesta.",
+    ctaLabel: "Poruči beton",
     ctaHref: "/porucivanje-betona#forma",
     image: "/img/napolje2.jpg",
   },
@@ -76,22 +76,22 @@ export const heroSlides: HeroSlide[] = [
 export const services: Service[] = [
   {
     title: "Proizvodnja i isporuka betona",
-    description: "Visokokvalitetne betonske mesavine sa sopstvene baze i brza isporuka mikserima.",
+    description: "Visokokvalitetne betonske mešavine sa sopstvene baze i brza isporuka mikserima.",
     image: "/img/rad1.jpg",
   },
   {
     title: "Iskopi i tamponiranje",
-    description: "Sve vrste iskopa zemljista i priprema tampona za siguran temelj i stabilan teren.",
+    description: "Sve vrste iskopa zemljišta i priprema tampona za siguran temelj i stabilan teren.",
     image: "/img/uterivac.jpg",
   },
   {
-    title: "Rusenje i priprema terena",
-    description: "Bezbedno rusenje objekata, demontaza i ciscenje lokacije sa minimalnim zastoja.",
+    title: "Rušenje i priprema terena",
+    description: "Bezbedno rušenje objekata, demontaža i čišćenje lokacije sa minimalnim zastojem.",
     image: "/img/vozila2.jpg",
   },
   {
     title: "Prevoz rasutih materijala",
-    description: "Transport peska, sljunka, zemlje i nasipa u svim kolicinama, uz novu flotu vozila.",
+    description: "Transport peska, šljunka, zemlje i nasipa u svim količinama, uz novu flotu vozila.",
     image: "/img/kamionislika1.jpg",
   },
   {
@@ -111,9 +111,9 @@ export const stats: Stat[] = [
 
 export const aboutHighlights = [
   "Proizvodimo visokokvalitetni beton na sopstvenoj bazi",
-  "Brza i tacna dostava mikserima i pumpama",
+  "Brza i tačna dostava mikserima i pumpama",
   "Iskopi, tamponiranje i priprema terena na jednom mestu",
-  "Sigurnost i preciznost na svakom gradilistu",
+  "Sigurnost i preciznost na svakom gradilištu",
 ];
 
 export const projectGallery: ProjectCard[] = [];

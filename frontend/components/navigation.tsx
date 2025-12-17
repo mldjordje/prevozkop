@@ -11,8 +11,8 @@ type NavLink = {
   label: string;
 };
 
-const links: NavLink[] = [
-  { href: "/", label: "Pocetna" },
+const srLinks: NavLink[] = [
+  { href: "/", label: "Početna" },
   { href: "/o-nama", label: "O nama" },
   { href: "/usluge", label: "Usluge" },
   { href: "/projekti", label: "Projekti" },
@@ -20,9 +20,19 @@ const links: NavLink[] = [
   { href: "/kontakt", label: "Kontakt" },
 ];
 
+const enLinks: NavLink[] = [
+  { href: "/en", label: "Home" },
+  { href: "/en/about", label: "About" },
+  { href: "/en/services", label: "Services" },
+  { href: "/en/projects", label: "Projects" },
+  { href: "/en/contact", label: "Contact" },
+];
+
 export default function Navigation() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const isEn = pathname?.startsWith("/en") ?? false;
+  const links = isEn ? enLinks : srLinks;
 
   const active = useMemo(() => {
     return links.reduce<Record<string, boolean>>((map, link) => {
@@ -78,11 +88,23 @@ export default function Navigation() {
           </ul>
 
           <Link
-            href="/porucivanje-betona#forma"
+            href={isEn ? "/en/order-concrete#form" : "/porucivanje-betona#forma"}
             onClick={() => setOpen(false)}
             className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-dark shadow-[0_10px_40px_rgba(244,161,0,0.3)] transition hover:translate-y-[-2px]"
           >
-            Poruci beton
+            {isEn ? "Order concrete" : "Poruči beton"}
+          </Link>
+
+          <Link
+            href={
+              isEn
+                ? pathname?.replace(/^\/en/, "") || "/"
+                : `/en${pathname === "/" ? "" : pathname}`
+            }
+            onClick={() => setOpen(false)}
+            className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-600 hover:text-dark"
+          >
+            {isEn ? "SR" : "EN"}
           </Link>
         </div>
       </nav>

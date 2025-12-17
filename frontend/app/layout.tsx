@@ -12,13 +12,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Prevoz Kop | Betonska baza i gradevinske usluge",
+  title: "Prevoz Kop | Betonska baza i građevinske usluge",
   description:
-    "Proizvodnja i isporuka betona, iskopi, tamponiranje, rusenje objekata i transport rasutih materijala u Nisu i okolini.",
+    "Proizvodnja i isporuka betona, iskopi, tamponiranje, rušenje objekata i transport rasutih materijala u Nišu i okolini.",
   keywords: [
     "beton",
-    "beton nis",
-    "porucivanje betona",
+    "beton niš",
+    "poručivanje betona",
     "beton pumpa",
     "nasipanje betona",
     "zemljani radovi",
