@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import clsx from "clsx";
 import type { Order } from "@/lib/api";
 
@@ -20,10 +20,13 @@ const concreteTypes = [
 export default function ContactForm() {
   const [state, setState] = useState<FormState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const submitInFlightRef = useRef(false);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitInFlightRef.current) return;
+    submitInFlightRef.current = true;
     setState("loading");
     setError(null);
 
@@ -45,12 +48,18 @@ export default function ContactForm() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`Status ${res.status}`);
+      const gtag = typeof window !== "undefined" ? (window as any).gtag : undefined;
+      if (typeof gtag === "function") {
+        gtag("event", "conversion", { send_to: "AW-17801652604" });
+      }
       setState("success");
       form.reset();
     } catch (err) {
       console.error(err);
       setState("error");
       setError("Server privremeno nije dostupan.");
+    } finally {
+      submitInFlightRef.current = false;
     }
   }
 
