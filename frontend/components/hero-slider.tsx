@@ -41,7 +41,7 @@ export default function HeroSlider({ slides }: Props) {
             {current.kicker}
           </span>
           <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-gray-200">
-            Betonska baza · Niš · 24/7 podrška
+            Betonska baza u Nišu · isporuka betona · pumpe · zemljani radovi
           </span>
         </div>
         <div className="max-w-3xl space-y-4">

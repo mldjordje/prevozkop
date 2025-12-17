@@ -1,6 +1,38 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import PageHero from "@/components/page-hero";
 import { services, stats } from "@/content/site";
+
+export const metadata: Metadata = {
+  title: "Usluge: isporuka betona, visoke pumpe i zemljani radovi | Niš",
+  description:
+    "Prevozkop (Prevoz Kop) iz Niša pruža isporuku gotovog betona, visinske pumpe za beton (za višespratnice i nepristupačne terene) i zemljane radove (iskopi, ravnanje, priprema gradilišta). Radimo u Nišu, Leskovcu, Prokuplju, Aleksincu i širom juga/centralne Srbije.",
+  alternates: { canonical: "/usluge" },
+};
+
+const coreServices = [
+  {
+    title: "Isporuka gotovog betona",
+    description:
+      "Organizujemo isporuku betona na gradilište mikserima, uz dogovor termina i logistike istovara (pristup, teren, visina).",
+    href: "/porucivanje-betona#forma",
+    cta: "Poruči beton",
+  },
+  {
+    title: "Visoke pumpe za beton",
+    description:
+      "Betonske pumpe za betoniranje višespratnica, velikih visina i nepristupačnih terena. Pre izlaska proveravamo uslove i pristup.",
+    href: "/kontakt",
+    cta: "Provera uslova",
+  },
+  {
+    title: "Zemljani radovi (iskopi i priprema)",
+    description:
+      "Zemljani radovi i priprema gradilišta: iskopi temelja, ravnanje terena i organizacija prilaza za mikser/pumpu.",
+    href: "/kontakt",
+    cta: "Dogovor na terenu",
+  },
+];
 
 const processSteps = [
   {
@@ -24,13 +56,45 @@ export default function ServicesPage() {
   return (
     <div className="space-y-16 sm:space-y-24">
       <PageHero
-        title="Naše usluge"
+        title="Usluge u Nišu: isporuka betona, visinske pumpe i zemljani radovi"
         kicker="Ponuda"
-        description="Proizvodnja betona, iskopi, tamponiranje, rušenje objekata i transport rasutih materijala."
+        description="Prevozkop (Prevoz Kop) iz Niša: isporuka gotovog betona, visoke pumpe za beton i zemljani radovi (iskopi, priprema gradilišta) za stambenu i poslovnu gradnju."
         background="/img/kamionislika2.jpg"
         priority
-        actions={[{ label: "Poruci beton", href: "/porucivanje-betona#forma" }]}
+        actions={[{ label: "Poruči beton", href: "/porucivanje-betona#forma" }]}
       />
+
+      <section className="content-section space-y-8">
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Glavne usluge
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Građevinska podrška na jednom mestu (Niš i region)
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            Pomažemo investitorima, izvođačima i majstorima da reše logistiku na gradilištu – od
+            isporuke betona do izlaska visinske pumpe i pripreme terena.
+          </p>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {coreServices.map((item) => (
+            <div
+              key={item.title}
+              className="rounded-3xl border border-black/5 bg-white p-6 shadow-lg"
+            >
+              <h3 className="text-xl font-semibold text-dark">{item.title}</h3>
+              <p className="mt-2 text-sm text-gray-700">{item.description}</p>
+              <Link
+                href={item.href}
+                className="mt-4 inline-flex w-fit items-center text-sm font-semibold text-primary"
+              >
+                {item.cta} →
+              </Link>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="content-section space-y-8">
         <div className="flex flex-col gap-2">
@@ -38,11 +102,11 @@ export default function ServicesPage() {
             Šta radimo
           </span>
           <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Građevinske usluge na jednom mestu
+            Betonska logistika, pumpe i priprema gradilišta
           </h2>
           <p className="max-w-3xl text-sm text-gray-700">
-            Od temelja do završnih radova — naša baza, vozni park i tim omogućavaju da
-            projekti napreduju bez zastoja.
+            Od temelja do ploče – baza, vozni park i tim omogućavaju da projekti napreduju bez
+            zastoja i bez improvizacije na terenu.
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -137,11 +201,11 @@ export default function ServicesPage() {
                 Hitna isporuka
               </span>
               <h3 className="text-3xl font-bold sm:text-4xl">
-                Potreban vam je beton ili tampon odmah?
+                Potreban vam je beton, pumpa ili zemljani radovi?
               </h3>
               <p className="text-sm text-gray-200">
-                Dežurni smo za brze reakcije i noćne isporuke. Kontaktirajte nas za
-                rezervaciju termina.
+                Brzo reagujemo i organizujemo termin u skladu sa uslovima na gradilištu.
+                Kontaktirajte nas za rezervaciju termina i procenu logistike.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link

@@ -1,8 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import HeroSlider from "@/components/hero-slider";
 import { aboutHighlights, company, heroSlides, services, stats } from "@/content/site";
 import { getProjects } from "@/lib/api";
 import type { Project } from "@/lib/api";
+
+export const metadata: Metadata = {
+  title: "Isporuka betona, visinske pumpe i zemljani radovi u Nišu",
+  description:
+    "Prevozkop (Prevoz Kop) iz Niša pruža isporuku gotovog betona na gradilište, visoke pumpe za beton (velike visine, nepristupačan teren) i zemljane radove. Servisna zona: Niš, Leskovac, Prokuplje, Aleksinac i jug/centralna Srbija.",
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const featuredServices = services.slice(0, 4);
@@ -17,6 +25,9 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-16 sm:space-y-24">
+      <h1 className="sr-only">
+        Prevozkop – isporuka betona, visinske pumpe za beton i zemljani radovi u Nišu
+      </h1>
       <HeroSlider slides={heroSlides} />
 
       <section className="content-section">
@@ -26,12 +37,14 @@ export default async function HomePage() {
               O nama
             </span>
             <h2 className="text-3xl font-bold leading-tight text-dark sm:text-4xl">
-              Proizvodnja i isporuka betona visokog kvaliteta
+              Prevozkop: isporuka betona, visinske pumpe i zemljani radovi u Nišu
             </h2>
             <p className="text-base text-gray-700">
-              Specijalizovani smo za beton i građevinske radove: sopstvena betonska baza,
-              brza isporuka mikserima, pumpanje betona i kompletni zemljani radovi. Na
-              terenu nas vode iskustvo, preciznost i briga o bezbednosti.
+              Prevozkop (Prevoz Kop) je građevinska podrška iz Niša, specijalizovana za isporuku
+              gotovog betona na gradilište, visoke pumpe za beton (velike visine, nepristupačan
+              teren) i zemljane radove (iskopi, ravnanje terena, priprema gradilišta). Radimo u
+              Nišu i okolnim gradovima (Leskovac, Prokuplje, Aleksinac), kao i širom juga/centralne
+              Srbije – u dogovoru sa investitorom i uslovima na terenu.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {aboutHighlights.map((item) => (
@@ -54,7 +67,7 @@ export default async function HomePage() {
                 href="/porucivanje-betona#forma"
                 className="inline-flex items-center rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
               >
-                Poruci beton
+                Poruči beton
               </Link>
             </div>
           </div>

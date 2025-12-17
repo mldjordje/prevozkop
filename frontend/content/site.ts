@@ -80,8 +80,15 @@ export const services: Service[] = [
     image: "/img/rad1.jpg",
   },
   {
+    title: "Visinske pumpe za beton",
+    description:
+      "Beton pumpe velikog dosega za betoniranje višespratnica, većih visina i nepristupačnih terena.",
+    image: "/img/napolje2.jpg",
+  },
+  {
     title: "Iskopi i tamponiranje",
-    description: "Sve vrste iskopa zemljišta i priprema tampona za siguran temelj i stabilan teren.",
+    description:
+      "Sve vrste iskopa zemljišta i priprema tampona za siguran temelj, stabilan teren i prilaz mehanizaciji.",
     image: "/img/uterivac.jpg",
   },
   {
@@ -91,7 +98,8 @@ export const services: Service[] = [
   },
   {
     title: "Prevoz rasutih materijala",
-    description: "Transport peska, šljunka, zemlje i nasipa u svim količinama, uz novu flotu vozila.",
+    description:
+      "Transport peska, šljunka, zemlje i nasipa u svim količinama, uz organizaciju istovara na terenu.",
     image: "/img/kamionislika1.jpg",
   },
   {

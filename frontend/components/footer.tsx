@@ -25,8 +25,9 @@ export default function Footer() {
               </div>
             </div>
             <p className="max-w-md text-sm text-gray-300">
-              Proizvodimo beton najviše klase, obavljamo iskope i pripremu terena,
-              a naša flota miksera i pumpi obezbeđuje brzu i sigurnu isporuku.
+              Prevozkop (Prevoz Kop) je građevinska podrška iz Niša: isporuka gotovog betona,
+              visinske pumpe za beton i zemljani radovi (iskopi, ravnanje terena, priprema
+              gradilišta) za stambenu i poslovnu gradnju u Nišu i regionu.
             </p>
           </div>
 
