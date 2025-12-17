@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/navigation";
@@ -34,6 +35,19 @@ export default function RootLayout({
   return (
     <html lang="sr" className={inter.variable}>
       <body className="bg-light text-dark antialiased">
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17801652604"
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-gtag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17801652604');
+          `}
+        </Script>
         <HeroUIProviders>
           <Navigation />
           <main>{children}</main>
