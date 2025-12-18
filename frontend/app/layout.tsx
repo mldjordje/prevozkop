@@ -68,6 +68,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const googleAdsId = process.env.NEXT_PUBLIC_GADS_ID || "AW-17801652604";
+
   return (
     <html lang="sr-Latn-RS" className={inter.variable}>
       <body className="bg-light text-dark antialiased">
@@ -119,19 +121,23 @@ export default function RootLayout({
           })}
         </Script>
 
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=AW-17801652604"
-          strategy="afterInteractive"
-        />
-        <Script id="google-ads-gtag" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-17801652604');
-          `}
-        </Script>
+        {googleAdsId && (
+          <>
+            <Script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-ads-gtag" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${googleAdsId}');
+              `}
+            </Script>
+          </>
+        )}
 
         <HeroUIProviders>
           <Navigation />

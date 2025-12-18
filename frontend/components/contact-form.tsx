@@ -22,6 +22,8 @@ export default function ContactForm() {
   const [error, setError] = useState<string | null>(null);
   const submitInFlightRef = useRef(false);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
+  const GOOGLE_ADS_SEND_TO =
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_SEND_TO || process.env.NEXT_PUBLIC_GADS_SEND_TO;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,8 +51,9 @@ export default function ContactForm() {
       });
       if (!res.ok) throw new Error(`Status ${res.status}`);
       const gtag = typeof window !== "undefined" ? (window as any).gtag : undefined;
-      if (typeof gtag === "function") {
-        gtag("event", "conversion", { send_to: "AW-17801652604" });
+      if (typeof gtag === "function" && GOOGLE_ADS_SEND_TO) {
+        // Google Ads conversion event (requires proper send_to value with conversion label)
+        gtag("event", "conversion", { send_to: GOOGLE_ADS_SEND_TO });
       }
       setState("success");
       form.reset();
