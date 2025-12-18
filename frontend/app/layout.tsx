@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -144,6 +145,7 @@ export default function RootLayout({
           <main>{children}</main>
           <Footer />
         </HeroUIProviders>
+        <Analytics />
       </body>
     </html>
   );
