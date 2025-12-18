@@ -4,14 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, cubicBezier } from "framer-motion";
 import type { HeroSlide } from "@/content/site";
 
 type Props = {
   slides: HeroSlide[];
 };
 
-const fadeEase = [0.22, 1, 0.36, 1];
+const fadeEase = cubicBezier(0.22, 1, 0.36, 1);
 
 export default function HeroSlider({ slides }: Props) {
   const [index, setIndex] = useState(0);
