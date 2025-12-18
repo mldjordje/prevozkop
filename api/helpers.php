@@ -92,3 +92,52 @@ function store_upload(array $config, array $file, int $projectId, array $allowed
     $relative = $projectId . '/' . basename($target);
     return $relative;
 }
+
+function header_safe(string $value): string
+{
+    return str_replace(["\r", "\n"], '', $value);
+}
+
+function notify_order_via_email(array $config, array $order): bool
+{
+    $mail = $config['mail'] ?? [];
+    $to = (string) ($mail['orders_to'] ?? '');
+    if ($to === '') {
+        return false;
+    }
+
+    $fromEmail = header_safe((string) ($mail['from'] ?? 'noreply@prevozkop.rs'));
+    $fromName = header_safe((string) ($mail['from_name'] ?? 'Prevozkop'));
+    $prefix = (string) ($mail['subject_prefix'] ?? '');
+
+    $customerEmail = trim((string) ($order['email'] ?? ''));
+    $replyTo = filter_var($customerEmail, FILTER_VALIDATE_EMAIL) ? header_safe($customerEmail) : '';
+
+    $shortSubject = trim((string) ($order['subject'] ?? ''));
+    $subject = $prefix . 'Novi upit sa forme' . ($shortSubject !== '' ? (': ' . $shortSubject) : '');
+    $subject = header_safe($subject);
+
+    $lines = [];
+    $lines[] = 'Novi upit sa forme na sajtu Prevozkop';
+    $lines[] = 'Vreme: ' . date('Y-m-d H:i:s');
+    $lines[] = '';
+    $lines[] = 'Ime: ' . (string) ($order['name'] ?? '');
+    $lines[] = 'Email: ' . (string) ($order['email'] ?? '');
+    $lines[] = 'Telefon: ' . (string) ($order['phone'] ?? '');
+    $lines[] = 'Tema: ' . (string) ($order['subject'] ?? '');
+    $lines[] = 'Tip betona: ' . (string) ($order['concrete_type'] ?? '');
+    $lines[] = '';
+    $lines[] = "Poruka:\n" . (string) ($order['message'] ?? '');
+    $body = implode("\n", $lines);
+
+    $headers = [];
+    $headers[] = 'MIME-Version: 1.0';
+    $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+    $headers[] = 'Content-Transfer-Encoding: 8bit';
+    $headers[] = 'From: ' . ($fromName !== '' ? "{$fromName} <{$fromEmail}>" : $fromEmail);
+    if ($replyTo !== '') {
+        $headers[] = 'Reply-To: ' . $replyTo;
+    }
+
+    return @mail($to, $subject, $body, implode("\r\n", $headers));
+}

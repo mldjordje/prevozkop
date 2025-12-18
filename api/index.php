@@ -21,7 +21,7 @@ if ($path === '' || $path === 'health') {
 
 // Public create order
 if ($method === 'POST' && $path === 'orders') {
-    create_order($pdo);
+    create_order($pdo, $config);
 }
 
 // Public endpoints
@@ -335,7 +335,7 @@ function delete_media(PDO $pdo, array $config, int $projectId, int $mediaId): vo
     send_json(['ok' => true]);
 }
 
-function create_order(PDO $pdo): void
+function create_order(PDO $pdo, array $config): void
 {
     $data = read_json_body();
     $name = trim($data['name'] ?? '');
@@ -360,7 +360,22 @@ function create_order(PDO $pdo): void
         ':status' => 'new',
     ]);
 
-    send_json(['ok' => true, 'id' => (int) $pdo->lastInsertId()], 201);
+    $id = (int) $pdo->lastInsertId();
+
+    $sent = notify_order_via_email($config, [
+        'id' => $id,
+        'name' => $name,
+        'email' => $email,
+        'phone' => $phone,
+        'subject' => $subject,
+        'concrete_type' => $concreteType,
+        'message' => $message,
+    ]);
+    if (!$sent && ($config['debug'] ?? false)) {
+        error_log('Order email notification failed for order id ' . $id);
+    }
+
+    send_json(['ok' => true, 'id' => $id], 201);
 }
 
 function list_orders(PDO $pdo): void

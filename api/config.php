@@ -27,5 +27,13 @@ return [
         // Max upload size in bytes (should align with php.ini upload_max_filesize/post_max_size)
         'max_size' => (int) (getenv('UPLOAD_MAX_BYTES') ?: 32 * 1024 * 1024),
     ],
+    'mail' => [
+        // Where to send notifications about new orders (form submissions)
+        'orders_to' => getenv('ORDER_NOTIFY_EMAIL') ?: 'djordje@adspire.rs',
+        // Must usually be a mailbox on your domain in shared hosting (cPanel)
+        'from' => getenv('MAIL_FROM') ?: 'noreply@prevozkop.rs',
+        'from_name' => getenv('MAIL_FROM_NAME') ?: 'Prevozkop',
+        'subject_prefix' => getenv('MAIL_SUBJECT_PREFIX') ?: '[Prevozkop] ',
+    ],
     'debug' => getenv('APP_DEBUG') === '1',
 ];

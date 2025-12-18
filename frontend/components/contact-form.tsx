@@ -22,8 +22,11 @@ export default function ContactForm() {
   const [error, setError] = useState<string | null>(null);
   const submitInFlightRef = useRef(false);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
+  const DEFAULT_SEND_TO = "AW-17801652604/1aABCMrT9tIbEPzSvqHC";
   const GOOGLE_ADS_SEND_TO =
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_SEND_TO || process.env.NEXT_PUBLIC_GADS_SEND_TO;
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_SEND_TO ||
+    process.env.NEXT_PUBLIC_GADS_SEND_TO ||
+    DEFAULT_SEND_TO;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
