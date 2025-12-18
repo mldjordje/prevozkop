@@ -13,6 +13,7 @@ type ScrollRevealProps<T extends ElementType> = {
   from?: Direction;
   once?: boolean;
   amount?: number;
+  duration?: number;
 } & Omit<ComponentPropsWithoutRef<T>, "as" | "children" | "className">;
 
 const directionVariants: Record<Direction, { hidden: Record<string, unknown>; visible: Record<string, unknown> }> = {
@@ -31,6 +32,7 @@ export function ScrollReveal<T extends ElementType = "div">({
   from = "up",
   once = true,
   amount = 0.3,
+  duration = 0.9,
   ...rest
 }: ScrollRevealProps<T>) {
   const ref = useRef<HTMLElement | null>(null);
@@ -45,7 +47,7 @@ export function ScrollReveal<T extends ElementType = "div">({
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
       variants={variants}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay }}
+      transition={{ duration, ease: [0.22, 1, 0.36, 1], delay }}
       className={className}
       {...rest}
     >

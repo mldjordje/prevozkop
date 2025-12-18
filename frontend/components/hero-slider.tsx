@@ -20,9 +20,17 @@ export default function HeroSlider({ slides }: Props) {
   useEffect(() => {
     const id = setInterval(() => {
       setIndex((prev) => (prev + 1) % slides.length);
-    }, 6000);
+    }, 9000);
     return () => clearInterval(id);
   }, [slides.length]);
+
+  // Preload narednog slajda da slike ne kasne u prelazu.
+  useEffect(() => {
+    const next = slides[(index + 1) % slides.length];
+    if (!next) return;
+    const img = new window.Image();
+    img.src = next.image;
+  }, [index, slides]);
 
   const label = useMemo(
     () => "Betonska baza u Nišu · isporuka betona · pumpe · zemljani radovi",
@@ -35,10 +43,10 @@ export default function HeroSlider({ slides }: Props) {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSlide.image}
-            initial={{ scale: 1.08, opacity: 0 }}
+            initial={{ scale: 1.06, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 1.04, opacity: 0 }}
-            transition={{ duration: 1.1, ease: fadeEase }}
+            exit={{ scale: 1.02, opacity: 0 }}
+            transition={{ duration: 1.3, ease: fadeEase }}
             className="absolute inset-0"
           >
             <Image
@@ -58,10 +66,21 @@ export default function HeroSlider({ slides }: Props) {
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.02 }}
-          transition={{ duration: 0.9, ease: fadeEase }}
-          className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/35"
+          transition={{ duration: 1, ease: fadeEase }}
+          className="absolute inset-0 bg-gradient-to-br from-black/82 via-black/60 to-black/35"
         />
       </AnimatePresence>
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.8, rotate: 6 }}
+        transition={{ duration: 2.4, ease: fadeEase }}
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 15% 25%, rgba(244,161,0,0.28), transparent 35%), radial-gradient(circle at 85% 65%, rgba(255,255,255,0.14), transparent 35%)",
+        }}
+      />
       <div className="relative z-10 mx-auto flex min-h-[70vh] max-w-6xl flex-col justify-center gap-6 px-4 py-16 sm:px-6 lg:px-8">
         <AnimatePresence mode="wait">
           <motion.div
@@ -69,7 +88,7 @@ export default function HeroSlider({ slides }: Props) {
             initial={{ opacity: 0, y: 32 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
-            transition={{ duration: 0.7, ease: fadeEase }}
+            transition={{ duration: 0.85, ease: fadeEase }}
             className="space-y-6"
           >
             <div className="flex flex-wrap items-center gap-3">
