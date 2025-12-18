@@ -18,7 +18,7 @@ export default async function ProjectsPage() {
         title="Galerija projekata"
         kicker="Radovi"
         description="Betoniranje, tamponiranje, rušenje i transport rasutih materijala širom regiona."
-        background="/img/volvonov2.jpg"
+        background="/img/volvonov2.webp"
         priority
         actions={[{ label: "Zatraži ponudu", href: "/porucivanje-betona#forma" }]}
       />
@@ -49,7 +49,7 @@ export default async function ProjectsPage() {
                 <article>
                   <div className="h-52 overflow-hidden">
                     <img
-                      src={project.hero_image || "/img/napolje1.jpg"}
+                      src={project.hero_image || "/img/napolje1.webp"}
                       alt={project.title}
                       className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                       loading="lazy"

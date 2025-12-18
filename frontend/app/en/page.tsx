@@ -9,7 +9,7 @@ export default function HomeEn() {
         title="Concrete supply, demolition and earthworks"
         kicker="Prevoz Kop"
         description="Concrete production and delivery with mixers and pumps, excavation, demolition, grading and transport of bulk materials across Niš and southern Serbia."
-        background="/img/kamionislika2.jpg"
+        background="/img/kamionislika2.webp"
         priority
         actions={[
           { label: "Order concrete", href: "/en/order-concrete#form" },

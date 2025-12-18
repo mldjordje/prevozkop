@@ -15,7 +15,7 @@ export default function AboutPage() {
         title="Gradimo sve što vam je potrebno"
         kicker="O nama"
         description="Betonska baza, iskopi, tamponiranje, rušenje i kompletna podrška na terenu."
-        background="/img/napolje5.jpg"
+        background="/img/napolje5.webp"
         priority
         actions={[
           { label: "Poruci beton", href: "/porucivanje-betona#forma" },
@@ -101,7 +101,7 @@ export default function AboutPage() {
           <MissionCard
             title="Naša misija"
             description="Da budemo lider u industriji betona i građevinskih usluga, uz preciznu isporuku i tehnologiju koja skraćuje rokove."
-            image="/img/mikseri.jpg"
+            image="/img/mikseri.webp"
           />
           <MissionCard
             title="Naša vizija"

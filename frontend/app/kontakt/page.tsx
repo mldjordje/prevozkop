@@ -18,7 +18,7 @@ export default function ContactPage() {
         title="Kontaktirajte nas"
         kicker="Kontakt"
         description="Brzo odgovaramo na upite i dogovaramo isporuku betona, visoke pumpe za beton i zemljane radove (iskopi, priprema gradilišta) u Nišu i regionu."
-        background="/img/volvonov2.jpg"
+        background="/img/volvonov2.webp"
         priority
         actions={[
           { label: "Pozovi", href: "tel:+381605887471" },

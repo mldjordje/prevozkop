@@ -99,7 +99,7 @@ export default function OrderConcretePage() {
         title="Poručivanje betona Niš - isporuka danas"
         kicker="Porudžbina betona"
         description="Brza isporuka betona mikserima i pumpama, nasipanje betona i kompletni zemljani radovi. Pošaljite zahtev online ili pozovite."
-        background="/img/kamionislika2.jpg"
+        background="/img/kamionislika2.webp"
         priority
         actions={[
           { label: "Popuni porudžbinu", href: "#forma" },

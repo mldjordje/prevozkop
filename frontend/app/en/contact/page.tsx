@@ -9,7 +9,7 @@ export default function ContactEn() {
         title="Contact"
         kicker="Get in touch"
         description="Send project details or call us for fast scheduling and dispatch."
-        background="/img/kamionislika2.jpg"
+        background="/img/kamionislika2.webp"
         actions={[
           { label: "Call", href: `tel:${company.phone}` },
           { label: "Email", href: `mailto:${company.email}` },

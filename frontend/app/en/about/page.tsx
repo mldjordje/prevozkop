@@ -7,7 +7,7 @@ export default function AboutEn() {
         title="About Prevoz Kop"
         kicker="Family business"
         description="We produce and deliver concrete, demolish structures, perform excavation and earthworks, and transport bulk materials with our own fleet and crew."
-        background="/img/volvonov2.jpg"
+        background="/img/volvonov2.webp"
       />
 
       <section className="content-section space-y-4">

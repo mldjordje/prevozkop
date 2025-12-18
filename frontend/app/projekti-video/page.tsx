@@ -8,7 +8,7 @@ export default function VideoProjectsPage() {
         title="Video galerija"
         kicker="Na terenu"
         description="YouTube snimci sa isporuke betona, pumpi, tamponiranja i pripreme terena."
-        background="/img/kamion3.jpg"
+        background="/img/kamion3.webp"
         priority
         actions={[{ label: "Pošalji upit", href: "/porucivanje-betona#forma" }]}
       />

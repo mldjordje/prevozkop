@@ -8,7 +8,7 @@ export default function OrderConcreteEn() {
         title="Order concrete"
         kicker="Mixers & pumps"
         description="Fast concrete delivery with mixers and pumps, plus excavation, grading and demolition services."
-        background="/img/kamionislika2.jpg"
+        background="/img/kamionislika2.webp"
         actions={[
           { label: "Send order", href: "#form" },
           { label: "Contact", href: "/en/contact" },

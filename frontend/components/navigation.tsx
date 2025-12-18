@@ -45,7 +45,7 @@ export default function Navigation() {
     <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
-          <img src="/img/logo.png" alt="Prevoz Kop" className="h-11 w-auto" />
+          <img src="/img/logo.webp" alt="Prevoz Kop" className="h-11 w-auto" />
           <div className="hidden sm:block">
             <p className="text-xs uppercase tracking-[0.2em] text-primary">{company.tagline}</p>
             <p className="text-sm font-semibold text-dark">{company.name}</p>

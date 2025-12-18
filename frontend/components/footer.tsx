@@ -16,7 +16,7 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-3">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <img src="/img/logo.png" alt="Prevoz Kop" className="h-12 w-auto" />
+              <img src="/img/logo.webp" alt="Prevoz Kop" className="h-12 w-auto" />
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-primary">
                   {company.tagline}

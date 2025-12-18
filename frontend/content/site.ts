@@ -53,7 +53,7 @@ export const heroSlides: HeroSlide[] = [
     description: "Betonska baza u Nišu sa brzom isporukom mikserima i pumpama za beton.",
     ctaLabel: "Poruči beton",
     ctaHref: "/porucivanje-betona#forma",
-    image: "/img/rad1.jpg",
+    image: "/img/rad1.webp",
   },
   {
     title: "Rešenja po vašoj meri",
@@ -61,7 +61,7 @@ export const heroSlides: HeroSlide[] = [
     description: "Planiranje, iskopi, tamponiranje i kompletna priprema terena za gradilište.",
     ctaLabel: "Poruči beton",
     ctaHref: "/porucivanje-betona#forma",
-    image: "/img/kamino4.jpg",
+    image: "/img/kamino4.webp",
   },
   {
     title: "Vaš partner u izgradnji",
@@ -69,7 +69,7 @@ export const heroSlides: HeroSlide[] = [
     description: "Pouzdana dostava betona, rasutih materijala i podrška na licu mesta.",
     ctaLabel: "Poruči beton",
     ctaHref: "/porucivanje-betona#forma",
-    image: "/img/napolje2.jpg",
+    image: "/img/napolje2.webp",
   },
 ];
 
@@ -77,36 +77,36 @@ export const services: Service[] = [
   {
     title: "Proizvodnja i isporuka betona",
     description: "Visokokvalitetne betonske mešavine sa sopstvene baze i brza isporuka mikserima.",
-    image: "/img/rad1.jpg",
+    image: "/img/rad1.webp",
   },
   {
     title: "Visinske pumpe za beton",
     description:
       "Beton pumpe velikog dosega za betoniranje višespratnica, većih visina i nepristupačnih terena.",
-    image: "/img/napolje2.jpg",
+    image: "/img/napolje2.webp",
   },
   {
     title: "Iskopi i tamponiranje",
     description:
       "Sve vrste iskopa zemljišta i priprema tampona za siguran temelj, stabilan teren i prilaz mehanizaciji.",
-    image: "/img/uterivac.jpg",
+    image: "/img/uterivac.webp",
   },
   {
     title: "Rušenje i priprema terena",
     description: "Bezbedno rušenje objekata, demontaža i čišćenje lokacije sa minimalnim zastojem.",
-    image: "/img/vozila2.jpg",
+    image: "/img/vozila2.webp",
   },
   {
     title: "Prevoz rasutih materijala",
     description:
       "Transport peska, šljunka, zemlje i nasipa u svim količinama, uz organizaciju istovara na terenu.",
-    image: "/img/kamionislika1.jpg",
+    image: "/img/kamionislika1.webp",
   },
   {
     title: "Izgradnja temelja",
     description:
       "Temeljenje za stambene, poslovne i industrijske objekte sa potpunom kontrolom kvaliteta.",
-    image: "/img/rad2.jpg",
+    image: "/img/rad2.webp",
   },
 ];
 

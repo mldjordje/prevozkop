@@ -12,7 +12,7 @@ export default async function ProjectsEn() {
         title="Projects"
         kicker="Gallery"
         description="Recent concrete deliveries, demolition and earthwork jobs. Open a project to view photos."
-        background="/img/volvonov2.jpg"
+        background="/img/volvonov2.webp"
         actions={[{ label: "Order concrete", href: "/en/order-concrete#form" }]}
       />
 
@@ -36,7 +36,7 @@ export default async function ProjectsEn() {
                 <article>
                   <div className="h-52 overflow-hidden">
                     <img
-                      src={project.hero_image || "/img/napolje1.jpg"}
+                      src={project.hero_image || "/img/napolje1.webp"}
                       alt={project.title}
                       className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                       loading="lazy"

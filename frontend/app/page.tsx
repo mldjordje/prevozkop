@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import HeroSlider from "@/components/hero-slider";
+import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
+import TiltCard from "@/components/motion/tilt-card";
 import { aboutHighlights, company, heroSlides, services, stats } from "@/content/site";
 import { getProjects } from "@/lib/api";
 import type { Project } from "@/lib/api";
@@ -32,7 +34,7 @@ export default async function HomePage() {
 
       <section className="content-section">
         <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-5">
+          <ScrollReveal className="space-y-5" from="left">
             <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
               O nama
             </span>
@@ -70,135 +72,137 @@ export default async function HomePage() {
                 Poruči beton
               </Link>
             </div>
-          </div>
+          </ScrollReveal>
 
-          <div className="relative overflow-hidden rounded-3xl border border-black/5 shadow-xl">
+          <ScrollReveal
+            from="right"
+            className="relative overflow-hidden rounded-3xl border border-black/5 shadow-xl"
+          >
             <div
               className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-white/40"
               aria-hidden
             />
             <img
-              src="/img/napolje1.jpg"
+              src="/img/napolje1.webp"
               alt="Betonska baza i dostava"
               className="h-full w-full object-cover"
               loading="lazy"
             />
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
       <section className="content-section space-y-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
-          <div className="space-y-2">
+          <ScrollReveal className="space-y-2">
             <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               Naše usluge
             </span>
             <h2 className="text-3xl font-bold text-dark sm:text-4xl">
               Pružamo najbolje građevinske usluge
             </h2>
-          </div>
-          <Link
-            href="/usluge"
-            className="inline-flex items-center text-sm font-semibold text-primary"
-          >
-            Sve usluge →
-          </Link>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {featuredServices.map((service) => (
-            <div
-              key={service.title}
-              className="group relative overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
+          </ScrollReveal>
+          <ScrollReveal from="right">
+            <Link
+              href="/usluge"
+              className="inline-flex items-center text-sm font-semibold text-primary"
             >
-              <div className="h-40 overflow-hidden">
-                <img
-                  src={service.image}
-                  alt={service.title}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-              <div className="space-y-2 p-5">
-                <h3 className="text-lg font-semibold text-dark">{service.title}</h3>
-                <p className="text-sm text-gray-700">{service.description}</p>
-              </div>
-            </div>
-          ))}
+              Sve usluge →
+            </Link>
+          </ScrollReveal>
         </div>
+        <StaggerReveal className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {featuredServices.map((service) => (
+            <ScrollReveal key={service.title} from="up" className="h-full">
+              <TiltCard className="group relative h-full overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md">
+                <div className="h-40 overflow-hidden">
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="space-y-2 p-5">
+                  <h3 className="text-lg font-semibold text-dark">{service.title}</h3>
+                  <p className="text-sm text-gray-700">{service.description}</p>
+                </div>
+              </TiltCard>
+            </ScrollReveal>
+          ))}
+        </StaggerReveal>
       </section>
 
       <section className="bg-white">
         <div className="content-section grid gap-6 rounded-3xl border border-black/5 bg-gradient-to-r from-white via-white to-primary/10 px-6 py-10 shadow-xl sm:px-10">
-          <div className="flex flex-wrap items-center gap-4">
+          <ScrollReveal className="flex flex-wrap items-center gap-4">
             <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
               Rezultati
             </span>
-            <p className="text-sm text-gray-600">
-              Flota novih vozila, provereni tim i stalne inovacije.
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <p className="text-sm text-gray-600">Flota novih vozila, provereni tim i stalne inovacije.</p>
+          </ScrollReveal>
+          <StaggerReveal className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" stagger={0.07}>
             {stats.map((item) => (
-              <div
-                key={item.label}
-                className="rounded-2xl border border-black/5 bg-white px-4 py-6 text-center shadow-sm"
-              >
-                <div className="text-3xl font-bold text-dark">{item.value}</div>
-                <div className="text-sm font-semibold text-gray-600">{item.label}</div>
-              </div>
+              <ScrollReveal key={item.label} from="up">
+                <div className="rounded-2xl border border-black/5 bg-white px-4 py-6 text-center shadow-sm">
+                  <div className="text-3xl font-bold text-dark">{item.value}</div>
+                  <div className="text-sm font-semibold text-gray-600">{item.label}</div>
+                </div>
+              </ScrollReveal>
             ))}
-          </div>
+          </StaggerReveal>
         </div>
       </section>
 
       <section className="content-section space-y-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
-          <div className="space-y-2">
+          <ScrollReveal className="space-y-2">
             <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               Naši projekti
             </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Galerija radova na terenu
-            </h2>
-          </div>
-          <Link
-            href="/projekti"
-            className="inline-flex items-center text-sm font-semibold text-primary"
-          >
-            Pogledaj sve →
-          </Link>
+            <h2 className="text-3xl font-bold text-dark sm:text-4xl">Galerija radova na terenu</h2>
+          </ScrollReveal>
+          <ScrollReveal from="right">
+            <Link
+              href="/projekti"
+              className="inline-flex items-center text-sm font-semibold text-primary"
+            >
+              Pogledaj sve →
+            </Link>
+          </ScrollReveal>
         </div>
         {featuredProjects.length === 0 ? (
-          <p className="text-sm text-gray-600">
-            Još uvek nema objavljenih projekata. Pratite nas za nove radove.
-          </p>
+          <ScrollReveal>
+            <p className="text-sm text-gray-600">
+              Još uvek nema objavljenih projekata. Pratite nas za nove radove.
+            </p>
+          </ScrollReveal>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <StaggerReveal className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {featuredProjects.map((project) => (
-              <div
-                key={project.id}
-                className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="h-52 overflow-hidden">
-                  <img
-                    src={project.hero_image || "/img/napolje1.jpg"}
-                    alt={project.title}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="space-y-1 p-5">
-                  <p className="text-xs uppercase tracking-[0.2em] text-primary">Projekat</p>
-                  <h3 className="text-lg font-semibold text-dark">{project.title}</h3>
-                  {project.published_at && (
-                    <p className="text-sm text-gray-600">
-                      Objavljeno: {new Date(project.published_at).toLocaleDateString("sr-RS")}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <ScrollReveal key={project.id} from="up" className="h-full">
+                <TiltCard className="group h-full overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md">
+                  <div className="h-52 overflow-hidden">
+                    <img
+                      src={project.hero_image || "/img/napolje1.webp"}
+                      alt={project.title}
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="space-y-1 p-5">
+                    <p className="text-xs uppercase tracking-[0.2em] text-primary">Projekat</p>
+                    <h3 className="text-lg font-semibold text-dark">{project.title}</h3>
+                    {project.published_at && (
+                      <p className="text-sm text-gray-600">
+                        Objavljeno: {new Date(project.published_at).toLocaleDateString("sr-RS")}
+                      </p>
+                    )}
+                  </div>
+                </TiltCard>
+              </ScrollReveal>
             ))}
-          </div>
+          </StaggerReveal>
         )}
       </section>
 
@@ -206,7 +210,7 @@ export default async function HomePage() {
         <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-dark text-white shadow-2xl">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(244,161,0,0.2),_transparent_40%)]" />
           <div className="grid gap-8 px-6 py-10 sm:px-10 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-4">
+            <ScrollReveal className="space-y-4">
               <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                 Kontakt
               </span>
@@ -214,8 +218,8 @@ export default async function HomePage() {
                 Potreban vam je beton ili kompletni zemljani radovi?
               </h3>
               <p className="text-sm text-gray-200">
-                Pozovite nas ili pošaljite upit. Naš tim odgovara brzo, predlaže najbolje
-                rešenje i organizuje isporuku bez kašnjenja.
+                Pozovite nas ili pošaljite upit. Naš tim odgovara brzo, predlaže najbolje rešenje i
+                organizuje isporuku bez kašnjenja.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -231,13 +235,16 @@ export default async function HomePage() {
                   Pošalji upit
                 </Link>
               </div>
-            </div>
-            <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 sm:grid-cols-2">
+            </ScrollReveal>
+            <ScrollReveal
+              from="right"
+              className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 sm:grid-cols-2"
+            >
               <ContactCard label="Adresa" value={company.address} />
               <ContactCard label="Telefon" value={company.phone} />
               <ContactCard label="Email" value={company.email} />
               <ContactCard label="Radno vreme" value={company.workingHours} />
-            </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>

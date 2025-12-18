@@ -7,7 +7,7 @@ export default function ServicesEn() {
         title="Services"
         kicker="What we offer"
         description="Concrete production and delivery, demolition, excavation, grading and transport of bulk materials across Niš and southern Serbia."
-        background="/img/volvonov2.jpg"
+        background="/img/volvonov2.webp"
         actions={[{ label: "Order concrete", href: "/en/order-concrete#form" }]}
       />
 
