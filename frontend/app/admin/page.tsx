@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -68,6 +68,10 @@ export default function AdminPage() {
     body: "",
     status: "draft",
   });
+  const [newProjectHero, setNewProjectHero] = useState<File | null>(null);
+  const [newProjectGallery, setNewProjectGallery] = useState<FileList | null>(null);
+  const heroInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     refreshProjects();
@@ -202,14 +206,26 @@ export default function AdminPage() {
     setIsFetching(true);
     setMessage(null);
     try {
-      await adminCreateProject({
+      const created = await adminCreateProject({
         title: newProject.title,
         slug: newProject.slug || undefined,
         excerpt: newProject.excerpt,
         body: newProject.body,
         status: newProject.status,
       });
+      if (newProjectHero) {
+        await uploadHeroImage(created.id, newProjectHero);
+      }
+      if (newProjectGallery?.length) {
+        for (const file of Array.from(newProjectGallery)) {
+          await uploadGalleryImage(created.id, file);
+        }
+      }
       setNewProject({ title: "", slug: "", excerpt: "", body: "", status: "draft" });
+      setNewProjectHero(null);
+      setNewProjectGallery(null);
+      if (heroInputRef.current) heroInputRef.current.value = "";
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
       await refreshProjects();
       setMessage("Projekat je uspešno kreiran.");
     } catch (error) {
@@ -437,6 +453,37 @@ export default function AdminPage() {
                           <SelectItem key={item.key}>{item.label}</SelectItem>
                         ))}
                       </Select>
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                          Hero fotografija
+                        </p>
+                        <input
+                          ref={heroInputRef}
+                          type="file"
+                          accept="image/*"
+                          disabled={isFetching}
+                          onChange={(event) => setNewProjectHero(event.target.files?.[0] ?? null)}
+                          className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                          Galerija
+                        </p>
+                        <p className="text-[11px] text-gray-600">
+                          Možete odabrati više fajlova odjednom (na telefonu otvorite Foto biblioteku
+                          i tapnite “Odaberi”).
+                        </p>
+                        <input
+                          ref={galleryInputRef}
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          disabled={isFetching}
+                          onChange={(event) => setNewProjectGallery(event.target.files)}
+                          className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                        />
+                      </div>
                       <Button color="primary" type="submit" isDisabled={isFetching}>
                         Sačuvaj
                       </Button>
