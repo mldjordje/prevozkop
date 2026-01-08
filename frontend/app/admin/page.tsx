@@ -568,14 +568,17 @@ export default function AdminPage() {
                                     ))}
                                   </div>
                                 )}
-                                <p className="text-[11px] text-gray-600">
-                                  Možete odabrati više fajlova odjednom (držite Ctrl/Shift ili označite
-                                  više na mobilnom).
+                                <p id={`gallery-help-${project.id}`} className="text-[11px] text-gray-600">
+                                  Možete odabrati više fajlova odjednom (na telefonu otvorite Foto
+                                  biblioteku i tapnite “Odaberi”).
                                 </p>
                                 <input
                                   type="file"
+                                  id={`gallery-upload-${project.id}`}
+                                  name="galleryImages"
                                   accept="image/*"
                                   multiple
+                                  aria-describedby={`gallery-help-${project.id}`}
                                   disabled={isUploadingGallery}
                                   onChange={(event) =>
                                     handleGalleryUpload(project.id, event.target.files)
