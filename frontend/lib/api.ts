@@ -33,8 +33,8 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
       "Content-Type": "application/json",
       ...(init?.headers || {}),
     },
-    // Revalidate every 60s by default for SSG pages
-    next: { revalidate: 60 },
+    // Revalidate every 5 minutes by default for SSG pages
+    next: { revalidate: 300 },
   });
 
   if (!res.ok) {

@@ -1,7 +1,9 @@
-uploads/
+uploads/*
+!uploads/.htaccess
 vendor/
 api/.env
 api/config.local.php
+api/cache/
 node_modules/
 .next/
 frontend/node_modules/

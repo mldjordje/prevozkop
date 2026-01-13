@@ -27,6 +27,25 @@ function send_json($data, int $status = 200): void
     exit;
 }
 
+function set_public_cache_headers(int $ttl): void
+{
+    if ($ttl <= 0) {
+        return;
+    }
+    $swr = $ttl * 4;
+    header('Cache-Control: public, max-age=' . $ttl . ', stale-while-revalidate=' . $swr);
+    header('Vary: Accept-Encoding');
+}
+
+function send_json_cached(string $json, int $status, int $ttl): void
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    set_public_cache_headers($ttl);
+    echo $json;
+    exit;
+}
+
 function error_json(int $status, string $message): void
 {
     send_json(['error' => $message], $status);
@@ -45,6 +64,66 @@ function sanitize_filename(string $name): string
 {
     $name = preg_replace('/[^a-zA-Z0-9-_\.]/', '_', $name) ?? 'file';
     return trim($name, '_');
+}
+
+function cache_ttl(array $config): int
+{
+    return (int) ($config['cache']['ttl'] ?? 0);
+}
+
+function cache_dir(array $config): ?string
+{
+    $dir = (string) ($config['cache']['dir'] ?? '');
+    if ($dir === '') {
+        return null;
+    }
+    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+        return null;
+    }
+    return rtrim($dir, '/\\');
+}
+
+function cache_key(string $namespace, array $parts = []): string
+{
+    $raw = $namespace . ':' . implode(':', $parts);
+    return hash('sha256', $raw);
+}
+
+function cache_get(array $config, string $key): ?string
+{
+    $ttl = cache_ttl($config);
+    if ($ttl <= 0) {
+        return null;
+    }
+    $dir = cache_dir($config);
+    if (!$dir) {
+        return null;
+    }
+    $path = $dir . '/' . $key . '.json';
+    if (!is_file($path)) {
+        return null;
+    }
+    $mtime = filemtime($path);
+    if ($mtime === false || ($mtime + $ttl) < time()) {
+        @unlink($path);
+        return null;
+    }
+    $payload = file_get_contents($path);
+    return $payload !== false ? $payload : null;
+}
+
+function cache_put(array $config, string $key, string $payload): void
+{
+    $ttl = cache_ttl($config);
+    if ($ttl <= 0) {
+        return;
+    }
+    $dir = cache_dir($config);
+    if (!$dir) {
+        return;
+    }
+    $path = $dir . '/' . $key . '.json';
+    @file_put_contents($path, $payload, LOCK_EX);
 }
 
 function ensure_upload_dir(array $config, int $projectId): string

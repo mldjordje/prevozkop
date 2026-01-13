@@ -15,22 +15,43 @@ const fadeEase = cubicBezier(0.22, 1, 0.36, 1);
 
 export default function HeroSlider({ slides }: Props) {
   const [index, setIndex] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(false);
   const activeSlide = slides[index];
+  const imageInitial = index === 0 ? { scale: 1, opacity: 1 } : { scale: 1.06, opacity: 0 };
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mediaQuery.matches) {
+      return;
+    }
+
+    const enableAutoPlay = () => setAutoPlay(true);
+    const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "scroll", "touchstart"];
+    events.forEach((event) =>
+      window.addEventListener(event, enableAutoPlay, { once: true, passive: true })
+    );
+
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, enableAutoPlay));
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!autoPlay) return;
     const id = setInterval(() => {
       setIndex((prev) => (prev + 1) % slides.length);
     }, 9000);
     return () => clearInterval(id);
-  }, [slides.length]);
+  }, [autoPlay, slides.length]);
 
   // Preload narednog slajda da slike ne kasne u prelazu.
   useEffect(() => {
+    if (!autoPlay) return;
     const next = slides[(index + 1) % slides.length];
     if (!next) return;
     const img = new window.Image();
     img.src = next.image;
-  }, [index, slides]);
+  }, [autoPlay, index, slides]);
 
   const label = useMemo(
     () => "Betonska baza u Nišu · isporuka betona · pumpe · zemljani radovi",
@@ -43,7 +64,7 @@ export default function HeroSlider({ slides }: Props) {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSlide.image}
-            initial={{ scale: 1.06, opacity: 0 }}
+            initial={imageInitial}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 1.02, opacity: 0 }}
             transition={{ duration: 1.3, ease: fadeEase }}
@@ -54,6 +75,7 @@ export default function HeroSlider({ slides }: Props) {
               alt={activeSlide.title}
               fill
               priority={index === 0}
+              fetchPriority={index === 0 ? "high" : "auto"}
               sizes="100vw"
               className="object-cover"
             />

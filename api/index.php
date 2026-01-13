@@ -53,6 +53,15 @@ function list_projects(PDO $pdo, array $config): void
         $status = 'published';
     }
 
+    $cacheTtl = cache_ttl($config);
+    if (!$isAdmin && $cacheTtl > 0) {
+        $cacheKey = cache_key('projects', [$status, $limit, $offset]);
+        $cached = cache_get($config, $cacheKey);
+        if ($cached) {
+            send_json_cached($cached, 200, $cacheTtl);
+        }
+    }
+
     $where = $status === 'all' ? '1=1' : 'status = :status';
     $stmt = $pdo->prepare("SELECT id, title, slug, excerpt, hero_image, published_at, created_at FROM projects WHERE {$where} ORDER BY COALESCE(published_at, created_at) DESC LIMIT :limit OFFSET :offset");
     if ($status !== 'all') {
@@ -65,12 +74,33 @@ function list_projects(PDO $pdo, array $config): void
 
     $data = array_map(fn ($row) => map_project_brief($row, $config), $rows);
 
-    send_json(['data' => $data, 'meta' => ['limit' => $limit, 'offset' => $offset]]);
+    $payload = ['data' => $data, 'meta' => ['limit' => $limit, 'offset' => $offset]];
+    if (!$isAdmin && $cacheTtl > 0) {
+        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($json !== false) {
+            cache_put($config, $cacheKey ?? cache_key('projects', [$status, $limit, $offset]), $json);
+            send_json_cached($json, 200, $cacheTtl);
+        }
+    }
+
+    if (!$isAdmin) {
+        set_public_cache_headers($cacheTtl);
+    }
+    send_json($payload);
 }
 
 function get_project(PDO $pdo, array $config, string $slug): void
 {
     $isAdmin = isset($_SESSION['admin_id']);
+
+    $cacheTtl = cache_ttl($config);
+    if (!$isAdmin && $cacheTtl > 0) {
+        $cacheKey = cache_key('project', [$slug]);
+        $cached = cache_get($config, $cacheKey);
+        if ($cached) {
+            send_json_cached($cached, 200, $cacheTtl);
+        }
+    }
 
     $stmt = $pdo->prepare('SELECT * FROM projects WHERE slug = :slug LIMIT 1');
     $stmt->execute([':slug' => $slug]);
@@ -89,6 +119,17 @@ function get_project(PDO $pdo, array $config, string $slug): void
     $media = $mediaStmt->fetchAll();
 
     $project = map_project_full($project, $media, $config);
+    if (!$isAdmin && $cacheTtl > 0) {
+        $json = json_encode($project, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($json !== false) {
+            cache_put($config, $cacheKey ?? cache_key('project', [$slug]), $json);
+            send_json_cached($json, 200, $cacheTtl);
+        }
+    }
+
+    if (!$isAdmin) {
+        set_public_cache_headers($cacheTtl);
+    }
     send_json($project);
 }
 

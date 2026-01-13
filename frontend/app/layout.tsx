@@ -10,6 +10,7 @@ import { company } from "@/content/site";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
+  weight: ["400", "600", "700"],
   variable: "--font-inter",
   display: "swap",
 });
@@ -127,9 +128,9 @@ export default function RootLayout({
             <Script
               async
               src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}
-              strategy="afterInteractive"
+              strategy="lazyOnload"
             />
-            <Script id="google-ads-gtag" strategy="afterInteractive">
+            <Script id="google-ads-gtag" strategy="lazyOnload">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}

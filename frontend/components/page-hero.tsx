@@ -23,11 +23,13 @@ export default function PageHero({
   actions,
   priority = false,
 }: Props) {
+  const imageInitial = priority ? { scale: 1, opacity: 1 } : { scale: 1.08, opacity: 0 };
+
   return (
     <section className="relative isolate overflow-hidden bg-zinc-900 text-white">
       <div className="absolute inset-0">
         <motion.div
-          initial={{ scale: 1.08, opacity: 0 }}
+          initial={imageInitial}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
@@ -37,6 +39,7 @@ export default function PageHero({
             alt=""
             fill
             priority={priority}
+            fetchPriority={priority ? "high" : "auto"}
             sizes="100vw"
             className="object-cover"
           />

@@ -35,5 +35,11 @@ return [
         'from_name' => getenv('MAIL_FROM_NAME') ?: 'Prevozkop',
         'subject_prefix' => getenv('MAIL_SUBJECT_PREFIX') ?: '[Prevozkop] ',
     ],
+    'cache' => [
+        // Cache directory for public GET responses (avoid slow DB calls).
+        'dir' => getenv('CACHE_DIR') ?: (__DIR__ . '/cache'),
+        // Cache TTL in seconds.
+        'ttl' => (int) (getenv('CACHE_TTL') ?: 120),
+    ],
     'debug' => getenv('APP_DEBUG') === '1',
 ];
