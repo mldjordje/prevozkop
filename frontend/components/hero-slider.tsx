@@ -89,7 +89,7 @@ export default function HeroSlider({ slides }: Props) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.02 }}
           transition={{ duration: 1, ease: fadeEase }}
-          className="absolute inset-0 bg-gradient-to-br from-black/82 via-black/60 to-black/35"
+          className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/75 to-black/55"
         />
       </AnimatePresence>
       <motion.div
@@ -111,7 +111,7 @@ export default function HeroSlider({ slides }: Props) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.85, ease: fadeEase }}
-            className="space-y-6"
+            className="space-y-6 rounded-3xl bg-black/45 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.45)] ring-1 ring-white/10 backdrop-blur-sm sm:p-8 lg:p-10"
           >
             <div className="flex flex-wrap items-center gap-3">
               <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
@@ -120,10 +120,12 @@ export default function HeroSlider({ slides }: Props) {
               <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-gray-200">{label}</span>
             </div>
             <div className="max-w-3xl space-y-4">
-              <h1 className="text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl">
+              <h1 className="text-3xl font-bold leading-tight text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] sm:text-4xl lg:text-5xl">
                 {activeSlide.title}
               </h1>
-              <p className="text-base text-gray-200 sm:text-lg">{activeSlide.description}</p>
+              <p className="text-base text-gray-100 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] sm:text-lg">
+                {activeSlide.description}
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <Link
