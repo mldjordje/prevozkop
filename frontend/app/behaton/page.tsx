@@ -134,7 +134,7 @@ export default async function BehatonPage() {
                       href={`/behaton/${product.slug}`}
                       className="inline-flex w-fit items-center text-sm font-semibold text-primary"
                     >
-                      Pogledaj detalje ->
+                      Pogledaj detalje {"->"}
                     </Link>
                   </div>
                 </TiltCard>
@@ -215,7 +215,9 @@ export default async function BehatonPage() {
               >
                 <h3 className="text-lg font-semibold text-dark">{city.name}</h3>
                 <p className="mt-2 text-sm text-gray-600">{city.intro}</p>
-                <span className="mt-4 text-sm font-semibold text-primary">Lokalna ponuda -></span>
+                <span className="mt-4 text-sm font-semibold text-primary">
+                  Lokalna ponuda {"->"}
+                </span>
               </Link>
             </ScrollReveal>
           ))}

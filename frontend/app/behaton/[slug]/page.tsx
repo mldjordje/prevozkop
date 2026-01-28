@@ -247,7 +247,9 @@ export default async function BehatonProductPage({ params }: PageProps) {
                 {item.short_description && (
                   <p className="mt-2 text-sm text-gray-600">{item.short_description}</p>
                 )}
-                <span className="mt-4 inline-flex text-sm font-semibold text-primary">Detalji -></span>
+                <span className="mt-4 inline-flex text-sm font-semibold text-primary">
+                  Detalji {"->"}
+                </span>
               </Link>
             ))}
           </div>
@@ -272,7 +274,9 @@ export default async function BehatonProductPage({ params }: PageProps) {
             >
               <h3 className="text-lg font-semibold text-dark">{city.name}</h3>
               <p className="mt-2 text-gray-600">{city.intro}</p>
-              <span className="mt-4 inline-flex font-semibold text-primary">Lokalna ponuda -></span>
+              <span className="mt-4 inline-flex font-semibold text-primary">
+                Lokalna ponuda {"->"}
+              </span>
             </Link>
           ))}
         </div>

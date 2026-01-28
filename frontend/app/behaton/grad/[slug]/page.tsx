@@ -166,7 +166,9 @@ export default async function BehatonCityPage({ params }: PageProps) {
                 {product.short_description && (
                   <p className="mt-2 text-sm text-gray-600">{product.short_description}</p>
                 )}
-                <span className="mt-4 inline-flex text-sm font-semibold text-primary">Detalji -></span>
+                <span className="mt-4 inline-flex text-sm font-semibold text-primary">
+                  Detalji {"->"}
+                </span>
               </Link>
             ))}
           </div>
