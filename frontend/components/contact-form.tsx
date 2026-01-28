@@ -17,7 +17,23 @@ const concreteTypes = [
   "V8 M150",
 ];
 
-export default function ContactForm() {
+type ContactFormProps = {
+  defaultSubject?: string;
+  subjectPlaceholder?: string;
+  selectLabel?: string;
+  selectOptions?: string[];
+  selectPlaceholder?: string;
+  defaultSelectValue?: string;
+};
+
+export default function ContactForm({
+  defaultSubject,
+  subjectPlaceholder,
+  selectLabel,
+  selectOptions,
+  selectPlaceholder,
+  defaultSelectValue,
+}: ContactFormProps) {
   const [state, setState] = useState<FormState>("idle");
   const [error, setError] = useState<string | null>(null);
   const submitInFlightRef = useRef(false);
@@ -27,6 +43,9 @@ export default function ContactForm() {
     process.env.NEXT_PUBLIC_GOOGLE_ADS_SEND_TO ||
     process.env.NEXT_PUBLIC_GADS_SEND_TO ||
     DEFAULT_SEND_TO;
+  const resolvedSelectOptions = selectOptions ?? concreteTypes;
+  const resolvedSelectLabel = selectLabel || "Vrsta betona (nije obavezno)";
+  const resolvedSelectPlaceholder = selectPlaceholder || "Izaberite vrstu betona";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -103,7 +122,8 @@ export default function ContactForm() {
             required
             name="subject"
             className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
-            placeholder="Nasipanje, beton..."
+            placeholder={subjectPlaceholder || "Nasipanje, beton..."}
+            defaultValue={defaultSubject}
           />
         </label>
         <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
@@ -117,14 +137,14 @@ export default function ContactForm() {
       </div>
 
       <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
-        Vrsta betona (nije obavezno)
+        {resolvedSelectLabel}
         <select
           name="concrete_type"
           className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
-          defaultValue=""
+          defaultValue={defaultSelectValue || ""}
         >
-          <option value="">Izaberite vrstu betona</option>
-          {concreteTypes.map((type) => (
+          <option value="">{resolvedSelectPlaceholder}</option>
+          {resolvedSelectOptions.map((type) => (
             <option key={type} value={type}>
               {type}
             </option>

@@ -12,19 +12,23 @@ import {
   SelectItem,
   Textarea,
 } from "@heroui/react";
-import type { Order, Project } from "@/lib/api";
+import type { Order, Product, Project } from "@/lib/api";
 import { getProjects } from "@/lib/api";
 import {
   ApiError,
   adminCreateProject,
+  adminCreateProduct,
   adminDeleteProject,
+  adminDeleteProduct,
   adminGetProject,
   adminListOrders,
   adminListProjects,
+  adminListProducts,
   adminLogin,
   adminLogout,
   adminUpdateOrderStatus,
   adminUpdateProject,
+  adminUpdateProduct,
   deleteGalleryImage,
   uploadGalleryImage,
   uploadHeroImage,
@@ -45,10 +49,17 @@ type ViewState = "loading" | "login" | "ready";
 
 export default function AdminPage() {
   const [view, setView] = useState<ViewState>("loading");
-  const [section, setSection] = useState<"projects" | "orders">("projects");
+  const [section, setSection] = useState<"projects" | "orders" | "products">("projects");
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectDetails, setProjectDetails] = useState<Record<number, Project>>({});
   const [detailsLoading, setDetailsLoading] = useState<Record<number, boolean>>({});
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productDrafts, setProductDrafts] = useState<Record<number, Partial<Product>>>({});
+  const [productSpecsDrafts, setProductSpecsDrafts] = useState<Record<number, string>>({});
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [productQuery, setProductQuery] = useState("");
+  const [productCategoryFilter, setProductCategoryFilter] = useState("");
+  const [productStatusFilter, setProductStatusFilter] = useState("all");
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -69,6 +80,24 @@ export default function AdminPage() {
     status: "draft",
   });
 
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    slug: "",
+    category: "behaton",
+    product_type: "",
+    short_description: "",
+    description: "",
+    applications: "",
+    image: "",
+    status: "draft",
+    sort_order: 0,
+    specsText: "",
+  });
+  const [bulkProducts, setBulkProducts] = useState("");
+
+  const hasProductDrafts =
+    Object.keys(productDrafts).length > 0 || Object.keys(productSpecsDrafts).length > 0;
+
   useEffect(() => {
     refreshProjects();
   }, []);
@@ -76,6 +105,12 @@ export default function AdminPage() {
   useEffect(() => {
     if (section === "orders" && isAuthenticated) {
       refreshOrders();
+    }
+  }, [section, isAuthenticated]);
+
+  useEffect(() => {
+    if (section === "products" && isAuthenticated) {
+      refreshProducts();
     }
   }, [section, isAuthenticated]);
 
@@ -90,6 +125,9 @@ export default function AdminPage() {
       void loadProjectDetails(res.data);
       if (section === "orders") {
         void refreshOrders(false);
+      }
+      if (section === "products") {
+        void refreshProducts(false);
       }
     } catch (error) {
       setIsAuthenticated(false);
@@ -120,6 +158,28 @@ export default function AdminPage() {
       setMessage("Neuspešno učitavanje porudžbina.");
     } finally {
       if (showLoader) setOrdersLoading(false);
+    }
+  }
+
+  async function refreshProducts(showLoader: boolean = true) {
+    if (!isAuthenticated) return;
+    if (showLoader) setProductsLoading(true);
+    setMessage(null);
+    try {
+      const res = await adminListProducts({
+        status: productStatusFilter,
+        category: productCategoryFilter || undefined,
+        q: productQuery || undefined,
+        limit: 200,
+        offset: 0,
+      });
+      setProducts(res.data);
+      setProductDrafts({});
+      setProductSpecsDrafts({});
+    } catch {
+      setMessage("Neuspešno učitavanje proizvoda.");
+    } finally {
+      if (showLoader) setProductsLoading(false);
     }
   }
 
@@ -220,6 +280,212 @@ export default function AdminPage() {
       setMessage(text);
     } finally {
       setIsFetching(false);
+    }
+  }
+
+  function handleProductChange(id: number, field: keyof Product, value: string | number | null) {
+    setProductDrafts((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: field === "sort_order" ? Number(value) : value,
+      },
+    }));
+  }
+
+  function handleProductSpecsChange(id: number, value: string) {
+    setProductSpecsDrafts((prev) => ({ ...prev, [id]: value }));
+  }
+
+  function buildProductPayload(productId: number) {
+    const draft = productDrafts[productId];
+    const specsText = productSpecsDrafts[productId];
+
+    if (!draft && specsText === undefined) {
+      return { payload: null, error: null };
+    }
+
+    const payload: Partial<Product> = { ...(draft || {}) };
+
+    if (specsText !== undefined) {
+      const trimmed = specsText.trim();
+      if (trimmed === "") {
+        payload.specs = null;
+      } else {
+        try {
+          payload.specs = JSON.parse(trimmed);
+        } catch {
+          return { payload: null, error: "Specifikacije nisu validan JSON." };
+        }
+      }
+    }
+
+    return { payload, error: null };
+  }
+
+  async function handleCreateProduct(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!newProduct.name.trim() || !newProduct.category.trim()) {
+      setMessage("Naziv i kategorija su obavezni.");
+      return;
+    }
+
+    let specs: Record<string, string | number | string[]> | null = null;
+    if (newProduct.specsText.trim()) {
+      try {
+        specs = JSON.parse(newProduct.specsText.trim());
+      } catch {
+        setMessage("Specifikacije moraju biti validan JSON.");
+        return;
+      }
+    }
+
+    setProductsLoading(true);
+    setMessage(null);
+    try {
+      await adminCreateProduct({
+        name: newProduct.name,
+        slug: newProduct.slug || undefined,
+        category: newProduct.category,
+        product_type: newProduct.product_type || undefined,
+        short_description: newProduct.short_description,
+        description: newProduct.description,
+        applications: newProduct.applications,
+        image: newProduct.image || undefined,
+        status: newProduct.status,
+        sort_order: newProduct.sort_order,
+        specs: specs || undefined,
+      });
+      setNewProduct({
+        name: "",
+        slug: "",
+        category: "behaton",
+        product_type: "",
+        short_description: "",
+        description: "",
+        applications: "",
+        image: "",
+        status: "draft",
+        sort_order: 0,
+        specsText: "",
+      });
+      await refreshProducts(false);
+      setMessage("Proizvod je uspešno dodat.");
+    } catch {
+      setMessage("Greška pri dodavanju proizvoda.");
+    } finally {
+      setProductsLoading(false);
+    }
+  }
+
+  async function handleSaveProduct(product: Product) {
+    const { payload, error } = buildProductPayload(product.id);
+    if (error) {
+      setMessage(error);
+      return;
+    }
+    if (!payload) {
+      setMessage("Nema izmena za ovaj proizvod.");
+      return;
+    }
+
+    setProductsLoading(true);
+    setMessage(null);
+    try {
+      await adminUpdateProduct(product.id, payload);
+      await refreshProducts(false);
+      setMessage("Proizvod je sačuvan.");
+    } catch {
+      setMessage("Neuspešno čuvanje proizvoda.");
+    } finally {
+      setProductsLoading(false);
+    }
+  }
+
+  async function handleSaveAllProducts() {
+    const ids = new Set([
+      ...Object.keys(productDrafts).map(Number),
+      ...Object.keys(productSpecsDrafts).map(Number),
+    ]);
+    if (ids.size === 0) {
+      setMessage("Nema izmena za čuvanje.");
+      return;
+    }
+
+    setProductsLoading(true);
+    setMessage(null);
+    try {
+      for (const id of ids) {
+        const { payload, error } = buildProductPayload(id);
+        if (error) {
+          setMessage(error);
+          setProductsLoading(false);
+          return;
+        }
+        if (!payload) continue;
+        await adminUpdateProduct(id, payload);
+      }
+      await refreshProducts(false);
+      setMessage("Sve izmene su sačuvane.");
+    } catch {
+      setMessage("Greška pri grupnom čuvanju proizvoda.");
+    } finally {
+      setProductsLoading(false);
+    }
+  }
+
+  async function handleDeleteProduct(product: Product) {
+    if (!isAuthenticated) return;
+    if (!confirm(`Obrisati proizvod "${product.name}"?`)) return;
+    setProductsLoading(true);
+    setMessage(null);
+    try {
+      await adminDeleteProduct(product.id);
+      await refreshProducts(false);
+      setMessage("Proizvod je obrisan.");
+    } catch {
+      setMessage("Neuspešno brisanje proizvoda.");
+    } finally {
+      setProductsLoading(false);
+    }
+  }
+
+  async function handleBulkProducts(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const lines = bulkProducts
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) {
+      setMessage("Unesite barem jedan proizvod.");
+      return;
+    }
+
+    setProductsLoading(true);
+    setMessage(null);
+    let created = 0;
+    try {
+      for (const line of lines) {
+        const parts = line.split("|").map((part) => part.trim());
+        const [name, category = "behaton", productType = "", shortDesc = ""] = parts;
+        if (!name) continue;
+        await adminCreateProduct({
+          name,
+          category: category || "behaton",
+          product_type: productType || undefined,
+          short_description: shortDesc,
+          status: "draft",
+        });
+        created += 1;
+      }
+      setBulkProducts("");
+      await refreshProducts(false);
+      setMessage(`Dodato proizvoda: ${created}.`);
+    } catch {
+      setMessage("Greška pri masovnom unosu proizvoda.");
+    } finally {
+      setProductsLoading(false);
     }
   }
 
@@ -342,6 +608,13 @@ export default function AdminPage() {
             onPress={() => setSection("projects")}
           >
             Projekti
+          </Button>
+          <Button
+            variant={section === "products" ? "solid" : "flat"}
+            color="primary"
+            onPress={() => setSection("products")}
+          >
+            Proizvodi
           </Button>
           <Button
             variant={section === "orders" ? "solid" : "flat"}
@@ -596,6 +869,369 @@ export default function AdminPage() {
                 {projects.length === 0 && (
                   <p className="text-sm text-gray-600">
                     Nema projekata. Dodajte prvi projekat putem forme iznad.
+                  </p>
+                )}
+              </section>
+            </>
+          )}
+
+          {section === "products" && (
+            <>
+              {isAuthenticated ? (
+                <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+                  <Card>
+                    <CardHeader className="font-semibold">Novi proizvod</CardHeader>
+                    <CardBody>
+                      <form className="grid gap-4" onSubmit={handleCreateProduct}>
+                        <Input
+                          label="Naziv"
+                          value={newProduct.name}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({ ...prev, name: e.target.value }))
+                          }
+                          isRequired
+                        />
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <Input
+                            label="Slug"
+                            value={newProduct.slug}
+                            onChange={(e) =>
+                              setNewProduct((prev) => ({ ...prev, slug: e.target.value }))
+                            }
+                          />
+                          <Input
+                            label="Kategorija"
+                            value={newProduct.category}
+                            onChange={(e) =>
+                              setNewProduct((prev) => ({ ...prev, category: e.target.value }))
+                            }
+                            isRequired
+                          />
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <Input
+                            label="Tip / kolekcija"
+                            value={newProduct.product_type}
+                            onChange={(e) =>
+                              setNewProduct((prev) => ({ ...prev, product_type: e.target.value }))
+                            }
+                          />
+                          <Input
+                            label="Redosled"
+                            type="number"
+                            value={String(newProduct.sort_order)}
+                            onChange={(e) =>
+                              setNewProduct((prev) => ({
+                                ...prev,
+                                sort_order: Number(e.target.value) || 0,
+                              }))
+                            }
+                          />
+                        </div>
+                        <Textarea
+                          label="Kratak opis"
+                          value={newProduct.short_description}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({
+                              ...prev,
+                              short_description: e.target.value,
+                            }))
+                          }
+                          minRows={2}
+                        />
+                        <Textarea
+                          label="Detaljan opis"
+                          value={newProduct.description}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({ ...prev, description: e.target.value }))
+                          }
+                          minRows={3}
+                        />
+                        <Textarea
+                          label="Primena"
+                          value={newProduct.applications}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({ ...prev, applications: e.target.value }))
+                          }
+                          minRows={2}
+                        />
+                        <Input
+                          label="Slika (URL)"
+                          value={newProduct.image}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({ ...prev, image: e.target.value }))
+                          }
+                        />
+                        <Textarea
+                          label="Specifikacije (JSON)"
+                          value={newProduct.specsText}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({ ...prev, specsText: e.target.value }))
+                          }
+                          minRows={3}
+                        />
+                        <Select
+                          label="Status"
+                          selectedKeys={[newProduct.status]}
+                          onSelectionChange={(keys) => {
+                            const value = Array.from(keys).at(0)?.toString() || "draft";
+                            setNewProduct((prev) => ({ ...prev, status: value }));
+                          }}
+                        >
+                          {statusOptions.map((item) => (
+                            <SelectItem key={item.key}>{item.label}</SelectItem>
+                          ))}
+                        </Select>
+                        <Button color="primary" type="submit" isDisabled={productsLoading}>
+                          Sačuvaj
+                        </Button>
+                      </form>
+                    </CardBody>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="font-semibold">Brzi unos (više proizvoda)</CardHeader>
+                    <CardBody>
+                      <form className="grid gap-3" onSubmit={handleBulkProducts}>
+                        <Textarea
+                          label="Spisak proizvoda"
+                          placeholder="Naziv | kategorija | tip | kratak opis"
+                          value={bulkProducts}
+                          onChange={(e) => setBulkProducts(e.target.value)}
+                          minRows={6}
+                        />
+                        <p className="text-xs text-gray-500">
+                          Format po liniji: Naziv | kategorija | tip | kratak opis. Kategorija i tip
+                          mogu biti prazni.
+                        </p>
+                        <Button color="primary" type="submit" isDisabled={productsLoading}>
+                          Dodaj proizvode
+                        </Button>
+                      </form>
+                    </CardBody>
+                  </Card>
+                </div>
+              ) : (
+                <Card className="border border-dashed border-primary bg-white/60">
+                  <CardBody>
+                    <p className="text-sm text-gray-600">
+                      Za upravljanje proizvodima potrebno je da se prijavite u admin panel.
+                    </p>
+                  </CardBody>
+                </Card>
+              )}
+
+              <section className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-2xl font-semibold">Proizvodi</h2>
+                    <p className="text-sm text-gray-600">
+                      Katalog behaton proizvoda za javni deo sajta.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="flat"
+                      onPress={() => refreshProducts()}
+                      isDisabled={productsLoading}
+                    >
+                      Osveži
+                    </Button>
+                    <Button
+                      color="primary"
+                      variant="flat"
+                      onPress={handleSaveAllProducts}
+                      isDisabled={productsLoading || !hasProductDrafts}
+                    >
+                      Sačuvaj sve izmene
+                    </Button>
+                  </div>
+                </div>
+
+                <Card>
+                  <CardBody className="grid gap-4 md:grid-cols-[1.2fr_0.8fr_0.7fr_auto]">
+                    <Input
+                      label="Pretraga"
+                      placeholder="Naziv ili opis"
+                      value={productQuery}
+                      onChange={(e) => setProductQuery(e.target.value)}
+                    />
+                    <Input
+                      label="Kategorija"
+                      placeholder="behaton"
+                      value={productCategoryFilter}
+                      onChange={(e) => setProductCategoryFilter(e.target.value)}
+                    />
+                    <Select
+                      label="Status"
+                      selectedKeys={[productStatusFilter]}
+                      onSelectionChange={(keys) =>
+                        setProductStatusFilter(Array.from(keys).at(0)?.toString() || "all")
+                      }
+                    >
+                      <SelectItem key="all">Sve</SelectItem>
+                      {statusOptions.map((item) => (
+                        <SelectItem key={item.key}>{item.label}</SelectItem>
+                      ))}
+                    </Select>
+                    <Button
+                      color="primary"
+                      variant="flat"
+                      onPress={() => refreshProducts()}
+                      isDisabled={productsLoading}
+                    >
+                      Primeni
+                    </Button>
+                  </CardBody>
+                </Card>
+
+                <div className="grid gap-4">
+                  {products.map((product) => {
+                    const draft = productDrafts[product.id];
+                    const specsValue =
+                      productSpecsDrafts[product.id] ??
+                      (product.specs ? JSON.stringify(product.specs, null, 2) : "");
+                    const isDirty = Boolean(draft) || productSpecsDrafts[product.id] !== undefined;
+                    const value = (field: keyof Product, fallback = "") =>
+                      draft && draft[field] !== undefined ? draft[field] ?? "" : product[field] ?? fallback;
+
+                    return (
+                      <Card key={product.id}>
+                        <CardHeader className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold">{value("name", "")}</p>
+                            <p className="text-xs text-gray-500">{value("slug", "")}</p>
+                          </div>
+                          <Chip
+                            color={value("status", "draft") === "published" ? "success" : "default"}
+                            variant="flat"
+                          >
+                            {value("status", "draft") === "published" ? "Objavljeno" : "Draft"}
+                          </Chip>
+                        </CardHeader>
+                        <CardBody className="space-y-4">
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <Input
+                              label="Naziv"
+                              value={String(value("name", ""))}
+                              onChange={(e) => handleProductChange(product.id, "name", e.target.value)}
+                            />
+                            <Input
+                              label="Slug"
+                              value={String(value("slug", ""))}
+                              onChange={(e) => handleProductChange(product.id, "slug", e.target.value)}
+                            />
+                            <Input
+                              label="Kategorija"
+                              value={String(value("category", ""))}
+                              onChange={(e) =>
+                                handleProductChange(product.id, "category", e.target.value)
+                              }
+                            />
+                            <Input
+                              label="Tip / kolekcija"
+                              value={String(value("product_type", ""))}
+                              onChange={(e) =>
+                                handleProductChange(product.id, "product_type", e.target.value)
+                              }
+                            />
+                            <Input
+                              label="Slika (URL)"
+                              value={String(value("image", ""))}
+                              onChange={(e) => handleProductChange(product.id, "image", e.target.value)}
+                            />
+                            <Input
+                              label="Redosled"
+                              type="number"
+                              value={String(value("sort_order", 0))}
+                              onChange={(e) =>
+                                handleProductChange(product.id, "sort_order", e.target.value)
+                              }
+                            />
+                          </div>
+
+                          <Textarea
+                            label="Kratak opis"
+                            value={String(value("short_description", ""))}
+                            onChange={(e) =>
+                              handleProductChange(product.id, "short_description", e.target.value)
+                            }
+                            minRows={2}
+                          />
+
+                          <details className="rounded-2xl border border-black/10 bg-gray-50 px-4 py-3">
+                            <summary className="cursor-pointer text-sm font-semibold text-gray-700">
+                              Detalji (opis, primena, specifikacije)
+                            </summary>
+                            <div className="mt-3 grid gap-3">
+                              <Textarea
+                                label="Opis"
+                                value={String(value("description", ""))}
+                                onChange={(e) =>
+                                  handleProductChange(product.id, "description", e.target.value)
+                                }
+                                minRows={3}
+                              />
+                              <Textarea
+                                label="Primena"
+                                value={String(value("applications", ""))}
+                                onChange={(e) =>
+                                  handleProductChange(product.id, "applications", e.target.value)
+                                }
+                                minRows={2}
+                              />
+                              <Textarea
+                                label="Specifikacije (JSON)"
+                                value={specsValue}
+                                onChange={(e) => handleProductSpecsChange(product.id, e.target.value)}
+                                minRows={3}
+                              />
+                            </div>
+                          </details>
+
+                          <div className="flex flex-wrap items-center gap-3">
+                            <Select
+                              label="Status"
+                              selectedKeys={[String(value("status", "draft"))]}
+                              onSelectionChange={(keys) =>
+                                handleProductChange(
+                                  product.id,
+                                  "status",
+                                  Array.from(keys).at(0)?.toString() || "draft"
+                                )
+                              }
+                              className="max-w-[220px]"
+                            >
+                              {statusOptions.map((item) => (
+                                <SelectItem key={item.key}>{item.label}</SelectItem>
+                              ))}
+                            </Select>
+                            <Button
+                              color="primary"
+                              variant={isDirty ? "solid" : "flat"}
+                              onPress={() => handleSaveProduct(product)}
+                              isDisabled={productsLoading}
+                            >
+                              Sačuvaj
+                            </Button>
+                            <Button
+                              color="danger"
+                              variant="light"
+                              onPress={() => handleDeleteProduct(product)}
+                              isDisabled={productsLoading}
+                            >
+                              Obriši
+                            </Button>
+                          </div>
+                        </CardBody>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {products.length === 0 && (
+                  <p className="text-sm text-gray-600">
+                    Nema proizvoda. Dodajte prvi proizvod putem forme iznad.
                   </p>
                 )}
               </section>

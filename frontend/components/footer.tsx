@@ -4,6 +4,7 @@ import { company } from "@/content/site";
 const footerLinks = [
   { href: "/o-nama", label: "O nama" },
   { href: "/usluge", label: "Usluge" },
+  { href: "/behaton", label: "Behaton" },
   { href: "/projekti", label: "Projekti" },
   { href: "/projekti-video", label: "Video" },
   { href: "/kontakt", label: "Kontakt" },

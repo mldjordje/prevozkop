@@ -46,6 +46,26 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS products (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(190) NOT NULL,
+  slug VARCHAR(190) NOT NULL UNIQUE,
+  category VARCHAR(120) NOT NULL,
+  product_type VARCHAR(120) DEFAULT NULL,
+  short_description TEXT,
+  description LONGTEXT,
+  applications TEXT,
+  specs JSON NULL,
+  image VARCHAR(255),
+  status ENUM('draft','published') DEFAULT 'draft',
+  sort_order INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_status_category (status, category),
+  INDEX idx_sort_order (sort_order),
+  INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Seed primera (uklonite u produkciji):
 -- INSERT INTO admins (email, password_hash) VALUES ('admin@example.com', '<hash>');
 -- Primer kreiranja hash-a u PHP: password_hash('lozinka123', PASSWORD_DEFAULT);
