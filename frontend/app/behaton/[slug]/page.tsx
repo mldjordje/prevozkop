@@ -51,8 +51,11 @@ export default async function BehatonProductPage({ params }: PageProps) {
 
   let related: Product[] = [];
   try {
-    const res = await getProducts({ category: "behaton", limit: 20, offset: 0 });
-    related = (res.data || []).filter((item) => item.slug !== product!.slug).slice(0, 3);
+    const res = await getProducts({ limit: 60, offset: 0 });
+    related = (res.data || [])
+      .filter((item) => item.category?.toLowerCase() === "behaton")
+      .filter((item) => item.slug !== product!.slug)
+      .slice(0, 3);
   } catch {
     related = [];
   }

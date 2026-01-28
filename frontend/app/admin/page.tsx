@@ -377,10 +377,11 @@ export default function AdminPage() {
     setProductsLoading(true);
     setMessage(null);
     try {
+      const normalizedCategory = newProduct.category.trim().toLowerCase() || "behaton";
       const created = await adminCreateProduct({
         name: newProduct.name,
         slug: newProduct.slug || undefined,
-        category: newProduct.category,
+        category: normalizedCategory,
         product_type: newProduct.product_type || undefined,
         short_description: newProduct.short_description,
         description: newProduct.description,
@@ -554,9 +555,10 @@ export default function AdminPage() {
         const parts = line.split("|").map((part) => part.trim());
         const [name, category = "behaton", productType = "", shortDesc = ""] = parts;
         if (!name) continue;
+        const normalizedCategory = (category || "behaton").trim().toLowerCase();
         await adminCreateProduct({
           name,
-          category: category || "behaton",
+          category: normalizedCategory,
           product_type: productType || undefined,
           short_description: shortDesc,
           status: "draft",

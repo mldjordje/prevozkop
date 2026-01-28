@@ -36,8 +36,9 @@ export default async function BehatonPage() {
   let products: Product[] = [];
 
   try {
-    const res = await getProducts({ category: "behaton", limit: 50, offset: 0 });
-    products = res.data || [];
+    const res = await getProducts({ limit: 100, offset: 0 });
+    products =
+      res.data?.filter((item) => item.category?.toLowerCase() === "behaton") || [];
   } catch (error) {
     console.error("Neuspelo ucitavanje behaton proizvoda:", error);
   }

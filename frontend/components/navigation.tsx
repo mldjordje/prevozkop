@@ -35,6 +35,27 @@ export default function Navigation() {
   const [open, setOpen] = useState(false);
   const isEn = pathname?.startsWith("/en") ?? false;
   const links = isEn ? enLinks : srLinks;
+  const normalizedPath = pathname ?? "/";
+
+  const alternatePath = useMemo(() => {
+    if (isEn) {
+      if (normalizedPath.startsWith("/en/projects")) return "/projekti";
+      if (normalizedPath.startsWith("/en/services")) return "/usluge";
+      if (normalizedPath.startsWith("/en/about")) return "/o-nama";
+      if (normalizedPath.startsWith("/en/contact")) return "/kontakt";
+      if (normalizedPath.startsWith("/en/order-concrete")) return "/porucivanje-betona";
+      return "/";
+    }
+
+    if (normalizedPath.startsWith("/projekti/")) return "/en/projects";
+    if (normalizedPath.startsWith("/projekti")) return "/en/projects";
+    if (normalizedPath.startsWith("/usluge")) return "/en/services";
+    if (normalizedPath.startsWith("/o-nama")) return "/en/about";
+    if (normalizedPath.startsWith("/kontakt")) return "/en/contact";
+    if (normalizedPath.startsWith("/porucivanje-betona")) return "/en/order-concrete";
+    if (normalizedPath.startsWith("/behaton")) return "/en";
+    return "/en";
+  }, [isEn, normalizedPath]);
 
   const active = useMemo(() => {
     return links.reduce<Record<string, boolean>>((map, link) => {
@@ -105,11 +126,7 @@ export default function Navigation() {
             </Link>
 
             <Link
-              href={
-                isEn
-                  ? pathname?.replace(/^\/en/, "") || "/"
-                  : `/en${pathname === "/" ? "" : pathname}`
-              }
+              href={alternatePath}
               onClick={() => setOpen(false)}
               className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-600 hover:text-dark"
             >
@@ -172,11 +189,7 @@ export default function Navigation() {
                     {isEn ? "Order concrete" : "Poruči beton"}
                   </Link>
                   <Link
-                    href={
-                      isEn
-                        ? pathname?.replace(/^\/en/, "") || "/"
-                        : `/en${pathname === "/" ? "" : pathname}`
-                    }
+                    href={alternatePath}
                     onClick={() => setOpen(false)}
                     className="inline-flex items-center justify-center rounded-full border border-black/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-700 transition hover:border-primary hover:text-primary"
                   >
