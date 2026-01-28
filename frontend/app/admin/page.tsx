@@ -84,6 +84,9 @@ export default function AdminPage() {
     body: "",
     status: "draft",
   });
+  const [newProjectHero, setNewProjectHero] = useState<File | null>(null);
+  const [newProjectGallery, setNewProjectGallery] = useState<File[]>([]);
+  const [newProjectFormKey, setNewProjectFormKey] = useState(0);
 
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -97,6 +100,9 @@ export default function AdminPage() {
     sort_order: 0,
     specsText: "",
   });
+  const [newProductImage, setNewProductImage] = useState<File | null>(null);
+  const [newProductDocument, setNewProductDocument] = useState<File | null>(null);
+  const [newProductFormKey, setNewProductFormKey] = useState(0);
   const [bulkProducts, setBulkProducts] = useState("");
 
   const hasProductDrafts =
@@ -266,16 +272,40 @@ export default function AdminPage() {
     setIsFetching(true);
     setMessage(null);
     try {
-      await adminCreateProject({
+      const created = await adminCreateProject({
         title: newProject.title,
         slug: newProject.slug || undefined,
         excerpt: newProject.excerpt,
         body: newProject.body,
         status: newProject.status,
       });
+      const uploadNotes: string[] = [];
+      if (newProjectHero) {
+        try {
+          await uploadHeroImage(created.id, newProjectHero);
+        } catch {
+          uploadNotes.push("Hero slika nije poslata.");
+        }
+      }
+      if (newProjectGallery.length > 0) {
+        try {
+          for (const file of newProjectGallery) {
+            await uploadGalleryImage(created.id, file);
+          }
+        } catch {
+          uploadNotes.push("Galerija nije kompletno poslata.");
+        }
+      }
       setNewProject({ title: "", slug: "", excerpt: "", body: "", status: "draft" });
+      setNewProjectHero(null);
+      setNewProjectGallery([]);
+      setNewProjectFormKey((prev) => prev + 1);
       await refreshProjects();
-      setMessage("Projekat je uspešno kreiran.");
+      setMessage(
+        uploadNotes.length > 0
+          ? `Projekat je kreiran. ${uploadNotes.join(" ")}`
+          : "Projekat je uspešno kreiran."
+      );
     } catch (error) {
       const text =
         error instanceof ApiError
@@ -347,7 +377,7 @@ export default function AdminPage() {
     setProductsLoading(true);
     setMessage(null);
     try {
-      await adminCreateProduct({
+      const created = await adminCreateProduct({
         name: newProduct.name,
         slug: newProduct.slug || undefined,
         category: newProduct.category,
@@ -359,6 +389,21 @@ export default function AdminPage() {
         sort_order: newProduct.sort_order,
         specs: specs || undefined,
       });
+      const uploadNotes: string[] = [];
+      if (newProductImage) {
+        try {
+          await uploadProductImage(created.id, newProductImage);
+        } catch {
+          uploadNotes.push("Slika nije poslata.");
+        }
+      }
+      if (newProductDocument) {
+        try {
+          await uploadProductDocument(created.id, newProductDocument);
+        } catch {
+          uploadNotes.push("Dokument nije poslat.");
+        }
+      }
       setNewProduct({
         name: "",
         slug: "",
@@ -371,8 +416,15 @@ export default function AdminPage() {
         sort_order: 0,
         specsText: "",
       });
+      setNewProductImage(null);
+      setNewProductDocument(null);
+      setNewProductFormKey((prev) => prev + 1);
       await refreshProducts(false);
-      setMessage("Proizvod je uspešno dodat.");
+      setMessage(
+        uploadNotes.length > 0
+          ? `Proizvod je dodat. ${uploadNotes.join(" ")}`
+          : "Proizvod je uspešno dodat."
+      );
     } catch {
       setMessage("Greška pri dodavanju proizvoda.");
     } finally {
@@ -697,7 +749,7 @@ export default function AdminPage() {
                 <Card>
                   <CardHeader className="font-semibold">Kreiraj novi projekat</CardHeader>
                   <CardBody>
-                    <form className="grid gap-4" onSubmit={handleCreateProject}>
+                    <form key={newProjectFormKey} className="grid gap-4" onSubmit={handleCreateProject}>
                       <Input
                         label="Naslov"
                         value={newProject.title}
@@ -742,6 +794,33 @@ export default function AdminPage() {
                           <SelectItem key={item.key}>{item.label}</SelectItem>
                         ))}
                       </Select>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                            Hero slika (odmah)
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(event) => setNewProjectHero(event.target.files?.[0] || null)}
+                            className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                            Galerija (vise slika)
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(event) =>
+                              setNewProjectGallery(Array.from(event.target.files || []))
+                            }
+                            className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                          />
+                        </div>
+                      </div>
                       <Button color="primary" type="submit" isDisabled={isFetching}>
                         Sačuvaj
                       </Button>
@@ -914,7 +993,7 @@ export default function AdminPage() {
                   <Card>
                     <CardHeader className="font-semibold">Novi proizvod</CardHeader>
                     <CardBody>
-                      <form className="grid gap-4" onSubmit={handleCreateProduct}>
+                      <form key={newProductFormKey} className="grid gap-4" onSubmit={handleCreateProduct}>
                         <Input
                           label="Naziv"
                           value={newProduct.name}
@@ -987,8 +1066,33 @@ export default function AdminPage() {
                           }
                           minRows={2}
                         />
-                        <div className="rounded-2xl border border-dashed border-black/10 bg-gray-50 px-4 py-3 text-xs text-gray-600">
-                          Slika i dokument se dodaju nakon kreiranja proizvoda (u listi ispod).
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                              Slika proizvoda (odmah)
+                            </p>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(event) =>
+                                setNewProductImage(event.target.files?.[0] || null)
+                              }
+                              className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                              Dokument (PDF/DOC)
+                            </p>
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx"
+                              onChange={(event) =>
+                                setNewProductDocument(event.target.files?.[0] || null)
+                              }
+                              className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                            />
+                          </div>
                         </div>
                         <Textarea
                           label="Specifikacije (JSON)"
