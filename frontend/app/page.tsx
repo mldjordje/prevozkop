@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import HeroSlider from "@/components/hero-slider";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
@@ -82,11 +83,12 @@ export default async function HomePage() {
               className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-white/40"
               aria-hidden
             />
-            <img
+            <Image
               src="/img/napolje1.webp"
               alt="Betonska baza i dostava"
-              className="h-full w-full object-cover"
-              loading="lazy"
+              fill
+              sizes="(max-width: 1024px) 100vw, 45vw"
+              className="object-cover"
             />
           </ScrollReveal>
         </div>
@@ -115,12 +117,13 @@ export default async function HomePage() {
           {featuredServices.map((service) => (
             <ScrollReveal key={service.title} from="up" className="h-full">
               <TiltCard className="group relative h-full overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md">
-                <div className="h-40 overflow-hidden">
-                  <img
+                <div className="relative h-40 overflow-hidden">
+                  <Image
                     src={service.image}
                     alt={service.title}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover transition duration-700 group-hover:scale-105"
                   />
                 </div>
                 <div className="space-y-2 p-5">
@@ -182,12 +185,13 @@ export default async function HomePage() {
             {featuredProjects.map((project) => (
               <ScrollReveal key={project.id} from="up" className="h-full">
                 <TiltCard className="group h-full overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md">
-                  <div className="h-52 overflow-hidden">
-                    <img
+                  <div className="relative h-52 overflow-hidden">
+                    <Image
                       src={project.hero_image || "/img/napolje1.webp"}
                       alt={project.title}
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition duration-700 group-hover:scale-105"
                     />
                   </div>
                   <div className="space-y-1 p-5">
