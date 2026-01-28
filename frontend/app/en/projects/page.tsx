@@ -1,10 +1,16 @@
 import Link from "next/link";
 import PageHero from "@/components/page-hero";
 import { getProjects } from "@/lib/api";
+import type { Project } from "@/lib/api";
 
 export default async function ProjectsEn() {
-  const res = await getProjects(60, 0);
-  const projects = res.data || [];
+  let projects: Project[] = [];
+  try {
+    const res = await getProjects(60, 0);
+    projects = res.data || [];
+  } catch (error) {
+    console.error("Failed to load projects:", error);
+  }
 
   return (
     <div className="space-y-12 sm:space-y-16">

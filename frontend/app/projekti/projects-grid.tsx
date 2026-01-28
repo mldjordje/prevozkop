@@ -8,7 +8,14 @@ type Props = {
 };
 
 export default async function ProjectsGrid({ featured = false, limit = 12 }: Props) {
-  const { data } = await getProjects(limit, 0);
+  let data: Awaited<ReturnType<typeof getProjects>>["data"] = [];
+  try {
+    const res = await getProjects(limit, 0);
+    data = res.data || [];
+  } catch (error) {
+    console.error("Neuspelo ucitavanje projekata:", error);
+    data = [];
+  }
 
   if (!data?.length) {
     return <p className="text-gray-600">Nema projekata za prikaz.</p>;

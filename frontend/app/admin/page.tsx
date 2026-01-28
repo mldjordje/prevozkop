@@ -1092,8 +1092,13 @@ export default function AdminPage() {
                       productSpecsDrafts[product.id] ??
                       (product.specs ? JSON.stringify(product.specs, null, 2) : "");
                     const isDirty = Boolean(draft) || productSpecsDrafts[product.id] !== undefined;
-                    const value = (field: keyof Product, fallback = "") =>
-                      draft && draft[field] !== undefined ? draft[field] ?? "" : product[field] ?? fallback;
+                    const value = <K extends keyof Product>(
+                      field: K,
+                      fallback: NonNullable<Product[K]>
+                    ): Product[K] =>
+                      draft && draft[field] !== undefined
+                        ? (draft[field] ?? fallback)
+                        : (product[field] ?? fallback);
 
                     return (
                       <Card key={product.id}>
