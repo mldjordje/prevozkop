@@ -39,6 +39,8 @@ const statusOptions = [
   { key: "published", label: "Objavljeno" },
 ];
 
+const productStatusOptions = [{ key: "all", label: "Sve" }, ...statusOptions];
+
 const orderStatusOptions: { key: Order["status"]; label: string }[] = [
   { key: "new", label: "Nova" },
   { key: "in_progress", label: "U obradi" },
@@ -1064,15 +1066,13 @@ export default function AdminPage() {
                     />
                     <Select
                       label="Status"
+                      items={productStatusOptions}
                       selectedKeys={[productStatusFilter]}
                       onSelectionChange={(keys) =>
                         setProductStatusFilter(Array.from(keys).at(0)?.toString() || "all")
                       }
                     >
-                      <SelectItem key="all">Sve</SelectItem>
-                      {statusOptions.map((item) => (
-                        <SelectItem key={item.key}>{item.label}</SelectItem>
-                      ))}
+                      {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
                     </Select>
                     <Button
                       color="primary"
