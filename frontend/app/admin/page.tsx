@@ -30,6 +30,8 @@ import {
   adminUpdateProject,
   adminUpdateProduct,
   deleteGalleryImage,
+  uploadProductDocument,
+  uploadProductImage,
   uploadGalleryImage,
   uploadHeroImage,
 } from "@/lib/admin-client";
@@ -59,8 +61,9 @@ export default function AdminPage() {
   const [productDrafts, setProductDrafts] = useState<Record<number, Partial<Product>>>({});
   const [productSpecsDrafts, setProductSpecsDrafts] = useState<Record<number, string>>({});
   const [productsLoading, setProductsLoading] = useState(false);
+  const [productUploading, setProductUploading] = useState<{ id: number; type: "image" | "document" } | null>(null);
   const [productQuery, setProductQuery] = useState("");
-  const [productCategoryFilter, setProductCategoryFilter] = useState("");
+  const [productCategoryFilter, setProductCategoryFilter] = useState("behaton");
   const [productStatusFilter, setProductStatusFilter] = useState("all");
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -90,7 +93,6 @@ export default function AdminPage() {
     short_description: "",
     description: "",
     applications: "",
-    image: "",
     status: "draft",
     sort_order: 0,
     specsText: "",
@@ -353,7 +355,6 @@ export default function AdminPage() {
         short_description: newProduct.short_description,
         description: newProduct.description,
         applications: newProduct.applications,
-        image: newProduct.image || undefined,
         status: newProduct.status,
         sort_order: newProduct.sort_order,
         specs: specs || undefined,
@@ -366,7 +367,6 @@ export default function AdminPage() {
         short_description: "",
         description: "",
         applications: "",
-        image: "",
         status: "draft",
         sort_order: 0,
         specsText: "",
@@ -449,6 +449,36 @@ export default function AdminPage() {
       setMessage("Neuspešno brisanje proizvoda.");
     } finally {
       setProductsLoading(false);
+    }
+  }
+
+  async function handleProductImageUpload(productId: number, files: FileList | null) {
+    if (!isAuthenticated || !files?.length) return;
+    setProductUploading({ id: productId, type: "image" });
+    setMessage(null);
+    try {
+      await uploadProductImage(productId, files[0]);
+      await refreshProducts(false);
+      setMessage("Slika proizvoda je sacuvana.");
+    } catch {
+      setMessage("Neuspesno slanje slike.");
+    } finally {
+      setProductUploading(null);
+    }
+  }
+
+  async function handleProductDocumentUpload(productId: number, files: FileList | null) {
+    if (!isAuthenticated || !files?.length) return;
+    setProductUploading({ id: productId, type: "document" });
+    setMessage(null);
+    try {
+      await uploadProductDocument(productId, files[0]);
+      await refreshProducts(false);
+      setMessage("Dokument je sacuvan.");
+    } catch {
+      setMessage("Neuspesno slanje dokumenta.");
+    } finally {
+      setProductUploading(null);
     }
   }
 
@@ -616,7 +646,7 @@ export default function AdminPage() {
             color="primary"
             onPress={() => setSection("products")}
           >
-            Proizvodi
+            Behaton
           </Button>
           <Button
             variant={section === "orders" ? "solid" : "flat"}
@@ -957,13 +987,9 @@ export default function AdminPage() {
                           }
                           minRows={2}
                         />
-                        <Input
-                          label="Slika (URL)"
-                          value={newProduct.image}
-                          onChange={(e) =>
-                            setNewProduct((prev) => ({ ...prev, image: e.target.value }))
-                          }
-                        />
+                        <div className="rounded-2xl border border-dashed border-black/10 bg-gray-50 px-4 py-3 text-xs text-gray-600">
+                          Slika i dokument se dodaju nakon kreiranja proizvoda (u listi ispod).
+                        </div>
                         <Textarea
                           label="Specifikacije (JSON)"
                           value={newProduct.specsText}
@@ -1026,7 +1052,7 @@ export default function AdminPage() {
               <section className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-2xl font-semibold">Proizvodi</h2>
+                    <h2 className="text-2xl font-semibold">Behaton proizvodi</h2>
                     <p className="text-sm text-gray-600">
                       Katalog behaton proizvoda za javni deo sajta.
                     </p>
@@ -1140,11 +1166,29 @@ export default function AdminPage() {
                                 handleProductChange(product.id, "product_type", e.target.value)
                               }
                             />
-                            <Input
-                              label="Slika (URL)"
-                              value={String(value("image", ""))}
-                              onChange={(e) => handleProductChange(product.id, "image", e.target.value)}
-                            />
+                            <div className="space-y-2">
+                              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                                Slika proizvoda
+                              </p>
+                              {product.image && (
+                                <div className="h-28 overflow-hidden rounded-xl border border-black/10 bg-gray-50">
+                                  <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="h-full w-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                disabled={productUploading?.id === product.id && productUploading.type === "image"}
+                                onChange={(event) =>
+                                  handleProductImageUpload(product.id, event.target.files)
+                                }
+                                className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                              />
+                            </div>
                             <Input
                               label="Redosled"
                               type="number"
@@ -1153,6 +1197,35 @@ export default function AdminPage() {
                                 handleProductChange(product.id, "sort_order", e.target.value)
                               }
                             />
+                          </div>
+
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <div className="space-y-2">
+                              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                                Dokument (PDF/DOC)
+                              </p>
+                              {product.document && (
+                                <a
+                                  href={product.document}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex text-sm font-semibold text-primary"
+                                >
+                                  Pogledaj dokument
+                                </a>
+                              )}
+                              <input
+                                type="file"
+                                accept=".pdf,.doc,.docx,.xls,.xlsx"
+                                disabled={
+                                  productUploading?.id === product.id && productUploading.type === "document"
+                                }
+                                onChange={(event) =>
+                                  handleProductDocumentUpload(product.id, event.target.files)
+                                }
+                                className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                              />
+                            </div>
                           </div>
 
                           <Textarea

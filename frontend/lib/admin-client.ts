@@ -139,6 +139,24 @@ export async function adminGetProduct(id: number) {
   });
 }
 
+export async function uploadProductImage(id: number, file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return adminFetch<{ image: string }>(`/admin/products/${id}/image`, {
+    method: "POST",
+    body: form,
+  });
+}
+
+export async function uploadProductDocument(id: number, file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return adminFetch<{ document: string }>(`/admin/products/${id}/document`, {
+    method: "POST",
+    body: form,
+  });
+}
+
 export async function uploadHeroImage(id: number, file: File) {
   const form = new FormData();
   form.append("file", file);

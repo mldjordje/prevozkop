@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS products (
   applications TEXT,
   specs JSON NULL,
   image VARCHAR(255),
+  document_path VARCHAR(255),
   status ENUM('draft','published') DEFAULT 'draft',
   sort_order INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

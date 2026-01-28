@@ -23,6 +23,7 @@ export type Product = {
   applications?: string | null;
   specs?: Record<string, string | string[] | number> | string[] | null;
   image?: string | null;
+  document?: string | null;
   status?: string | null;
   sort_order?: number | null;
   created_at?: string | null;
