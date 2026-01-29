@@ -1124,7 +1124,7 @@ export default function AdminPage() {
                   </Card>
 
                   <Card>
-                    <CardHeader className="font-semibold">Brzi unos (više proizvoda)</CardHeader>
+                    <CardHeader className="font-semibold">Brzi unos (više behatona)</CardHeader>
                     <CardBody>
                       <form className="grid gap-3" onSubmit={handleBulkProducts}>
                         <Textarea
@@ -1149,7 +1149,7 @@ export default function AdminPage() {
                 <Card className="border border-dashed border-primary bg-white/60">
                   <CardBody>
                     <p className="text-sm text-gray-600">
-                      Za upravljanje proizvodima potrebno je da se prijavite u admin panel.
+                      Za upravljanje behaton proizvodima potrebno je da se prijavite u admin panel.
                     </p>
                   </CardBody>
                 </Card>
@@ -1181,6 +1181,32 @@ export default function AdminPage() {
                     </Button>
                   </div>
                 </div>
+
+                {products.length > 0 && (
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {[
+                      { label: "Ukupno", value: products.length },
+                      {
+                        label: "Objavljeno",
+                        value: products.filter((item) => item.status === "published").length,
+                      },
+                      {
+                        label: "Draft",
+                        value: products.filter((item) => item.status !== "published").length,
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm shadow-sm"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                          {item.label}
+                        </p>
+                        <p className="mt-1 text-2xl font-bold text-dark">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <Card>
                   <CardBody className="grid gap-4 md:grid-cols-[1.2fr_0.8fr_0.7fr_auto]">
@@ -1217,6 +1243,38 @@ export default function AdminPage() {
                   </CardBody>
                 </Card>
 
+                {products.length > 0 && (
+                  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                    {products.map((product) => (
+                      <a
+                        key={product.id}
+                        href={`#product-${product.id}`}
+                        className="flex items-center gap-3 rounded-2xl border border-black/5 bg-white p-3 shadow-sm transition hover:-translate-y-1"
+                      >
+                        <div className="h-12 w-12 overflow-hidden rounded-xl border border-black/10 bg-gray-50">
+                          {product.image ? (
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[10px] text-gray-400">
+                              Nema slike
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-dark">{product.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {product.status === "published" ? "Objavljeno" : "Draft"}
+                          </p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                )}
+
                 <div className="grid gap-4">
                   {products.map((product) => {
                     const draft = productDrafts[product.id];
@@ -1233,20 +1291,21 @@ export default function AdminPage() {
                         : (product[field] ?? fallback);
 
                     return (
-                      <Card key={product.id}>
-                        <CardHeader className="flex flex-wrap items-center justify-between gap-2">
-                          <div>
-                            <p className="text-sm font-semibold">{value("name", "")}</p>
-                            <p className="text-xs text-gray-500">{value("slug", "")}</p>
-                          </div>
-                          <Chip
-                            color={value("status", "draft") === "published" ? "success" : "default"}
-                            variant="flat"
-                          >
-                            {value("status", "draft") === "published" ? "Objavljeno" : "Draft"}
-                          </Chip>
-                        </CardHeader>
-                        <CardBody className="space-y-4">
+                      <div key={product.id} id={`product-${product.id}`}>
+                        <Card>
+                          <CardHeader className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                              <p className="text-sm font-semibold">{value("name", "")}</p>
+                              <p className="text-xs text-gray-500">{value("slug", "")}</p>
+                            </div>
+                            <Chip
+                              color={value("status", "draft") === "published" ? "success" : "default"}
+                              variant="flat"
+                            >
+                              {value("status", "draft") === "published" ? "Objavljeno" : "Draft"}
+                            </Chip>
+                          </CardHeader>
+                          <CardBody className="space-y-4">
                           <div className="grid gap-3 md:grid-cols-2">
                             <Input
                               label="Naziv"
@@ -1408,7 +1467,8 @@ export default function AdminPage() {
                             </Button>
                           </div>
                         </CardBody>
-                      </Card>
+                        </Card>
+                      </div>
                     );
                   })}
                 </div>
