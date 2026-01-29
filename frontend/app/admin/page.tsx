@@ -426,8 +426,16 @@ export default function AdminPage() {
           ? `Proizvod je dodat. ${uploadNotes.join(" ")}`
           : "Proizvod je uspešno dodat."
       );
-    } catch {
-      setMessage("Greška pri dodavanju proizvoda.");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const apiMessage =
+          typeof error.body === "string"
+            ? error.body
+            : (error.body as { error?: string } | undefined)?.error;
+        setMessage(apiMessage ? `Greška: ${apiMessage}` : "Greška pri dodavanju proizvoda.");
+      } else {
+        setMessage("Greška pri dodavanju proizvoda.");
+      }
     } finally {
       setProductsLoading(false);
     }
@@ -568,8 +576,16 @@ export default function AdminPage() {
       setBulkProducts("");
       await refreshProducts(false);
       setMessage(`Dodato proizvoda: ${created}.`);
-    } catch {
-      setMessage("Greška pri masovnom unosu proizvoda.");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const apiMessage =
+          typeof error.body === "string"
+            ? error.body
+            : (error.body as { error?: string } | undefined)?.error;
+        setMessage(apiMessage ? `Greška: ${apiMessage}` : "Greška pri masovnom unosu behatona.");
+      } else {
+        setMessage("Greška pri masovnom unosu behatona.");
+      }
     } finally {
       setProductsLoading(false);
     }
