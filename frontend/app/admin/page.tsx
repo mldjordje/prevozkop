@@ -108,6 +108,20 @@ export default function AdminPage() {
   const hasProductDrafts =
     Object.keys(productDrafts).length > 0 || Object.keys(productSpecsDrafts).length > 0;
 
+  function extractApiErrorMessage(error: unknown): string | null {
+    if (!(error instanceof ApiError)) {
+      return null;
+    }
+    if (typeof error.body === "string") {
+      return error.body || null;
+    }
+    if (error.body && typeof error.body === "object") {
+      const message = (error.body as { error?: string }).error;
+      return typeof message === "string" && message.trim() ? message : null;
+    }
+    return null;
+  }
+
   useEffect(() => {
     refreshProjects();
   }, []);
@@ -283,8 +297,11 @@ export default function AdminPage() {
       if (newProjectHero) {
         try {
           await uploadHeroImage(created.id, newProjectHero);
-        } catch {
-          uploadNotes.push("Hero slika nije poslata.");
+        } catch (error) {
+          const detail = extractApiErrorMessage(error);
+          uploadNotes.push(
+            detail ? `Hero slika nije poslata (${detail}).` : "Hero slika nije poslata."
+          );
         }
       }
       if (newProjectGallery.length > 0) {
@@ -292,8 +309,11 @@ export default function AdminPage() {
           for (const file of newProjectGallery) {
             await uploadGalleryImage(created.id, file);
           }
-        } catch {
-          uploadNotes.push("Galerija nije kompletno poslata.");
+        } catch (error) {
+          const detail = extractApiErrorMessage(error);
+          uploadNotes.push(
+            detail ? `Galerija nije kompletno poslata (${detail}).` : "Galerija nije kompletno poslata."
+          );
         }
       }
       setNewProject({ title: "", slug: "", excerpt: "", body: "", status: "draft" });
@@ -401,15 +421,19 @@ export default function AdminPage() {
       if (newProductImage) {
         try {
           await uploadProductImage(created.id, newProductImage);
-        } catch {
-          uploadNotes.push("Slika nije poslata.");
+        } catch (error) {
+          const detail = extractApiErrorMessage(error);
+          uploadNotes.push(detail ? `Slika nije poslata (${detail}).` : "Slika nije poslata.");
         }
       }
       if (newProductDocument) {
         try {
           await uploadProductDocument(created.id, newProductDocument);
-        } catch {
-          uploadNotes.push("Dokument nije poslat.");
+        } catch (error) {
+          const detail = extractApiErrorMessage(error);
+          uploadNotes.push(
+            detail ? `Dokument nije poslat (${detail}).` : "Dokument nije poslat."
+          );
         }
       }
       setNewProduct({
@@ -528,8 +552,9 @@ export default function AdminPage() {
       await uploadProductImage(productId, files[0]);
       await refreshProducts(false);
       setMessage("Slika proizvoda je sacuvana.");
-    } catch {
-      setMessage("Neuspesno slanje slike.");
+    } catch (error) {
+      const detail = extractApiErrorMessage(error);
+      setMessage(detail ? `Greska: ${detail}` : "Neuspesno slanje slike.");
     } finally {
       setProductUploading(null);
     }
@@ -543,8 +568,9 @@ export default function AdminPage() {
       await uploadProductDocument(productId, files[0]);
       await refreshProducts(false);
       setMessage("Dokument je sacuvan.");
-    } catch {
-      setMessage("Neuspesno slanje dokumenta.");
+    } catch (error) {
+      const detail = extractApiErrorMessage(error);
+      setMessage(detail ? `Greska: ${detail}` : "Neuspesno slanje dokumenta.");
     } finally {
       setProductUploading(null);
     }
@@ -635,8 +661,11 @@ export default function AdminPage() {
       await uploadHeroImage(projectId, files[0]);
       await refreshProjectDetail(projectId);
       setMessage("Hero fotografija je postavljena.");
-    } catch {
-      setMessage("Nije uspelo postavljanje hero fotografije.");
+    } catch (error) {
+      const detail = extractApiErrorMessage(error);
+      setMessage(
+        detail ? `Greska: ${detail}` : "Nije uspelo postavljanje hero fotografije."
+      );
     } finally {
       setUploading(null);
     }
@@ -652,8 +681,9 @@ export default function AdminPage() {
       }
       await refreshProjectDetail(projectId);
       setMessage("Galerija je ažurirana.");
-    } catch {
-      setMessage("Nije uspelo slanje galerije.");
+    } catch (error) {
+      const detail = extractApiErrorMessage(error);
+      setMessage(detail ? `Greska: ${detail}` : "Nije uspelo slanje galerije.");
     } finally {
       setUploading(null);
     }
