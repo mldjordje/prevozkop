@@ -993,7 +993,7 @@ export default function AdminPage() {
               {isAuthenticated ? (
                 <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
                   <Card>
-                    <CardHeader className="font-semibold">Novi proizvod</CardHeader>
+                    <CardHeader className="font-semibold">Novi behaton proizvod</CardHeader>
                     <CardBody>
                       <form key={newProductFormKey} className="grid gap-4" onSubmit={handleCreateProduct}>
                         <Input
@@ -1012,14 +1012,9 @@ export default function AdminPage() {
                               setNewProduct((prev) => ({ ...prev, slug: e.target.value }))
                             }
                           />
-                          <Input
-                            label="Kategorija"
-                            value={newProduct.category}
-                            onChange={(e) =>
-                              setNewProduct((prev) => ({ ...prev, category: e.target.value }))
-                            }
-                            isRequired
-                          />
+                          <div className="rounded-2xl border border-black/5 bg-gray-50 px-4 py-3 text-xs text-gray-600">
+                            Kategorija: <span className="font-semibold text-dark">behaton</span>
+                          </div>
                         </div>
                         <div className="grid gap-3 sm:grid-cols-2">
                           <Input
@@ -1128,7 +1123,7 @@ export default function AdminPage() {
                     <CardBody>
                       <form className="grid gap-3" onSubmit={handleBulkProducts}>
                         <Textarea
-                          label="Spisak proizvoda"
+                          label="Spisak behatona"
                           placeholder="Naziv | kategorija | tip | kratak opis"
                           value={bulkProducts}
                           onChange={(e) => setBulkProducts(e.target.value)}
@@ -1139,7 +1134,7 @@ export default function AdminPage() {
                           mogu biti prazni.
                         </p>
                         <Button color="primary" type="submit" isDisabled={productsLoading}>
-                          Dodaj proizvode
+                          Dodaj behatone
                         </Button>
                       </form>
                     </CardBody>
@@ -1160,7 +1155,7 @@ export default function AdminPage() {
                   <div>
                     <h2 className="text-2xl font-semibold">Behaton proizvodi</h2>
                     <p className="text-sm text-gray-600">
-                      Katalog behaton proizvoda za javni deo sajta.
+                      Pregled svih behatona iz baze (brza izmena, upload i status).
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -1209,19 +1204,16 @@ export default function AdminPage() {
                 )}
 
                 <Card>
-                  <CardBody className="grid gap-4 md:grid-cols-[1.2fr_0.8fr_0.7fr_auto]">
+                  <CardBody className="grid gap-4 md:grid-cols-[1.3fr_0.9fr_auto]">
                     <Input
                       label="Pretraga"
                       placeholder="Naziv ili opis"
                       value={productQuery}
                       onChange={(e) => setProductQuery(e.target.value)}
                     />
-                    <Input
-                      label="Kategorija"
-                      placeholder="behaton"
-                      value={productCategoryFilter}
-                      onChange={(e) => setProductCategoryFilter(e.target.value)}
-                    />
+                    <div className="rounded-2xl border border-black/5 bg-gray-50 px-4 py-3 text-xs text-gray-600">
+                      Kategorija: <span className="font-semibold text-dark">behaton</span>
+                    </div>
                     <Select
                       label="Status"
                       items={productStatusOptions}
@@ -1317,13 +1309,9 @@ export default function AdminPage() {
                               value={String(value("slug", ""))}
                               onChange={(e) => handleProductChange(product.id, "slug", e.target.value)}
                             />
-                            <Input
-                              label="Kategorija"
-                              value={String(value("category", ""))}
-                              onChange={(e) =>
-                                handleProductChange(product.id, "category", e.target.value)
-                              }
-                            />
+                            <div className="rounded-2xl border border-black/5 bg-gray-50 px-4 py-3 text-xs text-gray-600">
+                              Kategorija: <span className="font-semibold text-dark">behaton</span>
+                            </div>
                             <Input
                               label="Tip / kolekcija"
                               value={String(value("product_type", ""))}
