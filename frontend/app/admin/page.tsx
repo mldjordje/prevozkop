@@ -307,11 +307,18 @@ export default function AdminPage() {
           : "Projekat je uspešno kreiran."
       );
     } catch (error) {
-      const text =
-        error instanceof ApiError
-          ? `Greška (${error.status}) prilikom čuvanja.`
-          : "Greška prilikom čuvanja.";
-      setMessage(text);
+      if (error instanceof ApiError) {
+        const apiMessage =
+          typeof error.body === "string"
+            ? error.body
+            : (error.body as { error?: string } | undefined)?.error;
+        const text = apiMessage
+          ? `Greška (${error.status}): ${apiMessage}`
+          : `Greška (${error.status}) prilikom čuvanja.`;
+        setMessage(text);
+      } else {
+        setMessage("Greška prilikom čuvanja.");
+      }
     } finally {
       setIsFetching(false);
     }
