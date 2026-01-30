@@ -122,36 +122,63 @@ export default async function BehatonPage() {
           <StaggerReveal className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
               <ScrollReveal key={product.id} from="up" className="h-full">
-                <TiltCard className="group h-full overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md">
-                  <div className="relative h-44 overflow-hidden">
-                    <img
-                      src={product.image || "/img/napolje1.webp"}
-                      alt={product.name}
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="flex h-full flex-col gap-3 p-5">
-                    <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                      {product.product_type || "Behaton"}
-                    </p>
-                    <h3 className="text-lg font-semibold text-dark">{product.name}</h3>
-                    {product.short_description && (
-                      <p className="text-sm text-gray-700">{product.short_description}</p>
-                    )}
-                    <div className="flex-1" />
-                    <Link
-                      href={`/behaton/${product.slug}`}
-                      className="inline-flex w-fit items-center text-sm font-semibold text-primary"
-                    >
-                      Pogledaj detalje {"->"}
-                    </Link>
-                  </div>
-                </TiltCard>
+                <Link
+                  href={`/behaton/${product.slug}`}
+                  className="group block h-full"
+                  aria-label={`Detalji i upit za ${product.name}`}
+                >
+                  <TiltCard className="h-full overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md">
+                    <div className="relative h-44 overflow-hidden">
+                      <img
+                        src={product.image || "/img/napolje1.webp"}
+                        alt={product.name}
+                        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="flex h-full flex-col gap-3 p-5">
+                      <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                        {product.product_type || "Behaton"}
+                      </p>
+                      <h3 className="text-lg font-semibold text-dark">{product.name}</h3>
+                      {product.short_description && (
+                        <p className="text-sm text-gray-700">{product.short_description}</p>
+                      )}
+                      <div className="flex-1" />
+                      <span className="inline-flex w-fit items-center text-sm font-semibold text-primary">
+                        Detalji i upit {"->"}
+                      </span>
+                    </div>
+                  </TiltCard>
+                </Link>
               </ScrollReveal>
             ))}
           </StaggerReveal>
         )}
+      </section>
+
+      <section className="content-section space-y-6" id="forma">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Upit
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">Posaljite upit za behaton</h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            Navedite povrsinu, namenu i grad. Dobicete odgovor sa preporukom i sledecim koracima.
+          </p>
+        </div>
+        <ContactForm
+          defaultSubject="Behaton - upit"
+          subjectPlaceholder="Behaton za dvoriste, parking..."
+          selectLabel="Model behatona (opciono)"
+          selectPlaceholder="Izaberite model behatona"
+          selectOptions={productOptions}
+          showQuantity
+          quantityLabel="Kolicina behatona (opciono)"
+          quantityPlaceholder="npr. 120"
+          quantityUnitLabel="Jedinica"
+          quantityUnits={["m2", "m3", "kom", "paleta"]}
+        />
       </section>
 
       <section className="content-section space-y-6" id="projekti">
@@ -332,25 +359,6 @@ export default async function BehatonPage() {
             </ul>
           </div>
         </div>
-      </section>
-
-      <section className="content-section space-y-6" id="forma">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Upit
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">Posaljite upit za behaton</h2>
-          <p className="max-w-3xl text-sm text-gray-700">
-            Navedite povrsinu, namenu i grad. Dobicete odgovor sa preporukom i sledecim koracima.
-          </p>
-        </div>
-        <ContactForm
-          defaultSubject="Behaton - upit"
-          subjectPlaceholder="Behaton za dvoriste, parking..."
-          selectLabel="Model behatona (opciono)"
-          selectPlaceholder="Izaberite model behatona"
-          selectOptions={productOptions}
-        />
       </section>
 
       <section className="content-section space-y-6">

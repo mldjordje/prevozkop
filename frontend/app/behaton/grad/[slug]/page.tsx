@@ -176,6 +176,32 @@ export default async function BehatonCityPage({ params }: PageProps) {
         </section>
       )}
 
+      <section className="content-section space-y-6" id="forma">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Upit
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Posaljite upit za behaton u {city.name}
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            Navedite lokaciju, povrsinu i namenu. Dobicete odgovor sa preporukom i logistikom.
+          </p>
+        </div>
+        <ContactForm
+          defaultSubject={`Behaton ${city.name} - upit`}
+          subjectPlaceholder={`Behaton za ${city.name}`}
+          selectLabel="Model behatona (opciono)"
+          selectPlaceholder="Izaberite model behatona"
+          selectOptions={products.map((item) => item.name)}
+          showQuantity
+          quantityLabel="Kolicina behatona (opciono)"
+          quantityPlaceholder="npr. 120"
+          quantityUnitLabel="Jedinica"
+          quantityUnits={["m2", "m3", "kom", "paleta"]}
+        />
+      </section>
+
       <section className="content-section">
         <div className="grid gap-6 rounded-3xl border border-black/5 bg-white px-6 py-10 shadow-xl sm:px-10 lg:grid-cols-[0.9fr_1.1fr]">
           <ScrollReveal className="space-y-3">
@@ -201,27 +227,6 @@ export default async function BehatonCityPage({ params }: PageProps) {
             ))}
           </StaggerReveal>
         </div>
-      </section>
-
-      <section className="content-section space-y-6" id="forma">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Upit
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Posaljite upit za behaton u {city.name}
-          </h2>
-          <p className="max-w-3xl text-sm text-gray-700">
-            Navedite lokaciju, povrsinu i namenu. Dobicete odgovor sa preporukom i logistikom.
-          </p>
-        </div>
-        <ContactForm
-          defaultSubject={`Behaton ${city.name} - upit`}
-          subjectPlaceholder={`Behaton za ${city.name}`}
-          selectLabel="Model behatona (opciono)"
-          selectPlaceholder="Izaberite model behatona"
-          selectOptions={products.map((item) => item.name)}
-        />
       </section>
 
       <section className="content-section space-y-6">

@@ -127,6 +127,32 @@ export default async function BehatonProductPage({ params }: PageProps) {
         </div>
       </section>
 
+      <section className="content-section space-y-6" id="forma">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Upit
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Posaljite upit za {product.name}
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            Navedite grad, povrsinu i planirani rok. Javljamo se sa predlogom i cenom.
+          </p>
+        </div>
+        <ContactForm
+          defaultSubject={`Behaton - ${product.name}`}
+          defaultSelectValue={product.name}
+          selectLabel="Model behatona (opciono)"
+          selectPlaceholder="Izaberite model behatona"
+          selectOptions={productOptions}
+          showQuantity
+          quantityLabel="Kolicina behatona (opciono)"
+          quantityPlaceholder="npr. 120"
+          quantityUnitLabel="Jedinica"
+          quantityUnits={["m2", "m3", "kom", "paleta"]}
+        />
+      </section>
+
       <section className="content-section space-y-6">
         <ScrollReveal>
           <div className="flex flex-col gap-2">
@@ -210,25 +236,6 @@ export default async function BehatonProductPage({ params }: PageProps) {
             </ul>
           </div>
         </div>
-      </section>
-
-      <section className="content-section space-y-6" id="forma">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Upit
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">Posaljite upit za {product.name}</h2>
-          <p className="max-w-3xl text-sm text-gray-700">
-            Navedite grad, povrsinu i planirani rok. Javljamo se sa predlogom i cenom.
-          </p>
-        </div>
-        <ContactForm
-          defaultSubject={`Behaton - ${product.name}`}
-          defaultSelectValue={product.name}
-          selectLabel="Model behatona (opciono)"
-          selectPlaceholder="Izaberite model behatona"
-          selectOptions={productOptions}
-        />
       </section>
 
       {related.length > 0 && (

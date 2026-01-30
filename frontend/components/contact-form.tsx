@@ -24,6 +24,13 @@ type ContactFormProps = {
   selectOptions?: string[];
   selectPlaceholder?: string;
   defaultSelectValue?: string;
+  selectRequired?: boolean;
+  showQuantity?: boolean;
+  quantityLabel?: string;
+  quantityPlaceholder?: string;
+  quantityUnitLabel?: string;
+  quantityUnits?: string[];
+  defaultQuantityUnit?: string;
 };
 
 export default function ContactForm({
@@ -33,6 +40,13 @@ export default function ContactForm({
   selectOptions,
   selectPlaceholder,
   defaultSelectValue,
+  selectRequired,
+  showQuantity,
+  quantityLabel,
+  quantityPlaceholder,
+  quantityUnitLabel,
+  quantityUnits,
+  defaultQuantityUnit,
 }: ContactFormProps) {
   const [state, setState] = useState<FormState>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +60,10 @@ export default function ContactForm({
   const resolvedSelectOptions = selectOptions ?? concreteTypes;
   const resolvedSelectLabel = selectLabel || "Vrsta betona (nije obavezno)";
   const resolvedSelectPlaceholder = selectPlaceholder || "Izaberite vrstu betona";
+  const resolvedQuantityLabel = quantityLabel || "Kolicina (opciono)";
+  const resolvedQuantityPlaceholder = quantityPlaceholder || "npr. 120";
+  const resolvedQuantityUnitLabel = quantityUnitLabel || "Jedinica";
+  const resolvedQuantityUnits = quantityUnits ?? ["m2", "m3", "kom", "paleta"];
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -56,13 +74,24 @@ export default function ContactForm({
 
     const form = event.currentTarget;
     const data = new FormData(form);
+    const selectedType = (data.get("concrete_type") as string) || "";
+    const quantity = (data.get("quantity") as string) || "";
+    const quantityUnit = (data.get("quantity_unit") as string) || "";
+    const rawMessage = (data.get("message") as string) || "";
+    const detailLines: string[] = [];
+    if (selectedType) detailLines.push(`Model: ${selectedType}`);
+    if (quantity) {
+      detailLines.push(`Kolicina: ${quantity}${quantityUnit ? ` ${quantityUnit}` : ""}`);
+    }
+    const message = detailLines.length ? `${detailLines.join(" | ")}\n${rawMessage}` : rawMessage;
+
     const payload: Partial<Order> = {
       name: (data.get("name") as string) || "",
       email: (data.get("email") as string) || "",
       phone: (data.get("phone") as string) || "",
       subject: (data.get("subject") as string) || "",
-      concrete_type: (data.get("concrete_type") as string) || "",
-      message: (data.get("message") as string) || "",
+      concrete_type: selectedType,
+      message,
     };
 
     try {
@@ -142,6 +171,7 @@ export default function ContactForm({
           name="concrete_type"
           className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
           defaultValue={defaultSelectValue || ""}
+          required={selectRequired}
         >
           <option value="">{resolvedSelectPlaceholder}</option>
           {resolvedSelectOptions.map((type) => (
@@ -151,6 +181,37 @@ export default function ContactForm({
           ))}
         </select>
       </label>
+
+      {showQuantity && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+            {resolvedQuantityLabel}
+            <input
+              name="quantity"
+              type="number"
+              min="0"
+              step="0.01"
+              className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+              placeholder={resolvedQuantityPlaceholder}
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+            {resolvedQuantityUnitLabel}
+            <select
+              name="quantity_unit"
+              className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+              defaultValue={defaultQuantityUnit || ""}
+            >
+              <option value="">Izaberite jedinicu</option>
+              {resolvedQuantityUnits.map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
 
       <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
         Poruka*
