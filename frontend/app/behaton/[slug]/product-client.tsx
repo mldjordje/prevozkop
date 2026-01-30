@@ -60,9 +60,11 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
         const res = await fetch(`${API_BASE}/products?limit=60&offset=0`, { cache: "no-store" });
         if (!res.ok) return;
         const data = (await res.json()) as { data?: Product[] };
+        const currentSlug = product?.slug;
+        if (!currentSlug) return;
         const list = (data.data || [])
           .filter((item) => item.category?.trim().toLowerCase() === "behaton")
-          .filter((item) => item.slug !== product.slug)
+          .filter((item) => item.slug !== currentSlug)
           .slice(0, 3);
         if (!canceled) {
           setRelated(list);
