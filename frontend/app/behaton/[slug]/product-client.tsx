@@ -42,6 +42,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
         if (!canceled) {
           setLoadError(true);
         }
+      }
     }
 
     void loadProduct();
