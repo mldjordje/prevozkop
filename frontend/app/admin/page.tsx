@@ -96,7 +96,7 @@ export default function AdminPage() {
     short_description: "",
     description: "",
     applications: "",
-    status: "draft",
+    status: "published",
     sort_order: 0,
     specsText: "",
   });
@@ -444,7 +444,7 @@ export default function AdminPage() {
         short_description: "",
         description: "",
         applications: "",
-        status: "draft",
+        status: "published",
         sort_order: 0,
         specsText: "",
       });

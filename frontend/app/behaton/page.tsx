@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import PageHero from "@/components/page-hero";
@@ -32,13 +33,21 @@ export const metadata: Metadata = {
   ],
 };
 
+const behatonGallery = [
+  { src: "/img/behaton/SLI_4651.JPG", alt: "Behaton projekat - dvoriste" },
+  { src: "/img/behaton/SLI_4906.JPG", alt: "Behaton projekat - prilaz" },
+  { src: "/img/behaton/SLI_4930.JPG", alt: "Behaton projekat - parking" },
+  { src: "/img/behaton/SLI_4939.JPG", alt: "Behaton projekat - staze" },
+  { src: "/img/behaton/SLI_4975.JPG", alt: "Behaton ploce - izlozeni dezen" },
+];
+
 export default async function BehatonPage() {
   let products: Product[] = [];
 
   try {
     const res = await getProducts({ limit: 100, offset: 0 });
     products =
-      res.data?.filter((item) => item.category?.toLowerCase() === "behaton") || [];
+      res.data?.filter((item) => item.category?.trim().toLowerCase() === "behaton") || [];
   } catch (error) {
     console.error("Neuspelo ucitavanje behaton proizvoda:", error);
   }
@@ -143,6 +152,39 @@ export default async function BehatonPage() {
             ))}
           </StaggerReveal>
         )}
+      </section>
+
+      <section className="content-section space-y-6" id="projekti">
+        <ScrollReveal>
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+              Galerija
+            </span>
+            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+              Izvodjeni behaton projekti i detalji
+            </h2>
+            <p className="max-w-3xl text-sm text-gray-700">
+              Pogledajte deo realizovanih behaton povrsina i prikaz izlozenih ploca.
+            </p>
+          </div>
+        </ScrollReveal>
+        <StaggerReveal className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {behatonGallery.map((item) => (
+            <ScrollReveal key={item.src} from="up">
+              <div className="group overflow-hidden rounded-3xl border border-black/5 bg-white shadow-lg">
+                <div className="relative h-56 overflow-hidden">
+                  <Image
+                    src={item.src}
+                    alt={item.alt}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition duration-700 group-hover:scale-105"
+                  />
+                </div>
+              </div>
+            </ScrollReveal>
+          ))}
+        </StaggerReveal>
       </section>
 
       <section className="content-section space-y-6">

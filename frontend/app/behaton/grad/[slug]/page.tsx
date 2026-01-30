@@ -49,7 +49,7 @@ export default async function BehatonCityPage({ params }: PageProps) {
   try {
     const res = await getProducts({ limit: 50, offset: 0 });
     products =
-      res.data?.filter((item) => item.category?.toLowerCase() === "behaton") || [];
+      res.data?.filter((item) => item.category?.trim().toLowerCase() === "behaton") || [];
   } catch {
     products = [];
   }
