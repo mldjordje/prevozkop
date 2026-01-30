@@ -11,6 +11,7 @@ import { getProduct, getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api";
 
 export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: { slug: string };
@@ -43,6 +44,16 @@ export default async function BehatonProductPage({ params }: PageProps) {
     product = await getProduct(params.slug);
   } catch {
     product = null;
+  }
+
+  if (!product) {
+    try {
+      const res = await getProducts({ limit: 100, offset: 0 });
+      product =
+        res.data?.find((item) => item.slug === params.slug) || null;
+    } catch {
+      product = null;
+    }
   }
 
   if (!product) {

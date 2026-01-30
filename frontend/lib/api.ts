@@ -68,7 +68,7 @@ export async function getProjects(limit = 20, offset = 0) {
 }
 
 export async function getProject(slug: string) {
-  return fetchJson<Project>(`/projects/${slug}`);
+  return fetchJson<Project>(`/projects/${encodeURIComponent(slug)}`);
 }
 
 export async function getProducts(params: {
@@ -91,5 +91,5 @@ export async function getProducts(params: {
 }
 
 export async function getProduct(slug: string) {
-  return fetchJson<Product>(`/products/${slug}`);
+  return fetchJson<Product>(`/products/${encodeURIComponent(slug)}`);
 }
