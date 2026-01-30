@@ -7,7 +7,7 @@ import ContactForm from "@/components/contact-form";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import { behatonBenefits, behatonCities, behatonFaq, behatonProcess } from "@/content/behaton";
 import { company } from "@/content/site";
-import { getProduct, getProducts } from "@/lib/api";
+import { getProduct } from "@/lib/api";
 import type { Product } from "@/lib/api";
 
 export const revalidate = 300;
@@ -16,6 +16,25 @@ export const dynamic = "force-dynamic";
 type PageProps = {
   params: { slug: string };
 };
+
+async function fetchProductDirect(slug: string) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
+  const res = await fetch(`${API_BASE}/products/${encodeURIComponent(slug)}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  return (await res.json()) as Product;
+}
+
+async function fetchProductsDirect(limit: number) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
+  const res = await fetch(`${API_BASE}/products?limit=${limit}&offset=0`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { data?: Product[] };
+  return data.data || [];
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
@@ -41,16 +60,15 @@ export default async function BehatonProductPage({ params }: PageProps) {
   let product: Product | null = null;
 
   try {
-    product = await getProduct(params.slug);
+    product = await fetchProductDirect(params.slug);
   } catch {
     product = null;
   }
 
   if (!product) {
     try {
-      const res = await getProducts({ limit: 100, offset: 0 });
-      product =
-        res.data?.find((item) => item.slug === params.slug) || null;
+      const allProducts = await fetchProductsDirect(200);
+      product = allProducts.find((item) => item.slug === params.slug) || null;
     } catch {
       product = null;
     }
@@ -62,8 +80,8 @@ export default async function BehatonProductPage({ params }: PageProps) {
 
   let related: Product[] = [];
   try {
-    const res = await getProducts({ limit: 60, offset: 0 });
-    related = (res.data || [])
+    const allProducts = await fetchProductsDirect(60);
+    related = (allProducts || [])
       .filter((item) => item.category?.trim().toLowerCase() === "behaton")
       .filter((item) => item.slug !== product!.slug)
       .slice(0, 3);
