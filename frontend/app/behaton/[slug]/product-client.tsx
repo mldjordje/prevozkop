@@ -155,7 +155,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
       <PageHero
         title={product.name}
         kicker={product.product_type || "Behaton"}
-        description={product.short_description || undefined}
+        description={product.short_description || product.description || undefined}
         background={product.image || "/img/napolje1.webp"}
         priority
         actions={[
@@ -171,6 +171,9 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
               Detalji
             </span>
             <h2 className="text-3xl font-bold text-dark sm:text-4xl">{product.name}</h2>
+            {product.short_description && (
+              <p className="text-sm font-semibold text-dark">{product.short_description}</p>
+            )}
             {product.description && <p className="text-sm text-gray-700">{product.description}</p>}
             {product.applications && (
               <div className="rounded-2xl border border-black/5 bg-white px-5 py-4 text-sm text-gray-700 shadow-sm">
@@ -178,6 +181,21 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
                   Primena
                 </p>
                 <p className="mt-2">{product.applications}</p>
+              </div>
+            )}
+            {product.document && (
+              <div className="rounded-2xl border border-black/5 bg-white px-5 py-4 text-sm text-gray-700 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  Dokumentacija
+                </p>
+                <a
+                  href={product.document}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex text-sm font-semibold text-primary"
+                >
+                  Preuzmi dokument
+                </a>
               </div>
             )}
           </ScrollReveal>
