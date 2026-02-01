@@ -21,6 +21,7 @@ import {
   adminDeleteProject,
   adminDeleteProduct,
   adminGetProject,
+  adminGetProduct,
   adminListOrders,
   adminListProjects,
   adminListProducts,
@@ -29,9 +30,11 @@ import {
   adminUpdateOrderStatus,
   adminUpdateProject,
   adminUpdateProduct,
+  deleteProductGalleryImage,
   deleteGalleryImage,
   uploadProductDocument,
   uploadProductImage,
+  uploadProductGalleryImage,
   uploadGalleryImage,
   uploadHeroImage,
 } from "@/lib/admin-client";
@@ -61,7 +64,7 @@ export default function AdminPage() {
   const [productDrafts, setProductDrafts] = useState<Record<number, Partial<Product>>>({});
   const [productSpecsDrafts, setProductSpecsDrafts] = useState<Record<number, string>>({});
   const [productsLoading, setProductsLoading] = useState(false);
-  const [productUploading, setProductUploading] = useState<{ id: number; type: "image" | "document" } | null>(null);
+  const [productUploading, setProductUploading] = useState<{ id: number; type: "image" | "document" | "gallery" } | null>(null);
   const [productQuery, setProductQuery] = useState("");
   const [productCategoryFilter, setProductCategoryFilter] = useState("behaton");
   const [productStatusFilter, setProductStatusFilter] = useState("all");
@@ -101,6 +104,7 @@ export default function AdminPage() {
     specsText: "",
   });
   const [newProductImage, setNewProductImage] = useState<File | null>(null);
+  const [newProductGallery, setNewProductGallery] = useState<File[]>([]);
   const [newProductDocument, setNewProductDocument] = useState<File | null>(null);
   const [newProductFormKey, setNewProductFormKey] = useState(0);
   const [bulkProducts, setBulkProducts] = useState("");
@@ -204,6 +208,15 @@ export default function AdminPage() {
       setMessage("Neuspešno učitavanje proizvoda.");
     } finally {
       if (showLoader) setProductsLoading(false);
+    }
+  }
+
+  async function refreshProductDetail(id: number) {
+    try {
+      const detail = await adminGetProduct(id);
+      setProducts((prev) => prev.map((item) => (item.id === id ? detail : item)));
+    } catch {
+      // ignore
     }
   }
 
@@ -426,6 +439,18 @@ export default function AdminPage() {
           uploadNotes.push(detail ? `Slika nije poslata (${detail}).` : "Slika nije poslata.");
         }
       }
+      if (newProductGallery.length > 0) {
+        try {
+          for (const file of newProductGallery) {
+            await uploadProductGalleryImage(created.id, file);
+          }
+        } catch (error) {
+          const detail = extractApiErrorMessage(error);
+          uploadNotes.push(
+            detail ? `Galerija nije kompletno poslata (${detail}).` : "Galerija nije kompletno poslata."
+          );
+        }
+      }
       if (newProductDocument) {
         try {
           await uploadProductDocument(created.id, newProductDocument);
@@ -449,6 +474,7 @@ export default function AdminPage() {
         specsText: "",
       });
       setNewProductImage(null);
+      setNewProductGallery([]);
       setNewProductDocument(null);
       setNewProductFormKey((prev) => prev + 1);
       await refreshProducts(false);
@@ -555,6 +581,41 @@ export default function AdminPage() {
     } catch (error) {
       const detail = extractApiErrorMessage(error);
       setMessage(detail ? `Greska: ${detail}` : "Neuspesno slanje slike.");
+    } finally {
+      setProductUploading(null);
+    }
+  }
+
+  async function handleProductGalleryUpload(productId: number, files: FileList | null) {
+    if (!isAuthenticated || !files?.length) return;
+    setProductUploading({ id: productId, type: "gallery" });
+    setMessage(null);
+    try {
+      for (const file of Array.from(files)) {
+        await uploadProductGalleryImage(productId, file);
+      }
+      await refreshProductDetail(productId);
+      setMessage("Galerija proizvoda je sacuvana.");
+    } catch (error) {
+      const detail = extractApiErrorMessage(error);
+      setMessage(detail ? `Greska: ${detail}` : "Neuspesno slanje galerije.");
+    } finally {
+      setProductUploading(null);
+    }
+  }
+
+  async function handleDeleteProductGalleryImage(productId: number, mediaId?: number) {
+    if (!isAuthenticated || !mediaId) return;
+    if (!confirm("Obrisati sliku iz galerije?")) return;
+    setProductUploading({ id: productId, type: "gallery" });
+    setMessage(null);
+    try {
+      await deleteProductGalleryImage(productId, mediaId);
+      await refreshProductDetail(productId);
+      setMessage("Slika iz galerije je obrisana.");
+    } catch (error) {
+      const detail = extractApiErrorMessage(error);
+      setMessage(detail ? `Greska: ${detail}` : "Neuspesno brisanje slike.");
     } finally {
       setProductUploading(null);
     }
@@ -1144,6 +1205,20 @@ export default function AdminPage() {
                             />
                           </div>
                         </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                            Galerija proizvoda (vise slika)
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(event) =>
+                              setNewProductGallery(Array.from(event.target.files || []))
+                            }
+                            className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                          />
+                        </div>
                         <Textarea
                           label="Specifikacije (JSON)"
                           value={newProduct.specsText}
@@ -1391,6 +1466,57 @@ export default function AdminPage() {
                                 disabled={productUploading?.id === product.id && productUploading.type === "image"}
                                 onChange={(event) =>
                                   handleProductImageUpload(product.id, event.target.files)
+                                }
+                                className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                                Galerija proizvoda
+                              </p>
+                              {product.gallery === undefined ? (
+                                <div className="flex items-center justify-between rounded-xl border border-dashed border-black/10 bg-gray-50 px-3 py-2 text-xs text-gray-500">
+                                  <span>Galerija nije ucitana.</span>
+                                  <Button
+                                    size="sm"
+                                    variant="flat"
+                                    onPress={() => refreshProductDetail(product.id)}
+                                  >
+                                    Ucitaj
+                                  </Button>
+                                </div>
+                              ) : product.gallery.length > 0 ? (
+                                <div className="grid gap-2 sm:grid-cols-3">
+                                  {product.gallery.map((item) => (
+                                    <div
+                                      key={item.id ?? item.src}
+                                      className="relative overflow-hidden rounded-xl border border-black/10 bg-gray-50"
+                                    >
+                                      <img
+                                        src={item.src}
+                                        alt={item.alt || product.name}
+                                        className="h-24 w-full object-cover"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteProductGalleryImage(product.id, item.id)}
+                                        className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-dark shadow"
+                                      >
+                                        Obrisi
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-gray-500">Nema slika u galeriji.</p>
+                              )}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                disabled={productUploading?.id === product.id && productUploading.type === "gallery"}
+                                onChange={(event) =>
+                                  handleProductGalleryUpload(product.id, event.target.files)
                                 }
                                 className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
                               />

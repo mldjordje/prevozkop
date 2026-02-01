@@ -148,6 +148,22 @@ export async function uploadProductImage(id: number, file: File) {
   });
 }
 
+export async function uploadProductGalleryImage(id: number, file: File, alt?: string) {
+  const form = new FormData();
+  form.append("file", file);
+  if (alt) form.append("alt", alt);
+  return adminFetch<{ id: number; file: string; file_path: string }>(`/admin/products/${id}/media`, {
+    method: "POST",
+    body: form,
+  });
+}
+
+export async function deleteProductGalleryImage(productId: number, mediaId: number) {
+  return adminFetch<{ ok: boolean }>(`/admin/products/${productId}/media/${mediaId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function uploadProductDocument(id: number, file: File) {
   const form = new FormData();
   form.append("file", file);

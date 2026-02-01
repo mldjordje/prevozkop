@@ -137,6 +137,18 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
   const specsEntries = specsValue && !Array.isArray(specsValue) ? Object.entries(specsValue) : [];
   const specsList = Array.isArray(specsValue) ? specsValue : [];
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs";
+  const galleryImages = (() => {
+    const images: string[] = [];
+    if (product.image) images.push(product.image);
+    if (product.gallery && product.gallery.length > 0) {
+      product.gallery.forEach((item) => {
+        if (item.src && !images.includes(item.src)) {
+          images.push(item.src);
+        }
+      });
+    }
+    return images;
+  })();
 
   return (
     <div className="space-y-16 sm:space-y-24">
@@ -197,6 +209,37 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
           </ScrollReveal>
         </div>
       </section>
+
+      {galleryImages.length > 0 && (
+        <section className="content-section space-y-6">
+          <ScrollReveal>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+                Galerija
+              </span>
+              <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+                Galerija proizvoda
+              </h2>
+            </div>
+          </ScrollReveal>
+          <StaggerReveal className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {galleryImages.map((src, idx) => (
+              <ScrollReveal key={`${src}-${idx}`} from="up">
+                <div className="group overflow-hidden rounded-3xl border border-black/5 bg-white shadow-lg">
+                  <div className="relative h-56 overflow-hidden">
+                    <img
+                      src={src}
+                      alt={`${product.name} ${idx + 1}`}
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </StaggerReveal>
+        </section>
+      )}
 
       <section className="content-section space-y-6" id="forma">
         <div className="space-y-2">
@@ -386,7 +429,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
           "@type": "Product",
           name: product.name,
           description: product.short_description || product.description || undefined,
-          image: product.image ? [product.image] : undefined,
+          image: galleryImages.length > 0 ? galleryImages : undefined,
           brand: { "@type": "Brand", name: company.name },
           category: product.category,
           additionalProperty: specsEntries.map(([label, value]) => ({

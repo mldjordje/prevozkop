@@ -24,6 +24,7 @@ export type Product = {
   specs?: Record<string, string | string[] | number> | string[] | null;
   image?: string | null;
   document?: string | null;
+  gallery?: { id?: number; src: string; alt?: string | null; sort_order?: number }[];
   status?: string | null;
   sort_order?: number | null;
   created_at?: string | null;
