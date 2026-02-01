@@ -18,10 +18,12 @@ import { company } from "@/content/site";
 import { getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Behaton Nis - prodaja i ugradnja",
   description:
-    "Behaton Nis: prodaja, isporuka i ugradnja behaton kocki i ploca. Stranice optimizovane za konverzije i lokalne pretrage.",
+    "Behaton Nis: prodaja, isporuka i ugradnja behaton kocki i ploca uz pomoc oko izbora modela, podloge i rokova.",
   alternates: { canonical: "/behaton" },
   keywords: [
     "behaton",
@@ -41,13 +43,22 @@ const behatonGallery = [
   { src: "/img/behaton/SLI_4975.JPG", alt: "Behaton ploce - izlozeni dezen" },
 ];
 
+async function fetchProductsDirect(limit: number) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
+  const res = await fetch(`${API_BASE}/products?limit=${limit}&offset=0`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { data?: Product[] };
+  return data.data || [];
+}
+
 export default async function BehatonPage() {
   let products: Product[] = [];
 
   try {
-    const res = await getProducts({ limit: 100, offset: 0 });
-    products =
-      res.data?.filter((item) => item.category?.trim().toLowerCase() === "behaton") || [];
+    const res = await fetchProductsDirect(100);
+    products = res.filter((item) => item.category?.trim().toLowerCase() === "behaton");
   } catch (error) {
     console.error("Neuspelo ucitavanje behaton proizvoda:", error);
   }
@@ -59,7 +70,7 @@ export default async function BehatonPage() {
       <PageHero
         title="Behaton Nis - prodaja i ugradnja behatona"
         kicker="Behaton Pro"
-        description="Konkretne ponude za behaton kocke i ploce, uz jasne CTA poruke, lokalni SEO i brz dogovor oko isporuke i ugradnje."
+        description="Konkretne ponude za behaton kocke i ploce, uz savet oko izbora modela, pripreme podloge i dogovor oko isporuke i ugradnje."
         background="/img/napolje5.webp"
         priority
         actions={[
@@ -72,14 +83,14 @@ export default async function BehatonPage() {
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <ScrollReveal className="space-y-3">
             <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Fokus na konverzije
+              Ponuda za behaton
             </span>
             <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Behaton ponuda prilagodjena Google Ads kampanjama
+              Behaton ponuda prilagodjena vasem projektu
             </h2>
             <p className="text-sm text-gray-700">
-              Svaka stranica je osmisljena da pretvori klik u poziv ili upit. Jasne poruke,
-              dokazane CTA zone i sadrzaj prilagodjen lokalnim upitima smanjuju cenu po kliku.
+              Dobijate jasnu preporuku za model, debljinu i namenu behatona, kao i smernice za
+              pripremu podloge, rokove i logistiku isporuke.
             </p>
           </ScrollReveal>
           <StaggerReveal className="grid gap-3">
@@ -271,8 +282,8 @@ export default async function BehatonPage() {
               Behaton za Nis i okolne gradove
             </h2>
             <p className="max-w-3xl text-sm text-gray-700">
-              Lokalni sadrzaj optimizovan za pretrage po gradovima. Svaki grad ima svoju landing
-              strukturu i CTA poruke.
+              Organizujemo isporuku i ugradnju uz lokalnu podrsku, preciznu procenu i dogovor oko
+              termina.
             </p>
           </div>
         </ScrollReveal>
@@ -355,7 +366,7 @@ export default async function BehatonPage() {
               <li>- Behaton kocke i ploce za sve tipove povrsina</li>
               <li>- Saveti oko podloge i nivelacije terena</li>
               <li>- Lokalna isporuka i dogovor termina</li>
-              <li>- Brza reakcija na upite iz reklama</li>
+              <li>- Brza preporuka modela i okvirna kalkulacija</li>
             </ul>
           </div>
         </div>
