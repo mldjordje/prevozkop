@@ -52,6 +52,28 @@ const orderStatusOptions: { key: Order["status"]; label: string }[] = [
   { key: "done", label: "Zatvorena" },
 ];
 
+const concreteTypeSet = new Set(
+  [
+    "MB 10",
+    "MB 15",
+    "MB 20",
+    "MB 25 VODONEPROPUSTIV",
+    "MB 30 VODONEPROPUSTIV",
+    "MB 35 VODONEPROPUSTIV",
+    "MB 40 VODONEPROPUSTIV",
+    "V8 M150",
+  ].map((item) => item.toLowerCase())
+);
+
+const orderServiceFilters = [
+  { key: "all", label: "Sve" },
+  { key: "beton", label: "Beton" },
+  { key: "behaton", label: "Behaton" },
+  { key: "other", label: "Ostalo" },
+] as const;
+
+type OrderServiceFilter = (typeof orderServiceFilters)[number]["key"];
+
 type ViewState = "loading" | "login" | "ready";
 
 type AdminPanelProps = {
@@ -78,6 +100,7 @@ export default function AdminPanel({
   const [productStatusFilter, setProductStatusFilter] = useState("all");
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [orderServiceFilter, setOrderServiceFilter] = useState<OrderServiceFilter>("all");
   const [message, setMessage] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -786,6 +809,20 @@ export default function AdminPanel({
     } finally {
       setOrdersLoading(false);
     }
+  }
+
+  function resolveOrderService(order: Order): OrderServiceFilter {
+    const subject = (order.subject || "").trim().toLowerCase();
+    const type = (order.concrete_type || "").trim().toLowerCase();
+
+    const isBehaton =
+      subject.includes("behaton") || (type !== "" && !concreteTypeSet.has(type));
+    if (isBehaton) return "behaton";
+
+    const isBeton = subject.includes("beton") || (type !== "" && concreteTypeSet.has(type));
+    if (isBeton) return "beton";
+
+    return "other";
   }
 
   async function handleLogout() {
@@ -1657,16 +1694,107 @@ export default function AdminPanel({
             </>
           )}
 
-          {section === "orders" && (
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-semibold">Porudžbine</h2>
-                  <p className="text-sm text-gray-600">
-                    Pregled online porudžbina sa forme (status: nova / u obradi / zatvorena).
-                  </p>
+          {section === "orders" && (() => {
+            const filteredOrders = orders.filter((order) => {
+              if (orderServiceFilter === "all") return true;
+              return resolveOrderService(order) === orderServiceFilter;
+            });
+
+            return (
+              <section className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-2xl font-semibold">Porudžbine</h2>
+                    <p className="text-sm text-gray-600">
+                      Pregled online porudžbina sa forme (status: nova / u obradi / zatvorena).
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Select
+                      label="Filter"
+                      items={orderServiceFilters as unknown as { key: string; label: string }[]}
+                      selectedKeys={[orderServiceFilter]}
+                      onSelectionChange={(keys) =>
+                        setOrderServiceFilter(
+                          (Array.from(keys).at(0)?.toString() as OrderServiceFilter) || "all"
+                        )
+                      }
+                    >
+                      {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
+                    </Select>
+                    <Button variant="flat" onPress={() => refreshOrders()} isDisabled={ordersLoading}>
+                      Osveži
+                    </Button>
+                  </div>
                 </div>
-                <Button variant="flat" onPress={() => refreshOrders()} isDisabled={ordersLoading}>
+
+                {filteredOrders.length === 0 ? (
+                  <p className="text-sm text-gray-600">Još uvek nema porudžbina.</p>
+                ) : (
+                  <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
+                    <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] gap-4 border-b border-black/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                      <span>Kontakt</span>
+                      <span>Detalji</span>
+                      <span>Poruka</span>
+                      <span>Status</span>
+                      <span>Akcije</span>
+                    </div>
+                    <div className="divide-y divide-black/5">
+                      {filteredOrders.map((order) => (
+                        <div key={order.id} className="grid grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] gap-4 px-4 py-3 text-sm">
+                          <div className="space-y-1">
+                            <p className="font-semibold">{order.name}</p>
+                            <p className="text-gray-600">{order.email}</p>
+                            {order.phone && <p className="text-gray-600">{order.phone}</p>}
+                            <p className="text-xs text-gray-400">
+                              {new Date(order.created_at).toLocaleString("sr-RS")}
+                            </p>
+                          </div>
+                          <div className="space-y-1 text-gray-700">
+                            {order.subject && <p>{order.subject}</p>}
+                            {order.concrete_type && (
+                              <p className="text-xs text-gray-500">Beton: {order.concrete_type}</p>
+                            )}
+                          </div>
+                          <div className="text-gray-700">
+                            <p className="line-clamp-4 whitespace-pre-wrap">{order.message}</p>
+                          </div>
+                          <div className="flex items-center">
+                            <Chip
+                              color={
+                                order.status === "done"
+                                  ? "success"
+                                  : order.status === "in_progress"
+                                  ? "warning"
+                                  : "default"
+                              }
+                              variant="flat"
+                            >
+                              {orderStatusOptions.find((o) => o.key === order.status)?.label ||
+                                order.status}
+                            </Chip>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {orderStatusOptions.map((opt) => (
+                              <Button
+                                key={opt.key}
+                                size="sm"
+                                variant={order.status === opt.key ? "solid" : "flat"}
+                                onPress={() => handleOrderStatus(order, opt.key)}
+                                isDisabled={ordersLoading}
+                              >
+                                {opt.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            );
+          })()} isDisabled={ordersLoading}>
                   Osveži
                 </Button>
               </div>
@@ -1742,3 +1870,4 @@ export default function AdminPanel({
     </div>
   );
 }
+
