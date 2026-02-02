@@ -118,7 +118,12 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-      <FloatingCta phone={company.phone} message="Pozdrav! Treba mi ponuda za beton." />
+      <FloatingCta
+        phone={company.phone}
+        callNumber="0603720415"
+        whatsappNumber="0601491491"
+        message="Pozdrav! Treba mi ponuda za beton."
+      />
     </div>
   );
 }

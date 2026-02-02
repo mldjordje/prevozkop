@@ -27,6 +27,7 @@ import {
   adminListProducts,
   adminLogin,
   adminLogout,
+  adminDeleteOrder,
   adminUpdateOrderStatus,
   adminUpdateProject,
   adminUpdateProduct,
@@ -811,6 +812,22 @@ export default function AdminPanel({
     }
   }
 
+  async function handleDeleteOrder(order: Order) {
+    if (!isAuthenticated) return;
+    if (!confirm(`Obrisati porudžbinu "${order.name}"?`)) return;
+    setOrdersLoading(true);
+    setMessage(null);
+    try {
+      await adminDeleteOrder(order.id);
+      await refreshOrders(false);
+      setMessage("Porudžbina je obrisana.");
+    } catch {
+      setMessage("Neuspešno brisanje porudžbine.");
+    } finally {
+      setOrdersLoading(false);
+    }
+  }
+
   function resolveOrderService(order: Order): OrderServiceFilter {
     const subject = (order.subject || "").trim().toLowerCase();
     const type = (order.concrete_type || "").trim().toLowerCase();
@@ -823,6 +840,12 @@ export default function AdminPanel({
     if (isBeton) return "beton";
 
     return "other";
+  }
+
+  function toTelHref(phone?: string | null) {
+    if (!phone) return "";
+    const digits = phone.replace(/\D/g, "");
+    return digits ? `tel:+${digits}` : "";
   }
 
   async function handleLogout() {
@@ -1751,8 +1774,24 @@ export default function AdminPanel({
                               Kontakt
                             </p>
                             <p className="font-semibold">{order.name}</p>
-                            <p className="text-gray-600">{order.email}</p>
-                            {order.phone && <p className="text-gray-600">{order.phone}</p>}
+                            <p className="text-gray-600">
+                              <a
+                                href={`mailto:${order.email}`}
+                                className="hover:text-primary"
+                              >
+                                {order.email}
+                              </a>
+                            </p>
+                            {order.phone && (
+                              <p className="text-gray-600">
+                                <a
+                                  href={toTelHref(order.phone)}
+                                  className="hover:text-primary"
+                                >
+                                  {order.phone}
+                                </a>
+                              </p>
+                            )}
                             <p className="text-xs text-gray-400">
                               {new Date(order.created_at).toLocaleString("sr-RS")}
                             </p>
@@ -1805,6 +1844,15 @@ export default function AdminPanel({
                                 {opt.label}
                               </Button>
                             ))}
+                            <Button
+                              size="sm"
+                              color="danger"
+                              variant="light"
+                              onPress={() => handleDeleteOrder(order)}
+                              isDisabled={ordersLoading}
+                            >
+                              Obriši
+                            </Button>
                           </div>
                         </div>
                       ))}

@@ -434,7 +434,12 @@ export default async function BehatonPage() {
           ],
         })}
       </Script>
-      <FloatingCta phone={company.phone} message="Pozdrav! Zanima me ponuda za behaton ploce." />
+      <FloatingCta
+        phone={company.phone}
+        callNumber="0603720415"
+        whatsappNumber="0601491491"
+        message="Pozdrav! Zanima me ponuda za behaton ploce."
+      />
     </div>
   );
 }

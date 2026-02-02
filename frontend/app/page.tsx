@@ -264,7 +264,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      <FloatingCta phone={company.phone} />
+      <FloatingCta phone={company.phone} callNumber="0603720415" whatsappNumber="0601491491" />
     </div>
   );
 }

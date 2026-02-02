@@ -375,7 +375,12 @@ export default function OrderConcretePage() {
           })),
         })}
       </Script>
-      <FloatingCta phone={company.phone} message="Pozdrav! Zanima me isporuka betona u Nisu." />
+      <FloatingCta
+        phone={company.phone}
+        callNumber="0603720415"
+        whatsappNumber="0601491491"
+        message="Pozdrav! Zanima me isporuka betona u Nisu."
+      />
     </div>
   );
 }

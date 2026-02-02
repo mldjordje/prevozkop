@@ -209,4 +209,10 @@ export async function adminUpdateOrderStatus(id: number, status: Order["status"]
   });
 }
 
+export async function adminDeleteOrder(id: number) {
+  return adminFetch<{ ok: boolean }>(`/admin/orders/${id}`, {
+    method: "DELETE",
+  });
+}
+
 export { ApiError };
