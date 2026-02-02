@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from "react";
 import {
@@ -199,7 +199,7 @@ export default function AdminPanel({
         }
         setView("login");
       } else {
-        setMessage("Neuspešno učitavanje projekata.");
+        setMessage("NeuspeÅ¡no uÄitavanje projekata.");
       }
     } finally {
       setIsFetching(false);
@@ -214,7 +214,7 @@ export default function AdminPanel({
       const res = await adminListOrders();
       setOrders(res.data);
     } catch {
-      setMessage("Neuspešno učitavanje porudžbina.");
+      setMessage("NeuspeÅ¡no uÄitavanje porudÅ¾bina.");
     } finally {
       if (showLoader) setOrdersLoading(false);
     }
@@ -236,7 +236,7 @@ export default function AdminPanel({
       setProductDrafts({});
       setProductSpecsDrafts({});
     } catch {
-      setMessage("Neuspešno učitavanje proizvoda.");
+      setMessage("NeuspeÅ¡no uÄitavanje proizvoda.");
     } finally {
       if (showLoader) setProductsLoading(false);
     }
@@ -313,8 +313,8 @@ export default function AdminPanel({
     } catch (error) {
       const text =
         error instanceof ApiError && error.status === 401
-          ? "Pogrešan email ili lozinka."
-          : "Greška pri prijavi.";
+          ? "PogreÅ¡an email ili lozinka."
+          : "GreÅ¡ka pri prijavi.";
       setMessage(text);
     } finally {
       setIsFetching(false);
@@ -368,7 +368,7 @@ export default function AdminPanel({
       setMessage(
         uploadNotes.length > 0
           ? `Projekat je kreiran. ${uploadNotes.join(" ")}`
-          : "Projekat je uspešno kreiran."
+          : "Projekat je uspeÅ¡no kreiran."
       );
     } catch (error) {
       if (error instanceof ApiError) {
@@ -377,11 +377,11 @@ export default function AdminPanel({
             ? error.body
             : (error.body as { error?: string } | undefined)?.error;
         const text = apiMessage
-          ? `Greška (${error.status}): ${apiMessage}`
-          : `Greška (${error.status}) prilikom čuvanja.`;
+          ? `GreÅ¡ka (${error.status}): ${apiMessage}`
+          : `GreÅ¡ka (${error.status}) prilikom Äuvanja.`;
         setMessage(text);
       } else {
-        setMessage("Greška prilikom čuvanja.");
+        setMessage("GreÅ¡ka prilikom Äuvanja.");
       }
     } finally {
       setIsFetching(false);
@@ -512,7 +512,7 @@ export default function AdminPanel({
       setMessage(
         uploadNotes.length > 0
           ? `Proizvod je dodat. ${uploadNotes.join(" ")}`
-          : "Proizvod je uspešno dodat."
+          : "Proizvod je uspeÅ¡no dodat."
       );
     } catch (error) {
       if (error instanceof ApiError) {
@@ -520,9 +520,9 @@ export default function AdminPanel({
           typeof error.body === "string"
             ? error.body
             : (error.body as { error?: string } | undefined)?.error;
-        setMessage(apiMessage ? `Greška: ${apiMessage}` : "Greška pri dodavanju proizvoda.");
+        setMessage(apiMessage ? `GreÅ¡ka: ${apiMessage}` : "GreÅ¡ka pri dodavanju proizvoda.");
       } else {
-        setMessage("Greška pri dodavanju proizvoda.");
+        setMessage("GreÅ¡ka pri dodavanju proizvoda.");
       }
     } finally {
       setProductsLoading(false);
@@ -545,9 +545,9 @@ export default function AdminPanel({
     try {
       await adminUpdateProduct(product.id, payload);
       await refreshProducts(false);
-      setMessage("Proizvod je sačuvan.");
+      setMessage("Proizvod je saÄuvan.");
     } catch {
-      setMessage("Neuspešno čuvanje proizvoda.");
+      setMessage("NeuspeÅ¡no Äuvanje proizvoda.");
     } finally {
       setProductsLoading(false);
     }
@@ -559,7 +559,7 @@ export default function AdminPanel({
       ...Object.keys(productSpecsDrafts).map(Number),
     ]);
     if (ids.size === 0) {
-      setMessage("Nema izmena za čuvanje.");
+      setMessage("Nema izmena za Äuvanje.");
       return;
     }
 
@@ -577,9 +577,9 @@ export default function AdminPanel({
         await adminUpdateProduct(id, payload);
       }
       await refreshProducts(false);
-      setMessage("Sve izmene su sačuvane.");
+      setMessage("Sve izmene su saÄuvane.");
     } catch {
-      setMessage("Greška pri grupnom čuvanju proizvoda.");
+      setMessage("GreÅ¡ka pri grupnom Äuvanju proizvoda.");
     } finally {
       setProductsLoading(false);
     }
@@ -595,7 +595,7 @@ export default function AdminPanel({
       await refreshProducts(false);
       setMessage("Proizvod je obrisan.");
     } catch {
-      setMessage("Neuspešno brisanje proizvoda.");
+      setMessage("NeuspeÅ¡no brisanje proizvoda.");
     } finally {
       setProductsLoading(false);
     }
@@ -707,9 +707,9 @@ export default function AdminPanel({
           typeof error.body === "string"
             ? error.body
             : (error.body as { error?: string } | undefined)?.error;
-        setMessage(apiMessage ? `Greška: ${apiMessage}` : "Greška pri masovnom unosu behatona.");
+        setMessage(apiMessage ? `GreÅ¡ka: ${apiMessage}` : "GreÅ¡ka pri masovnom unosu behatona.");
       } else {
-        setMessage("Greška pri masovnom unosu behatona.");
+        setMessage("GreÅ¡ka pri masovnom unosu behatona.");
       }
     } finally {
       setProductsLoading(false);
@@ -723,9 +723,9 @@ export default function AdminPanel({
     try {
       await adminUpdateProject(project.id, { status });
       await refreshProjects();
-      setMessage("Status ažuriran.");
+      setMessage("Status aÅ¾uriran.");
     } catch {
-      setMessage("Neuspešno ažuriranje statusa.");
+      setMessage("NeuspeÅ¡no aÅ¾uriranje statusa.");
       setIsFetching(false);
     }
   }
@@ -740,7 +740,7 @@ export default function AdminPanel({
       await refreshProjects();
       setMessage("Projekat obrisan.");
     } catch {
-      setMessage("Neuspešno brisanje.");
+      setMessage("NeuspeÅ¡no brisanje.");
       setIsFetching(false);
     }
   }
@@ -772,7 +772,7 @@ export default function AdminPanel({
         await uploadGalleryImage(projectId, file);
       }
       await refreshProjectDetail(projectId);
-      setMessage("Galerija je ažurirana.");
+      setMessage("Galerija je aÅ¾urirana.");
     } catch (error) {
       const detail = extractApiErrorMessage(error);
       setMessage(detail ? `Greska: ${detail}` : "Nije uspelo slanje galerije.");
@@ -803,9 +803,9 @@ export default function AdminPanel({
     try {
       await adminUpdateOrderStatus(order.id, status);
       await refreshOrders(false);
-      setMessage("Status porudžbine ažuriran.");
+      setMessage("Status porudÅ¾bine aÅ¾uriran.");
     } catch {
-      setMessage("Greška pri ažuriranju porudžbine.");
+      setMessage("GreÅ¡ka pri aÅ¾uriranju porudÅ¾bine.");
     } finally {
       setOrdersLoading(false);
     }
@@ -862,108 +862,283 @@ export default function AdminPanel({
             Behaton
           </Button>
           <Button
-            variant={section === "orders" && (() => {
-            const filteredOrders = orders.filter((order) => {
-              if (orderServiceFilter === "all") return true;
-              return resolveOrderService(order) === orderServiceFilter;
-            });
+            variant={section === "orders" ? "solid" : "flat"}
+            color="primary"
+            onPress={() => setSection("orders")}
+          >
+            Porudžbine
+          </Button>
+        </div>
+      )}
 
-            return (
-              <section className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-2xl font-semibold">Porudžbine</h2>
+      {message && (
+        <div className="rounded-xl border border-black/10 bg-white p-4 text-sm text-dark shadow-sm">
+          {message}
+        </div>
+      )}
+
+      {view === "login" ? (
+        <Card className="max-w-xl">
+          <CardHeader className="font-semibold">Prijava</CardHeader>
+          <CardBody>
+            <form className="space-y-4" onSubmit={handleLogin}>
+              <Input
+                label="Email"
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                isRequired
+              />
+              <Input
+                label="Lozinka"
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                isRequired
+              />
+              <Button color="primary" type="submit" isDisabled={isFetching}>
+                Prijavi se
+              </Button>
+            </form>
+          </CardBody>
+        </Card>
+      ) : (
+        <>
+          {section === "projects" && (
+            <>
+              {isAuthenticated ? (
+                <Card>
+                  <CardHeader className="font-semibold">Kreiraj novi projekat</CardHeader>
+                  <CardBody>
+                    <form key={newProjectFormKey} className="grid gap-4" onSubmit={handleCreateProject}>
+                      <Input
+                        label="Naslov"
+                        value={newProject.title}
+                        onChange={(e) =>
+                          setNewProject((prev) => ({ ...prev, title: e.target.value }))
+                        }
+                        isRequired
+                      />
+                      <Input
+                        label="Slug"
+                        description="Ako se ne unese, biće generisan automatski."
+                        value={newProject.slug}
+                        onChange={(e) =>
+                          setNewProject((prev) => ({ ...prev, slug: e.target.value }))
+                        }
+                      />
+                      <Textarea
+                        label="Kratki opis"
+                        value={newProject.excerpt}
+                        onChange={(e) =>
+                          setNewProject((prev) => ({ ...prev, excerpt: e.target.value }))
+                        }
+                        minRows={2}
+                      />
+                      <Textarea
+                        label="Detaljan opis"
+                        value={newProject.body}
+                        onChange={(e) =>
+                          setNewProject((prev) => ({ ...prev, body: e.target.value }))
+                        }
+                        minRows={4}
+                      />
+                      <Select
+                        label="Status"
+                        selectedKeys={[newProject.status]}
+                        onSelectionChange={(keys) => {
+                          const value = Array.from(keys).at(0)?.toString() || "draft";
+                          setNewProject((prev) => ({ ...prev, status: value }));
+                        }}
+                      >
+                        {statusOptions.map((item) => (
+                          <SelectItem key={item.key}>{item.label}</SelectItem>
+                        ))}
+                      </Select>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                            Hero slika (odmah)
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(event) => setNewProjectHero(event.target.files?.[0] || null)}
+                            className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                            Galerija (vise slika)
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(event) =>
+                              setNewProjectGallery(Array.from(event.target.files || []))
+                            }
+                            className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                          />
+                        </div>
+                      </div>
+                      <Button color="primary" type="submit" isDisabled={isFetching}>
+                        Sačuvaj
+                      </Button>
+                    </form>
+                  </CardBody>
+                </Card>
+              ) : (
+                <Card className="border border-dashed border-primary bg-white/60">
+                  <CardBody>
                     <p className="text-sm text-gray-600">
-                      Pregled online porudžbina sa forme (status: nova / u obradi / zatvorena).
+                      Za kreiranje novih projekata potrebno je da se prijavite. Trenutno prikazujemo
+                      samo objavljene projekte sa sajta.
                     </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Select
-                      label="Filter"
-                      items={orderServiceFilters as unknown as { key: string; label: string }[]}
-                      selectedKeys={[orderServiceFilter]}
-                      onSelectionChange={(keys) =>
-                        setOrderServiceFilter(
-                          (Array.from(keys).at(0)?.toString() as OrderServiceFilter) || "all"
-                        )
-                      }
-                    >
-                      {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
-                    </Select>
-                    <Button variant="flat" onPress={() => refreshOrders()} isDisabled={ordersLoading}>
+                  </CardBody>
+                </Card>
+              )}
+
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-semibold">Projekti</h2>
+                  <div className="flex gap-2">
+                    <Button variant="flat" onPress={refreshProjects} isDisabled={isFetching}>
                       Osveži
                     </Button>
                   </div>
                 </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {projects.map((project) => {
+                    const isUploadingHero =
+                      uploading?.id === project.id && uploading.type === "hero";
+                    const isUploadingGallery =
+                      uploading?.id === project.id && uploading.type === "gallery";
+                    const gallery = projectDetails[project.id]?.gallery || [];
+                    const isLoadingGallery = !!detailsLoading[project.id];
 
-                {filteredOrders.length === 0 ? (
-                  <p className="text-sm text-gray-600">Još uvek nema porudžbina.</p>
-                ) : (
-                  <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
-                    <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] gap-4 border-b border-black/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                      <span>Kontakt</span>
-                      <span>Detalji</span>
-                      <span>Poruka</span>
-                      <span>Status</span>
-                      <span>Akcije</span>
-                    </div>
-                    <div className="divide-y divide-black/5">
-                      {filteredOrders.map((order) => (
-                        <div key={order.id} className="grid grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] gap-4 px-4 py-3 text-sm">
-                          <div className="space-y-1">
-                            <p className="font-semibold">{order.name}</p>
-                            <p className="text-gray-600">{order.email}</p>
-                            {order.phone && <p className="text-gray-600">{order.phone}</p>}
-                            <p className="text-xs text-gray-400">
-                              {new Date(order.created_at).toLocaleString("sr-RS")}
-                            </p>
+                    return (
+                      <Card key={project.id}>
+                        <CardHeader className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold">{project.title}</p>
+                            <p className="text-xs text-gray-500">{project.slug}</p>
                           </div>
-                          <div className="space-y-1 text-gray-700">
-                            {order.subject && <p>{order.subject}</p>}
-                            {order.concrete_type && (
-                              <p className="text-xs text-gray-500">Beton: {order.concrete_type}</p>
-                            )}
-                          </div>
-                          <div className="text-gray-700">
-                            <p className="line-clamp-4 whitespace-pre-wrap">{order.message}</p>
-                          </div>
-                          <div className="flex items-center">
-                            <Chip
-                              color={
-                                order.status === "done"
-                                  ? "success"
-                                  : order.status === "in_progress"
-                                  ? "warning"
-                                  : "default"
-                              }
-                              variant="flat"
-                            >
-                              {orderStatusOptions.find((o) => o.key === order.status)?.label ||
-                                order.status}
-                            </Chip>
-                          </div>
+                          <Chip color={project.published_at ? "success" : "default"} variant="flat">
+                            {project.published_at ? "Objavljeno" : "Draft"}
+                          </Chip>
+                        </CardHeader>
+                        <CardBody className="space-y-4">
+                          {project.hero_image && (
+                            <img
+                              src={project.hero_image}
+                              alt={project.title}
+                              className="h-40 w-full rounded-lg object-cover"
+                            />
+                          )}
+                          <p className="text-sm text-gray-600">{project.excerpt || "Bez opisa."}</p>
                           <div className="flex flex-wrap gap-2">
-                            {orderStatusOptions.map((opt) => (
-                              <Button
-                                key={opt.key}
-                                size="sm"
-                                variant={order.status === opt.key ? "solid" : "flat"}
-                                onPress={() => handleOrderStatus(order, opt.key)}
-                                isDisabled={ordersLoading}
-                              >
-                                {opt.label}
-                              </Button>
-                            ))}
+                            <Button
+                              variant="flat"
+                              size="sm"
+                              onPress={() =>
+                                handleStatusChange(project, project.published_at ? "draft" : "published")
+                              }
+                              isDisabled={isFetching || !isAuthenticated}
+                            >
+                              {project.published_at ? "Postavi kao draft" : "Objavi"}
+                            </Button>
+                            <Button
+                              color="danger"
+                              variant="light"
+                              size="sm"
+                              onPress={() => handleDeleteProject(project)}
+                              isDisabled={isFetching || !isAuthenticated}
+                            >
+                              Obriši
+                            </Button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </section>
-            );
-          })()}
+
+                          {isAuthenticated && (
+                            <div className="space-y-3 border-t border-black/5 pt-3">
+                              <div className="space-y-2">
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                                  Hero fotografija
+                                </p>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  disabled={isUploadingHero}
+                                  onChange={(event) =>
+                                    handleHeroUpload(project.id, event.target.files)
+                                  }
+                                  className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                                />
+                                {isUploadingHero && (
+                                  <p className="text-xs text-gray-500">
+                                    Otpremanje hero fotografije...
+                                  </p>
+                                )}
+                              </div>
+                              <div className="space-y-2">
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                                  Galerija
+                                </p>
+                                {isLoadingGallery && (
+                                  <p className="text-xs text-gray-500">Učitavanje galerije...</p>
+                                )}
+                                {gallery.length > 0 && (
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {gallery.map((img) => (
+                                      <div
+                                        key={img.id ?? img.src}
+                                        className="relative h-20 overflow-hidden rounded-md border border-gray-200 bg-gray-50"
+                                      >
+                                        <img
+                                          src={img.src}
+                                          alt={img.alt || project.title}
+                                          className="h-full w-full object-cover"
+                                        />
+                                        {img.id && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleGalleryDelete(project.id, img.id!)}
+                                            className="absolute right-1 top-1 rounded bg-white/80 px-2 py-1 text-[10px] font-semibold text-red-600 shadow-sm hover:bg-white"
+                                            disabled={isFetching}
+                                          >
+                                            Obriši
+                                          </button>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <p className="text-[11px] text-gray-600">
+                                  Možete odabrati više fajlova odjednom (držite Ctrl/Shift ili označite
+                                  više slika).
+                                </p>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  disabled={isUploadingGallery}
+                                  onChange={(event) =>
+                                    handleGalleryUpload(project.id, event.target.files)
+                                  }
+                                  className="w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-dark"
+                                />
+                                {isUploadingGallery && (
+                                  <p className="text-xs text-gray-500">Otpremanje galerije...</p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </CardBody>
+                      </Card>
+                    );
+                  })}
                 </div>
+
                 {projects.length === 0 && (
                   <p className="text-sm text-gray-600">
                     Nema projekata. Dodajte prvi projekat putem forme iznad.
@@ -1111,14 +1286,14 @@ export default function AdminPanel({
                           ))}
                         </Select>
                         <Button color="primary" type="submit" isDisabled={productsLoading}>
-                          Sačuvaj
+                          SaÄuvaj
                         </Button>
                       </form>
                     </CardBody>
                   </Card>
 
                   <Card>
-                    <CardHeader className="font-semibold">Brzi unos (više behatona)</CardHeader>
+                    <CardHeader className="font-semibold">Brzi unos (viÅ¡e behatona)</CardHeader>
                     <CardBody>
                       <form className="grid gap-3" onSubmit={handleBulkProducts}>
                         <Textarea
@@ -1163,7 +1338,7 @@ export default function AdminPanel({
                       onPress={() => refreshProducts()}
                       isDisabled={productsLoading}
                     >
-                      Osveži
+                      OsveÅ¾i
                     </Button>
                     <Button
                       color="primary"
@@ -1171,7 +1346,7 @@ export default function AdminPanel({
                       onPress={handleSaveAllProducts}
                       isDisabled={productsLoading || !hasProductDrafts}
                     >
-                      Sačuvaj sve izmene
+                      SaÄuvaj sve izmene
                     </Button>
                   </div>
                 </div>
@@ -1493,7 +1668,7 @@ export default function AdminPanel({
                               onPress={() => handleSaveProduct(product)}
                               isDisabled={productsLoading}
                             >
-                              Sačuvaj
+                              SaÄuvaj
                             </Button>
                             <Button
                               color="danger"
@@ -1501,7 +1676,7 @@ export default function AdminPanel({
                               onPress={() => handleDeleteProduct(product)}
                               isDisabled={productsLoading}
                             >
-                              Obriši
+                              ObriÅ¡i
                             </Button>
                           </div>
                         </CardBody>
@@ -1530,9 +1705,9 @@ export default function AdminPanel({
               <section className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-2xl font-semibold">Porudžbine</h2>
+                    <h2 className="text-2xl font-semibold">PorudÅ¾bine</h2>
                     <p className="text-sm text-gray-600">
-                      Pregled online porudžbina sa forme (status: nova / u obradi / zatvorena).
+                      Pregled online porudÅ¾bina sa forme (status: nova / u obradi / zatvorena).
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -1549,13 +1724,13 @@ export default function AdminPanel({
                       {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
                     </Select>
                     <Button variant="flat" onPress={() => refreshOrders()} isDisabled={ordersLoading}>
-                      Osveži
+                      OsveÅ¾i
                     </Button>
                   </div>
                 </div>
 
                 {filteredOrders.length === 0 ? (
-                  <p className="text-sm text-gray-600">Još uvek nema porudžbina.</p>
+                  <p className="text-sm text-gray-600">JoÅ¡ uvek nema porudÅ¾bina.</p>
                 ) : (
                   <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
                     <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] gap-4 border-b border-black/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
