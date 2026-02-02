@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import HeroSlider from "@/components/hero-slider";
 import FloatingCta from "@/components/floating-cta";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
@@ -27,6 +28,21 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+const homepageFaq = [
+  {
+    q: "Ko isporucuje gotov beton u Nisu?",
+    a: "Prevoz Kop (Prevozkop) organizuje proizvodnju i isporuku gotovog betona na gradiliste u Nisu i okolini.",
+  },
+  {
+    q: "Da li imate visinske pumpe za beton?",
+    a: "Da, obezbedjujemo pumpe za beton, ukljucujuci visinske pumpe za zahtevna gradilista.",
+  },
+  {
+    q: "Kako da porucim beton i dogovorim termin?",
+    a: "Najbrze je preko forme za porucivanje betona ili direktnim pozivom radi provere termina i logistike.",
+  },
+];
+
 export default async function HomePage() {
   const featuredServices = services.slice(0, 4);
   let featuredProjects: Project[] = [];
@@ -44,6 +60,25 @@ export default async function HomePage() {
         Prevozkop – isporuka betona, visinske pumpe za beton i zemljani radovi u Nišu
       </h1>
       <HeroSlider slides={heroSlides} />
+
+      <section className="content-section space-y-6">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Najcesca pitanja
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Beton i isporuka u Nisu - brzi odgovori
+          </h2>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {homepageFaq.map((item) => (
+            <div key={item.q} className="rounded-3xl border border-black/5 bg-white p-6 shadow-lg">
+              <h3 className="text-base font-semibold text-dark">{item.q}</h3>
+              <p className="mt-2 text-sm text-gray-700">{item.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="content-section">
         <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
@@ -264,6 +299,46 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      <Script id="home-localbusiness-jsonld" type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          name: "Prevoz Kop",
+          url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
+          telephone: company.phone,
+          email: company.email,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Nis",
+            addressCountry: "RS",
+          },
+          areaServed: [
+            "Nis",
+            "Leskovac",
+            "Prokuplje",
+            "Aleksinac",
+            "Juzna Srbija",
+            "Centralna Srbija",
+          ],
+          serviceType: [
+            "Proizvodnja i isporuka betona",
+            "Pumpe za beton",
+            "Isporuka betona na gradilista",
+            "Zemljani radovi",
+          ],
+        })}
+      </Script>
+      <Script id="home-faq-jsonld" type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: homepageFaq.map((item) => ({
+            "@type": "Question",
+            name: item.q,
+            acceptedAnswer: { "@type": "Answer", text: item.a },
+          })),
+        })}
+      </Script>
       <FloatingCta phone={company.phone} callNumber="0603720415" whatsappNumber="0601491491" />
     </div>
   );

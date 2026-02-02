@@ -364,6 +364,40 @@ export default function OrderConcretePage() {
         <ContactForm />
       </section>
 
+      <Script id="beton-service-jsonld" type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: "Proizvodnja i isporuka betona",
+          serviceType: "Gotov beton, isporuka betona, pumpe za beton",
+          provider: {
+            "@type": "LocalBusiness",
+            name: "Prevoz Kop",
+            telephone: company.phone,
+            url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
+            areaServed: [
+              "Nis",
+              "Leskovac",
+              "Prokuplje",
+              "Aleksinac",
+              "Juzna Srbija",
+              "Centralna Srbija",
+            ],
+          },
+          areaServed: [
+            "Nis",
+            "Leskovac",
+            "Prokuplje",
+            "Aleksinac",
+            "Juzna Srbija",
+            "Centralna Srbija",
+          ],
+          offers: {
+            "@type": "Offer",
+            availability: "https://schema.org/InStock",
+          },
+        })}
+      </Script>
       <Script id="porucivanje-betona-faq-jsonld" type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
