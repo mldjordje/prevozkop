@@ -21,13 +21,17 @@ import type { Product } from "@/lib/api";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Behaton Nis - prodaja i ugradnja",
+  title: "Behaton Nis - prodaja, isporuka i ugradnja | Prevozkop",
   description:
-    "Behaton Nis: prodaja, isporuka i ugradnja behaton kocki i ploca uz pomoc oko izbora modela, podloge i rokova.",
+    "Behaton Nis i jug Srbije: prodaja, isporuka i ugradnja behaton kocki i ploca u Nisu, Leskovcu, Prokuplju, Aleksincu i okolini.",
   alternates: { canonical: "/behaton" },
   keywords: [
     "behaton",
     "behaton nis",
+    "behaton leskovac",
+    "behaton prokuplje",
+    "behaton aleksinac",
+    "behaton jug srbije",
     "behaton kocke",
     "behaton ploce",
     "ugradnja behatona",
@@ -279,11 +283,11 @@ export default async function BehatonPage() {
               Lokacije
             </span>
             <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Behaton za Nis i okolne gradove
+              Behaton za Nis, Leskovac i jug Srbije
             </h2>
             <p className="max-w-3xl text-sm text-gray-700">
-              Organizujemo isporuku i ugradnju uz lokalnu podrsku, preciznu procenu i dogovor oko
-              termina.
+              Radimo prodaju i ugradnju behatona u Nisu, Leskovcu, Prokuplju, Aleksincu i okolini,
+              uz preciznu procenu i dogovor oko termina.
             </p>
           </div>
         </ScrollReveal>
@@ -398,6 +402,35 @@ export default async function BehatonPage() {
             name: item.q,
             acceptedAnswer: { "@type": "Answer", text: item.a },
           })),
+        })}
+      </Script>
+
+      <Script id="behaton-service-jsonld" type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: "Behaton ploce i kocke - prodaja i ugradnja",
+          serviceType: "Behaton ploce i kocke",
+          provider: {
+            "@type": "LocalBusiness",
+            name: company.name,
+            telephone: company.phone,
+            url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
+            areaServed: [
+              "Nis",
+              "Leskovac",
+              "Prokuplje",
+              "Aleksinac",
+              "Juzna Srbija",
+            ],
+          },
+          areaServed: [
+            "Nis",
+            "Leskovac",
+            "Prokuplje",
+            "Aleksinac",
+            "Juzna Srbija",
+          ],
         })}
       </Script>
     </div>

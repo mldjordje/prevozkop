@@ -24,6 +24,12 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    setProduct(initialProduct);
+    setRelated(initialRelated);
+    setLoadError(false);
+  }, [initialProduct, initialRelated, slug]);
+
+  useEffect(() => {
     if (product) return;
     let canceled = false;
 
