@@ -1703,14 +1703,14 @@ export default function AdminPanel({
 
             return (
               <section className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-2xl font-semibold">PorudÅ¾bine</h2>
+                    <h2 className="text-2xl font-semibold">Porudžbine</h2>
                     <p className="text-sm text-gray-600">
-                      Pregled online porudÅ¾bina sa forme (status: nova / u obradi / zatvorena).
+                      Pregled online porudžbina sa forme (status: nova / u obradi / zatvorena).
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Select
                       label="Filter"
                       items={orderServiceFilters as unknown as { key: string; label: string }[]}
@@ -1724,16 +1724,16 @@ export default function AdminPanel({
                       {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
                     </Select>
                     <Button variant="flat" onPress={() => refreshOrders()} isDisabled={ordersLoading}>
-                      OsveÅ¾i
+                      Osveži
                     </Button>
                   </div>
                 </div>
 
                 {filteredOrders.length === 0 ? (
-                  <p className="text-sm text-gray-600">JoÅ¡ uvek nema porudÅ¾bina.</p>
+                  <p className="text-sm text-gray-600">Još uvek nema porudžbina.</p>
                 ) : (
                   <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
-                    <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] gap-4 border-b border-black/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                    <div className="hidden md:grid md:grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] md:gap-4 border-b border-black/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                       <span>Kontakt</span>
                       <span>Detalji</span>
                       <span>Poruka</span>
@@ -1742,8 +1742,14 @@ export default function AdminPanel({
                     </div>
                     <div className="divide-y divide-black/5">
                       {filteredOrders.map((order) => (
-                        <div key={order.id} className="grid grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] gap-4 px-4 py-3 text-sm">
+                        <div
+                          key={order.id}
+                          className="grid gap-4 px-4 py-4 text-sm md:grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr]"
+                        >
                           <div className="space-y-1">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
+                              Kontakt
+                            </p>
                             <p className="font-semibold">{order.name}</p>
                             <p className="text-gray-600">{order.email}</p>
                             {order.phone && <p className="text-gray-600">{order.phone}</p>}
@@ -1752,15 +1758,24 @@ export default function AdminPanel({
                             </p>
                           </div>
                           <div className="space-y-1 text-gray-700">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
+                              Detalji
+                            </p>
                             {order.subject && <p>{order.subject}</p>}
                             {order.concrete_type && (
                               <p className="text-xs text-gray-500">Beton: {order.concrete_type}</p>
                             )}
                           </div>
                           <div className="text-gray-700">
+                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
+                              Poruka
+                            </p>
                             <p className="line-clamp-4 whitespace-pre-wrap">{order.message}</p>
                           </div>
                           <div className="flex items-center">
+                            <p className="mr-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
+                              Status
+                            </p>
                             <Chip
                               color={
                                 order.status === "done"
@@ -1775,7 +1790,10 @@ export default function AdminPanel({
                                 order.status}
                             </Chip>
                           </div>
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="mr-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
+                              Akcije
+                            </p>
                             {orderStatusOptions.map((opt) => (
                               <Button
                                 key={opt.key}
