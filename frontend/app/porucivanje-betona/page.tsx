@@ -3,6 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 import PageHero from "@/components/page-hero";
 import ContactForm from "@/components/contact-form";
+import FloatingCta from "@/components/floating-cta";
 import { company } from "@/content/site";
 
 export const metadata: Metadata = {
@@ -374,6 +375,7 @@ export default function OrderConcretePage() {
           })),
         })}
       </Script>
+      <FloatingCta phone={company.phone} message="Pozdrav! Zanima me isporuka betona u Nisu." />
     </div>
   );
 }

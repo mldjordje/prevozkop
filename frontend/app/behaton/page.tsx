@@ -4,6 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import PageHero from "@/components/page-hero";
 import ContactForm from "@/components/contact-form";
+import FloatingCta from "@/components/floating-cta";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import TiltCard from "@/components/motion/tilt-card";
 import {
@@ -433,6 +434,7 @@ export default async function BehatonPage() {
           ],
         })}
       </Script>
+      <FloatingCta phone={company.phone} message="Pozdrav! Zanima me ponuda za behaton ploce." />
     </div>
   );
 }

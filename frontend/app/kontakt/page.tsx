@@ -2,12 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ContactForm from "@/components/contact-form";
 import PageHero from "@/components/page-hero";
+import FloatingCta from "@/components/floating-cta";
 import { company } from "@/content/site";
 
 export const metadata: Metadata = {
   title: "Kontakt | Prevozkop (Prevoz Kop) – Niš",
   description:
     "Kontaktirajte Prevozkop iz Niša za isporuku betona, visoke pumpe za beton i zemljane radove. Servisna zona: Niš, Leskovac, Prokuplje, Aleksinac i južna/centralna Srbija.",
+  keywords: [
+    "kontakt beton Niš",
+    "poručivanje betona",
+    "beton pumpa",
+    "visinske pumpe za beton",
+    "prevozkop kontakt",
+    "prevoz kop telefon",
+  ],
   alternates: { canonical: "/kontakt" },
 };
 
@@ -109,6 +118,7 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+      <FloatingCta phone={company.phone} message="Pozdrav! Treba mi ponuda za beton." />
     </div>
   );
 }

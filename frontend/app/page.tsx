@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import HeroSlider from "@/components/hero-slider";
+import FloatingCta from "@/components/floating-cta";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import TiltCard from "@/components/motion/tilt-card";
 import { aboutHighlights, company, heroSlides, services, stats } from "@/content/site";
@@ -12,6 +13,17 @@ export const metadata: Metadata = {
   title: "Isporuka betona, visinske pumpe i zemljani radovi u Nišu",
   description:
     "Prevozkop (Prevoz Kop) iz Niša pruža isporuku gotovog betona na gradilište, visoke pumpe za beton (velike visine, nepristupačan teren) i zemljane radove. Servisna zona: Niš, Leskovac, Prokuplje, Aleksinac i jug/centralna Srbija.",
+  keywords: [
+    "beton Niš",
+    "isporuka betona",
+    "gotov beton",
+    "beton pumpa",
+    "visinska pumpa za beton",
+    "betonska baza",
+    "zemljani radovi",
+    "prevoz kop",
+    "prevozkop",
+  ],
   alternates: { canonical: "/" },
 };
 
@@ -252,6 +264,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      <FloatingCta phone={company.phone} />
     </div>
   );
 }
