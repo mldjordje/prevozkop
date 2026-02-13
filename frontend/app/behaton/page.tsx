@@ -23,14 +23,15 @@ import { buildMetadata, srEnLanguages } from "@/lib/seo";
 export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
-  title: "Behaton Niš - prodaja, isporuka i ugradnja | Prevozkop",
+  title: "Behaton Nis - cena, prodaja, isporuka i ugradnja",
   description:
-    "Behaton Niš i jug Srbije: prodaja, isporuka i ugradnja behaton kocki i ploča u Nišu, Leskovcu, Prokuplju, Aleksincu i okolini.",
+    "Behaton Nis i jug Srbije: prodaja behaton kocki i ploca, pomoc oko izbora modela, procena kolicine, isporuka i ugradnja.",
   path: "/behaton",
   image: "/img/behaton/SLI_4930.JPG",
   keywords: [
     "behaton",
     "behaton nis",
+    "cena behaton",
     "behaton leskovac",
     "behaton prokuplje",
     "behaton aleksinac",
@@ -450,3 +451,4 @@ export default async function BehatonPage() {
     </div>
   );
 }
+

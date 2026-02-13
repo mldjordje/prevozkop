@@ -12,9 +12,9 @@ import type { Project } from "@/lib/api";
 import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Isporuka betona, visinske pumpe i zemljani radovi u Nisu",
+  title: "Prevozkop Nis - Beton, behaton i zemljani radovi",
   description:
-    "Prevozkop (Prevoz Kop) iz Nisa obezbedjuje isporuku betona, visinske pumpe i zemljane radove za stambenu i poslovnu gradnju.",
+    "Prevozkop iz Nisa obezbedjuje isporuku gotovog betona, behaton, visinske pumpe i zemljane radove za stambenu i poslovnu gradnju.",
   path: "/",
   image: "/img/napolje1.webp",
   keywords: [

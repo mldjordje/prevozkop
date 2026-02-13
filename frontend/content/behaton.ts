@@ -8,10 +8,10 @@ export type BehatonCity = {
 export type BetonCity = BehatonCity;
 
 export const behatonHighlights = [
-  "Kvalitetne behaton kocke i ploce za staze, dvorista i parkinge",
-  "Jasne CTA poruke za poziv i brz upit",
-  "Stranice prilagodjene Google Ads kampanjama",
-  "Lokalni SEO sadrzaj za Nis i okruzne gradove",
+  "Behaton kocke i ploce za dvorista, staze i parking povrsine",
+  "Brza procena potrebne kolicine i preporuka modela",
+  "Savet za podlogu, nivelaciju i odvodnjavanje pre ugradnje",
+  "Isporuka i ugradnja u Nisu i okolnim gradovima po dogovoru",
 ];
 
 export const behatonBenefits = [

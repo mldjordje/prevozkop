@@ -19,30 +19,36 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Prevozkop | Isporuka betona, visinske pumpe i zemljani radovi | Niš",
+    default: "Prevozkop Nis | Beton, behaton i zemljani radovi",
     template: "%s | Prevozkop",
   },
   description:
-    "Prevozkop (Prevoz Kop) je građevinska podrška iz Niša, specijalizovana za isporuku gotovog betona, visoke pumpe za beton i zemljane radove (iskopi, ravnanje terena, priprema gradilišta) na području juga i centralne Srbije.",
+    "Prevozkop iz Nisa: isporuka gotovog betona, behaton, pumpe za beton i zemljani radovi. Radimo Nis, Leskovac, Prokuplje, Aleksinac i okolinu.",
   applicationName: "Prevozkop",
   keywords: [
-    "poručivanje betona",
+    "porucivanje betona",
     "poruci beton",
     "beton dostava",
     "dostava betona",
-    "isporuka betona na gradilište",
-    "dostava betona na gradilište",
+    "isporuka betona na gradiliste",
+    "dostava betona na gradiliste",
     "gotov beton",
-    "beton Niš",
-    "isporuka betona Niš",
+    "beton nis",
+    "isporuka betona nis",
+    "behaton nis",
     "beton pumpa",
     "visoka pumpa za beton",
     "visinske pumpe za beton",
     "zemljani radovi",
-    "zemljani radovi Niš",
+    "zemljani radovi nis",
     "iskopi temelja",
-    "priprema gradilišta",
+    "priprema gradilista",
   ],
+  icons: {
+    icon: [{ url: "/img/logos/favicon.png", type: "image/png" }],
+    shortcut: "/img/logos/favicon.png",
+    apple: "/img/logos/apple-touch-icon-57x57.png",
+  },
   alternates: {
     canonical: "/",
     languages: {
@@ -56,16 +62,15 @@ export const metadata: Metadata = {
     locale: "sr_RS",
     url: "/",
     siteName: "Prevozkop",
-    title: "Prevozkop | Isporuka betona, visinske pumpe i zemljani radovi | Niš",
+    title: "Prevozkop Nis | Beton, behaton i zemljani radovi",
     description:
-      "Beton i logistika gradilišta: isporuka gotovog betona, visoke pumpe za beton i zemljani radovi iz Niša. Servisna zona: Niš, Leskovac, Prokuplje, Aleksinac i jug/centralna Srbija.",
+      "Beton i logistika gradilista: isporuka gotovog betona, behaton, pumpe za beton i zemljani radovi iz Nisa za jug i centralnu Srbiju.",
     images: [{ url: "/img/napolje1.webp" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Prevozkop | Isporuka betona, visinske pumpe i zemljani radovi | Niš",
-    description:
-      "Beton i logistika gradilišta: isporuka gotovog betona, visoke pumpe za beton i zemljani radovi iz Niša.",
+    title: "Prevozkop Nis | Beton, behaton i zemljani radovi",
+    description: "Isporuka betona, behaton, pumpe za beton i zemljani radovi iz Nisa.",
     images: ["/img/napolje1.webp"],
   },
   robots: {
@@ -98,32 +103,34 @@ export default function RootLayout({
             name: "Prevozkop",
             alternateName: company.name,
             url: SITE_URL,
+            logo: `${SITE_URL}/img/logos/logo.png`,
             telephone: "+381605887471",
             email: company.email,
             address: {
               "@type": "PostalAddress",
               streetAddress: company.address,
-              addressLocality: "Niš",
+              addressLocality: "Nis",
               postalCode: "18000",
               addressCountry: "RS",
             },
             areaServed: [
-              { "@type": "City", name: "Niš" },
+              { "@type": "City", name: "Nis" },
               { "@type": "City", name: "Leskovac" },
               { "@type": "City", name: "Prokuplje" },
               { "@type": "City", name: "Aleksinac" },
-              "Južna i centralna Srbija",
+              "Juzna i centralna Srbija",
             ],
             description:
-              "Prevozkop je građevinska podrška iz Niša specijalizovana za isporuku gotovog betona, visoke pumpe za beton i zemljane radove za stambenu i poslovnu gradnju.",
+              "Prevozkop je gradjevinska podrska iz Nisa specijalizovana za isporuku gotovog betona, behaton, visoke pumpe za beton i zemljane radove za stambenu i poslovnu gradnju.",
             knowsAbout: [
               "isporuka betona",
+              "behaton",
               "gotov beton",
               "beton pumpa",
               "visinske pumpe za beton",
               "zemljani radovi",
               "iskopi temelja",
-              "priprema gradilišta",
+              "priprema gradilista",
             ],
             makesOffer: [
               {
@@ -133,7 +140,7 @@ export default function RootLayout({
               { "@type": "Offer", itemOffered: { "@type": "Service", name: "Visoke pumpe za beton" } },
               {
                 "@type": "Offer",
-                itemOffered: { "@type": "Service", name: "Zemljani radovi i priprema gradilišta" },
+                itemOffered: { "@type": "Service", name: "Zemljani radovi i priprema gradilista" },
               },
             ],
           })}
