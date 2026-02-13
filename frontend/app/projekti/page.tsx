@@ -1,9 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import PageHero from "@/components/page-hero";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import TiltCard from "@/components/motion/tilt-card";
 import { getProjects } from "@/lib/api";
 import type { Project } from "@/lib/api";
+import { buildMetadata, srEnLanguages } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Projekti | Prevozkop",
+  description:
+    "Galerija završenih projekata: betoniranje, zemljani radovi, priprema terena i logistika gradilišta u Nišu i regionu.",
+  path: "/projekti",
+  image: "/img/volvonov2.webp",
+  languages: srEnLanguages("/projekti", "/en/projects"),
+});
 
 export default async function ProjectsPage() {
   let projects: Project[] = [];

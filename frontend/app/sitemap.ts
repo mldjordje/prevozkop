@@ -1,22 +1,10 @@
 import type { MetadataRoute } from "next";
-import { behatonCities } from "@/content/behaton";
-import { getProducts } from "@/lib/api";
+import { behatonCities, betonCities } from "@/content/behaton";
+import { getProducts, getProjects } from "@/lib/api";
+import { SITE_URL } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs";
-  const lastModified = new Date();
-
-  let productRoutes: string[] = [];
-  try {
-    const res = await getProducts({ category: "behaton", limit: 200, offset: 0 });
-    productRoutes = res.data.map((product) => `/behaton/${product.slug}`);
-  } catch {
-    productRoutes = [];
-  }
-
-  const cityRoutes = behatonCities.map((city) => `/behaton/grad/${city.slug}`);
-
-  const routes = [
+  const staticRoutes = [
     "/",
     "/porucivanje-betona",
     "/usluge",
@@ -31,14 +19,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/en/projects",
     "/en/about",
     "/en/contact",
-    ...cityRoutes,
-    ...productRoutes,
   ];
 
-  return routes.map((path) => ({
-    url: `${siteUrl}${path === "/" ? "" : path}`,
-    lastModified,
-    changeFrequency: path === "/" ? "weekly" : "monthly",
-    priority: path === "/" ? 1 : 0.7,
-  }));
+  const cityRoutes = behatonCities.map((city) => `/behaton/grad/${city.slug}`);
+  const betonCityRoutes = betonCities.map((city) => `/beton/grad/${city.slug}`);
+
+  let productEntries: MetadataRoute.Sitemap = [];
+  try {
+    const products = await getProducts({ category: "behaton", limit: 300, offset: 0 });
+    productEntries = products.data.map((product) => ({
+      url: `${SITE_URL}/behaton/${product.slug}`,
+      lastModified: new Date(product.updated_at || product.created_at || Date.now()),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    }));
+  } catch {
+    productEntries = [];
+  }
+
+  let projectEntries: MetadataRoute.Sitemap = [];
+  try {
+    const projects = await getProjects(300, 0);
+    projectEntries = projects.data.map((project) => ({
+      url: `${SITE_URL}/projekti/${project.slug}`,
+      lastModified: new Date(project.updated_at || project.published_at || project.created_at || Date.now()),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    }));
+  } catch {
+    projectEntries = [];
+  }
+
+  const staticEntries: MetadataRoute.Sitemap = [...staticRoutes, ...cityRoutes, ...betonCityRoutes].map(
+    (route) => ({
+      url: `${SITE_URL}${route === "/" ? "" : route}`,
+      lastModified: new Date(),
+      changeFrequency: route === "/" ? "weekly" : "monthly",
+      priority: route === "/" ? 1 : 0.7,
+    })
+  );
+
+  return [...staticEntries, ...productEntries, ...projectEntries];
 }

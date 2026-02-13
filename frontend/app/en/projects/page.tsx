@@ -1,7 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import PageHero from "@/components/page-hero";
 import { getProjects } from "@/lib/api";
 import type { Project } from "@/lib/api";
+import { buildMetadata, srEnLanguages } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Projects | Prevoz Kop",
+  description:
+    "Recent concrete, demolition and earthwork projects from Niš and southern Serbia.",
+  path: "/en/projects",
+  locale: "en_US",
+  image: "/img/volvonov2.webp",
+  languages: srEnLanguages("/projekti", "/en/projects"),
+});
 
 export default async function ProjectsEn() {
   let projects: Project[] = [];

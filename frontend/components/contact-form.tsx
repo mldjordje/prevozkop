@@ -64,6 +64,24 @@ export default function ContactForm({
   const resolvedQuantityPlaceholder = quantityPlaceholder || "npr. 120";
   const resolvedQuantityUnitLabel = quantityUnitLabel || "Jedinica";
   const resolvedQuantityUnits = quantityUnits ?? ["m2", "m3", "kom", "paleta"];
+  const concreteSet = new Set(concreteTypes.map((item) => item.toLowerCase()));
+
+  function detectServiceType(subject: string, selectedType: string) {
+    const normalizedSubject = subject.trim().toLowerCase();
+    const normalizedType = selectedType.trim().toLowerCase();
+    if (normalizedSubject.includes("behaton")) return "behaton";
+    if (normalizedSubject.includes("beton")) return "beton";
+    if (normalizedType) {
+      return concreteSet.has(normalizedType) ? "beton" : "behaton";
+    }
+    return "other";
+  }
+
+  function detectCitySlug(path: string | null): string | null {
+    if (!path) return null;
+    const match = path.match(/^\/(?:behaton|beton)\/grad\/([^/?#]+)/);
+    return match?.[1] || null;
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -85,12 +103,28 @@ export default function ContactForm({
     }
     const message = detailLines.length ? `${detailLines.join(" | ")}\n${rawMessage}` : rawMessage;
 
+    const subject = (data.get("subject") as string) || "";
+    const serviceType = detectServiceType(subject, selectedType);
+    const currentPath =
+      typeof window !== "undefined" ? window.location.pathname : "/";
+    const citySlug = detectCitySlug(currentPath);
+    const currentSearch =
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+
     const payload: Partial<Order> = {
       name: (data.get("name") as string) || "",
       email: (data.get("email") as string) || "",
       phone: (data.get("phone") as string) || "",
-      subject: (data.get("subject") as string) || "",
+      subject,
       concrete_type: selectedType,
+      service_type: serviceType,
+      quantity: quantity || null,
+      quantity_unit: quantityUnit || null,
+      city_slug: citySlug,
+      source_page: currentPath || "/",
+      utm_source: currentSearch?.get("utm_source") || null,
+      utm_medium: currentSearch?.get("utm_medium") || null,
+      utm_campaign: currentSearch?.get("utm_campaign") || null,
       message,
     };
 

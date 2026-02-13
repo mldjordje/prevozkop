@@ -1,6 +1,18 @@
+import type { Metadata } from "next";
 import PageHero from "@/components/page-hero";
 import ContactForm from "@/components/contact-form";
 import { company } from "@/content/site";
+import { buildMetadata, srEnLanguages } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Contact | Prevoz Kop",
+  description:
+    "Contact Prevoz Kop for concrete delivery, pumps, excavation and demolition jobs in Serbia.",
+  path: "/en/contact",
+  locale: "en_US",
+  image: "/img/kamionislika2.webp",
+  languages: srEnLanguages("/kontakt", "/en/contact"),
+});
 
 export default function ContactEn() {
   return (

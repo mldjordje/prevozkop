@@ -1,6 +1,18 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import PageHero from "@/components/page-hero";
 import ProjectsGrid from "@/app/projekti/projects-grid";
+import { buildMetadata, srEnLanguages } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Prevoz Kop | Concrete delivery and earthworks in Serbia",
+  description:
+    "Concrete production and delivery with mixers and pumps, excavation, demolition and earthworks across Niš and southern Serbia.",
+  path: "/en",
+  locale: "en_US",
+  image: "/img/kamionislika2.webp",
+  languages: srEnLanguages("/", "/en"),
+});
 
 export default function HomeEn() {
   return (

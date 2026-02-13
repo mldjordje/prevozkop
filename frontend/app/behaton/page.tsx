@@ -18,14 +18,16 @@ import {
 import { company } from "@/content/site";
 import { getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api";
+import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "Behaton Nis - prodaja, isporuka i ugradnja | Prevozkop",
+export const metadata: Metadata = buildMetadata({
+  title: "Behaton Niš - prodaja, isporuka i ugradnja | Prevozkop",
   description:
-    "Behaton Nis i jug Srbije: prodaja, isporuka i ugradnja behaton kocki i ploca u Nisu, Leskovcu, Prokuplju, Aleksincu i okolini.",
-  alternates: { canonical: "/behaton" },
+    "Behaton Niš i jug Srbije: prodaja, isporuka i ugradnja behaton kocki i ploča u Nišu, Leskovcu, Prokuplju, Aleksincu i okolini.",
+  path: "/behaton",
+  image: "/img/behaton/SLI_4930.JPG",
   keywords: [
     "behaton",
     "behaton nis",
@@ -38,7 +40,8 @@ export const metadata: Metadata = {
     "ugradnja behatona",
     "behaton dvoriste",
   ],
-};
+  languages: srEnLanguages("/behaton", "/en"),
+});
 
 const behatonGallery = [
   { src: "/img/behaton/SLI_4651.JPG", alt: "Behaton projekat - dvoriste" },
@@ -48,22 +51,12 @@ const behatonGallery = [
   { src: "/img/behaton/SLI_4975.JPG", alt: "Behaton ploce - izlozeni dezen" },
 ];
 
-async function fetchProductsDirect(limit: number) {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
-  const res = await fetch(`${API_BASE}/products?limit=${limit}&offset=0`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return [];
-  const data = (await res.json()) as { data?: Product[] };
-  return data.data || [];
-}
-
 export default async function BehatonPage() {
   let products: Product[] = [];
 
   try {
-    const res = await fetchProductsDirect(100);
-    products = res.filter((item) => item.category?.trim().toLowerCase() === "behaton");
+    const res = await getProducts({ category: "behaton", limit: 120, offset: 0 });
+    products = (res.data || []).filter((item) => item.category?.trim().toLowerCase() === "behaton");
   } catch (error) {
     console.error("Neuspelo ucitavanje behaton proizvoda:", error);
   }
@@ -434,6 +427,20 @@ export default async function BehatonPage() {
           ],
         })}
       </Script>
+      {products.length > 0 && (
+        <Script id="behaton-product-itemlist-jsonld" type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            itemListElement: products.map((item, index) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              name: item.name,
+              url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs"}/behaton/${item.slug}`,
+            })),
+          })}
+        </Script>
+      )}
       <FloatingCta
         phone={company.phone}
         callNumber="0603720415"

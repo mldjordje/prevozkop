@@ -38,8 +38,28 @@ export type Order = {
   phone?: string | null;
   subject?: string | null;
   concrete_type?: string | null;
+  service_type?: "beton" | "behaton" | "other" | null;
+  quantity?: string | null;
+  quantity_unit?: string | null;
+  city_slug?: string | null;
   message: string;
   status: "new" | "in_progress" | "done";
+  pipeline_stage?: "new" | "qualified" | "offered" | "negotiation" | "won" | "lost";
+  lead_score?: number | null;
+  next_follow_up_at?: string | null;
+  lost_reason?: string | null;
+  source_page?: string | null;
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  created_at: string;
+};
+
+export type OrderNote = {
+  id: number;
+  order_id: number;
+  note: string;
+  created_by?: number | null;
   created_at: string;
 };
 

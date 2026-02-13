@@ -7,6 +7,7 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import HeroUIProviders from "@/components/heroui-provider";
 import { company } from "@/content/site";
+import { SITE_URL } from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -16,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Prevozkop | Isporuka betona, visinske pumpe i zemljani radovi | Niš",
     template: "%s | Prevozkop",
@@ -42,7 +43,14 @@ export const metadata: Metadata = {
     "iskopi temelja",
     "priprema gradilišta",
   ],
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    languages: {
+      "sr-Latn-RS": "/",
+      "en-US": "/en",
+      "x-default": "/",
+    },
+  },
   openGraph: {
     type: "website",
     locale: "sr_RS",
@@ -51,6 +59,14 @@ export const metadata: Metadata = {
     title: "Prevozkop | Isporuka betona, visinske pumpe i zemljani radovi | Niš",
     description:
       "Beton i logistika gradilišta: isporuka gotovog betona, visoke pumpe za beton i zemljani radovi iz Niša. Servisna zona: Niš, Leskovac, Prokuplje, Aleksinac i jug/centralna Srbija.",
+    images: [{ url: "/img/napolje1.webp" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Prevozkop | Isporuka betona, visinske pumpe i zemljani radovi | Niš",
+    description:
+      "Beton i logistika gradilišta: isporuka gotovog betona, visoke pumpe za beton i zemljani radovi iz Niša.",
+    images: ["/img/napolje1.webp"],
   },
   robots: {
     index: true,
@@ -81,7 +97,7 @@ export default function RootLayout({
             "@type": "ConstructionCompany",
             name: "Prevozkop",
             alternateName: company.name,
-            url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
+            url: SITE_URL,
             telephone: "+381605887471",
             email: company.email,
             address: {

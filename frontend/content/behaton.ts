@@ -5,6 +5,8 @@ export type BehatonCity = {
   focus: string[];
 };
 
+export type BetonCity = BehatonCity;
+
 export const behatonHighlights = [
   "Kvalitetne behaton kocke i ploce za staze, dvorista i parkinge",
   "Jasne CTA poruke za poziv i brz upit",
@@ -99,4 +101,120 @@ export const behatonCities: BehatonCity[] = [
       "Behaton za privatne i industrijske objekte u Aleksincu, uz savet oko formata i debljine.",
     focus: ["industrijski prilazi", "magacini", "dvorista"],
   },
+  {
+    slug: "vranje",
+    name: "Vranje",
+    intro:
+      "Prodaja i ugradnja behatona u Vranju za privatne i poslovne povrsine sa jasnim planom podloge.",
+    focus: ["prilazi kucama", "dvorista", "pesacke staze"],
+  },
+  {
+    slug: "pirot",
+    name: "Pirot",
+    intro:
+      "Behaton resenja u Pirotu za parkinge, staze i uredjenje oko objekata uz preciznu nivelaciju.",
+    focus: ["parking povrsine", "staze", "ulazi u objekte"],
+  },
+  {
+    slug: "zajecar",
+    name: "Zajecar",
+    intro:
+      "Lokalna ponuda behatona u Zajecaru sa preporukom modela prema opterecenju i nameni.",
+    focus: ["dvorista", "kolski prilazi", "javne povrsine"],
+  },
+  {
+    slug: "knjazevac",
+    name: "Knjazevac",
+    intro:
+      "Ugradnja behatona u Knjazevcu sa fokusom na dug vek trajanja i lako odrzavanje povrsina.",
+    focus: ["dvorisni prilazi", "parking", "staze oko kuce"],
+  },
+  {
+    slug: "svrljig",
+    name: "Svrljig",
+    intro:
+      "Behaton za Svrljig i okolinu uz dogovor oko isporuke, podloge i organizacije radova.",
+    focus: ["prilazi", "privatna dvorista", "pesacke zone"],
+  },
+  {
+    slug: "doljevac",
+    name: "Doljevac",
+    intro:
+      "Prodaja behatona u Doljevcu i terenska podrska za pripremu podloge i zavrsnu ugradnju.",
+    focus: ["garazni ulazi", "dvorista", "manje parking povrsine"],
+  },
+  {
+    slug: "merosina",
+    name: "Merosina",
+    intro:
+      "Behaton ponuda u Merosini za privatne projekte i poslovne prilaze sa brzom logistikom.",
+    focus: ["prilazi kucama", "poslovni ulazi", "staze"],
+  },
+  {
+    slug: "gadzin-han",
+    name: "Gadzin Han",
+    intro:
+      "Ugradnja behatona u Gadzinom Hanu sa preporukama za debljinu i stabilnu podlogu.",
+    focus: ["dvorista", "prilazi", "parking mesta"],
+  },
+  {
+    slug: "sokobanja",
+    name: "Sokobanja",
+    intro:
+      "Behaton za stambene i turisticke objekte u Sokobanji uz estetski i funkcionalni izbor modela.",
+    focus: ["staze", "hotelski prilazi", "parking"],
+  },
+  {
+    slug: "blace",
+    name: "Blace",
+    intro:
+      "Lokalna ponuda behatona u Blacu uz procenu terena i dogovor oko rokova ugradnje.",
+    focus: ["dvorisne povrsine", "ulazi", "prolazi"],
+  },
+  {
+    slug: "kursumlija",
+    name: "Kursumlija",
+    intro:
+      "Behaton resenja u Kursumliji za privatne i komercijalne povrsine uz pouzdanu isporuku.",
+    focus: ["parking", "staze", "prilazi objektima"],
+  },
+  {
+    slug: "bojnik",
+    name: "Bojnik",
+    intro:
+      "Ugradnja behatona u Bojniku sa terenskom podrskom i jasnom specifikacijom modela.",
+    focus: ["kolski prilazi", "dvorista", "staze"],
+  },
+  {
+    slug: "lebane",
+    name: "Lebane",
+    intro:
+      "Prodaja i ugradnja behatona u Lebanu za dugotrajne povrsine koje trpe dnevno opterecenje.",
+    focus: ["ulazi", "dvorista", "parking prostori"],
+  },
+  {
+    slug: "medvedja",
+    name: "Medvedja",
+    intro:
+      "Behaton za Medvedju i okolinu uz savet oko izbora dezena, boje i debljine elemenata.",
+    focus: ["staze", "prilazi", "dvorisni platoi"],
+  },
+  {
+    slug: "bela-palanka",
+    name: "Bela Palanka",
+    intro:
+      "Lokalna behaton ponuda u Beloj Palanci sa fokusom na stabilnu podlogu i kvalitetnu ugradnju.",
+    focus: ["dvorista", "kolski prilazi", "parking"],
+  },
 ];
+
+export const betonCities: BetonCity[] = behatonCities.map((city) => ({
+  slug: city.slug,
+  name: city.name,
+  intro: `Isporuka gotovog betona i betonske pumpe za ${city.name}. Organizujemo termin, logistiku i podrsku na gradilistu.`,
+  focus: [
+    "isporuka betona mikserima",
+    "beton pumpa i visinske pumpe",
+    "zemljani radovi i priprema terena",
+  ],
+}));

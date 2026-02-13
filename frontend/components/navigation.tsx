@@ -59,10 +59,11 @@ export default function Navigation() {
 
   const active = useMemo(() => {
     return links.reduce<Record<string, boolean>>((map, link) => {
-      map[link.href] = link.href === "/" ? pathname === "/" : pathname?.startsWith(link.href) ?? false;
+      map[link.href] =
+        link.href === "/" ? pathname === "/" : (pathname?.startsWith(link.href) ?? false);
       return map;
     }, {});
-  }, [pathname]);
+  }, [pathname, links]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur">

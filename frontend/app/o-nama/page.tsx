@@ -1,6 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import PageHero from "@/components/page-hero";
 import { aboutHighlights, company, stats, team } from "@/content/site";
+import { buildMetadata, srEnLanguages } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "O nama | Prevozkop",
+  description:
+    "Prevozkop iz Niša: betonska baza, isporuka betona, visinske pumpe i zemljani radovi za stambenu i poslovnu gradnju.",
+  path: "/o-nama",
+  image: "/img/napolje5.webp",
+  languages: srEnLanguages("/o-nama", "/en/about"),
+});
 
 const aboutParagraphs = [
   "Prevoz Kop iz Niša posluje od 2020. godine i specijalizovan je za proizvodnju i isporuku betona. Naša sopstvena betonska baza i tim iskusnih operatera garantuju da beton stiže na vreme i u klasi koja vam je potrebna.",

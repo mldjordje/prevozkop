@@ -1,5 +1,17 @@
+import type { Metadata } from "next";
 import PageHero from "@/components/page-hero";
 import ContactForm from "@/components/contact-form";
+import { buildMetadata, srEnLanguages } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Order Concrete | Prevoz Kop",
+  description:
+    "Send a concrete request with quantity, class and location. Fast response for mixers and pumps in Niš and southern Serbia.",
+  path: "/en/order-concrete",
+  locale: "en_US",
+  image: "/img/kamionislika2.webp",
+  languages: srEnLanguages("/porucivanje-betona", "/en/order-concrete"),
+});
 
 export default function OrderConcreteEn() {
   return (

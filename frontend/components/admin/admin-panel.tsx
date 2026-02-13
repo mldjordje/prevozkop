@@ -12,7 +12,7 @@ import {
   SelectItem,
   Textarea,
 } from "@heroui/react";
-import type { Order, Product, Project } from "@/lib/api";
+import type { Order, OrderNote, Product, Project } from "@/lib/api";
 import { getProjects } from "@/lib/api";
 import {
   ApiError,
@@ -28,7 +28,9 @@ import {
   adminLogin,
   adminLogout,
   adminDeleteOrder,
-  adminUpdateOrderStatus,
+  adminUpdateOrder,
+  adminCreateOrderNote,
+  adminListOrderNotes,
   adminUpdateProject,
   adminUpdateProduct,
   deleteProductGalleryImage,
@@ -51,6 +53,15 @@ const orderStatusOptions: { key: Order["status"]; label: string }[] = [
   { key: "new", label: "Nova" },
   { key: "in_progress", label: "U obradi" },
   { key: "done", label: "Zatvorena" },
+];
+
+const orderPipelineOptions: { key: NonNullable<Order["pipeline_stage"]>; label: string }[] = [
+  { key: "new", label: "Novi lead" },
+  { key: "qualified", label: "Kvalifikovan" },
+  { key: "offered", label: "Ponuda poslata" },
+  { key: "negotiation", label: "Pregovori" },
+  { key: "won", label: "Dobijen posao" },
+  { key: "lost", label: "Izgubljen lead" },
 ];
 
 const concreteTypeSet = new Set(
@@ -102,6 +113,15 @@ export default function AdminPanel({
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [orderServiceFilter, setOrderServiceFilter] = useState<OrderServiceFilter>("all");
+  const [orderPipelineFilter, setOrderPipelineFilter] = useState<string>("all");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [orderFromDate, setOrderFromDate] = useState("");
+  const [orderToDate, setOrderToDate] = useState("");
+  const [orderFollowUpDrafts, setOrderFollowUpDrafts] = useState<Record<number, string>>({});
+  const [orderLostReasonDrafts, setOrderLostReasonDrafts] = useState<Record<number, string>>({});
+  const [orderNoteDrafts, setOrderNoteDrafts] = useState<Record<number, string>>({});
+  const [orderNotes, setOrderNotes] = useState<Record<number, OrderNote[]>>({});
+  const [orderNotesLoading, setOrderNotesLoading] = useState<Record<number, boolean>>({});
   const [message, setMessage] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -169,6 +189,12 @@ export default function AdminPanel({
   }, [section, isAuthenticated]);
 
   useEffect(() => {
+    if (section === "orders" && isAuthenticated) {
+      refreshOrders();
+    }
+  }, [orderServiceFilter, orderPipelineFilter, orderSearch, orderFromDate, orderToDate]);
+
+  useEffect(() => {
     if (section === "products" && isAuthenticated) {
       refreshProducts();
     }
@@ -200,7 +226,7 @@ export default function AdminPanel({
         }
         setView("login");
       } else {
-        setMessage("NeuspeÅ¡no uÄitavanje projekata.");
+        setMessage("Neuspešno učitavanje projekata.");
       }
     } finally {
       setIsFetching(false);
@@ -212,10 +238,18 @@ export default function AdminPanel({
     if (showLoader) setOrdersLoading(true);
     setMessage(null);
     try {
-      const res = await adminListOrders();
+      const res = await adminListOrders({
+        service_type: orderServiceFilter !== "all" ? orderServiceFilter : undefined,
+        pipeline_stage: orderPipelineFilter !== "all" ? orderPipelineFilter : undefined,
+        q: orderSearch || undefined,
+        from: orderFromDate || undefined,
+        to: orderToDate || undefined,
+        limit: 300,
+        offset: 0,
+      });
       setOrders(res.data);
     } catch {
-      setMessage("NeuspeÅ¡no uÄitavanje porudÅ¾bina.");
+      setMessage("Neuspešno učitavanje porudžbina.");
     } finally {
       if (showLoader) setOrdersLoading(false);
     }
@@ -237,7 +271,7 @@ export default function AdminPanel({
       setProductDrafts({});
       setProductSpecsDrafts({});
     } catch {
-      setMessage("NeuspeÅ¡no uÄitavanje proizvoda.");
+      setMessage("Neuspešno učitavanje proizvoda.");
     } finally {
       if (showLoader) setProductsLoading(false);
     }
@@ -314,8 +348,8 @@ export default function AdminPanel({
     } catch (error) {
       const text =
         error instanceof ApiError && error.status === 401
-          ? "PogreÅ¡an email ili lozinka."
-          : "GreÅ¡ka pri prijavi.";
+          ? "Pogrešan email ili lozinka."
+          : "Greška pri prijavi.";
       setMessage(text);
     } finally {
       setIsFetching(false);
@@ -369,7 +403,7 @@ export default function AdminPanel({
       setMessage(
         uploadNotes.length > 0
           ? `Projekat je kreiran. ${uploadNotes.join(" ")}`
-          : "Projekat je uspeÅ¡no kreiran."
+          : "Projekat je uspešno kreiran."
       );
     } catch (error) {
       if (error instanceof ApiError) {
@@ -378,11 +412,11 @@ export default function AdminPanel({
             ? error.body
             : (error.body as { error?: string } | undefined)?.error;
         const text = apiMessage
-          ? `GreÅ¡ka (${error.status}): ${apiMessage}`
-          : `GreÅ¡ka (${error.status}) prilikom Äuvanja.`;
+          ? `Greška (${error.status}): ${apiMessage}`
+          : `Greška (${error.status}) prilikom čuvanja.`;
         setMessage(text);
       } else {
-        setMessage("GreÅ¡ka prilikom Äuvanja.");
+        setMessage("Greška prilikom čuvanja.");
       }
     } finally {
       setIsFetching(false);
@@ -513,7 +547,7 @@ export default function AdminPanel({
       setMessage(
         uploadNotes.length > 0
           ? `Proizvod je dodat. ${uploadNotes.join(" ")}`
-          : "Proizvod je uspeÅ¡no dodat."
+          : "Proizvod je uspešno dodat."
       );
     } catch (error) {
       if (error instanceof ApiError) {
@@ -521,9 +555,9 @@ export default function AdminPanel({
           typeof error.body === "string"
             ? error.body
             : (error.body as { error?: string } | undefined)?.error;
-        setMessage(apiMessage ? `GreÅ¡ka: ${apiMessage}` : "GreÅ¡ka pri dodavanju proizvoda.");
+        setMessage(apiMessage ? `Greška: ${apiMessage}` : "Greška pri dodavanju proizvoda.");
       } else {
-        setMessage("GreÅ¡ka pri dodavanju proizvoda.");
+        setMessage("Greška pri dodavanju proizvoda.");
       }
     } finally {
       setProductsLoading(false);
@@ -546,9 +580,9 @@ export default function AdminPanel({
     try {
       await adminUpdateProduct(product.id, payload);
       await refreshProducts(false);
-      setMessage("Proizvod je saÄuvan.");
+      setMessage("Proizvod je sačuvan.");
     } catch {
-      setMessage("NeuspeÅ¡no Äuvanje proizvoda.");
+      setMessage("Neuspešno čuvanje proizvoda.");
     } finally {
       setProductsLoading(false);
     }
@@ -560,7 +594,7 @@ export default function AdminPanel({
       ...Object.keys(productSpecsDrafts).map(Number),
     ]);
     if (ids.size === 0) {
-      setMessage("Nema izmena za Äuvanje.");
+      setMessage("Nema izmena za čuvanje.");
       return;
     }
 
@@ -578,9 +612,9 @@ export default function AdminPanel({
         await adminUpdateProduct(id, payload);
       }
       await refreshProducts(false);
-      setMessage("Sve izmene su saÄuvane.");
+      setMessage("Sve izmene su sačuvane.");
     } catch {
-      setMessage("GreÅ¡ka pri grupnom Äuvanju proizvoda.");
+      setMessage("Greška pri grupnom čuvanju proizvoda.");
     } finally {
       setProductsLoading(false);
     }
@@ -596,7 +630,7 @@ export default function AdminPanel({
       await refreshProducts(false);
       setMessage("Proizvod je obrisan.");
     } catch {
-      setMessage("NeuspeÅ¡no brisanje proizvoda.");
+      setMessage("Neuspešno brisanje proizvoda.");
     } finally {
       setProductsLoading(false);
     }
@@ -708,9 +742,9 @@ export default function AdminPanel({
           typeof error.body === "string"
             ? error.body
             : (error.body as { error?: string } | undefined)?.error;
-        setMessage(apiMessage ? `GreÅ¡ka: ${apiMessage}` : "GreÅ¡ka pri masovnom unosu behatona.");
+        setMessage(apiMessage ? `Greška: ${apiMessage}` : "Greška pri masovnom unosu behatona.");
       } else {
-        setMessage("GreÅ¡ka pri masovnom unosu behatona.");
+        setMessage("Greška pri masovnom unosu behatona.");
       }
     } finally {
       setProductsLoading(false);
@@ -724,9 +758,9 @@ export default function AdminPanel({
     try {
       await adminUpdateProject(project.id, { status });
       await refreshProjects();
-      setMessage("Status aÅ¾uriran.");
+      setMessage("Status ažuriran.");
     } catch {
-      setMessage("NeuspeÅ¡no aÅ¾uriranje statusa.");
+      setMessage("Neuspešno ažuriranje statusa.");
       setIsFetching(false);
     }
   }
@@ -741,7 +775,7 @@ export default function AdminPanel({
       await refreshProjects();
       setMessage("Projekat obrisan.");
     } catch {
-      setMessage("NeuspeÅ¡no brisanje.");
+      setMessage("Neuspešno brisanje.");
       setIsFetching(false);
     }
   }
@@ -773,7 +807,7 @@ export default function AdminPanel({
         await uploadGalleryImage(projectId, file);
       }
       await refreshProjectDetail(projectId);
-      setMessage("Galerija je aÅ¾urirana.");
+      setMessage("Galerija je ažurirana.");
     } catch (error) {
       const detail = extractApiErrorMessage(error);
       setMessage(detail ? `Greska: ${detail}` : "Nije uspelo slanje galerije.");
@@ -802,11 +836,87 @@ export default function AdminPanel({
     setOrdersLoading(true);
     setMessage(null);
     try {
-      await adminUpdateOrderStatus(order.id, status);
+      await adminUpdateOrder(order.id, { status });
       await refreshOrders(false);
-      setMessage("Status porudÅ¾bine aÅ¾uriran.");
+      setMessage("Status porudžbine ažuriran.");
     } catch {
-      setMessage("GreÅ¡ka pri aÅ¾uriranju porudÅ¾bine.");
+      setMessage("Greška pri ažuriranju porudžbine.");
+    } finally {
+      setOrdersLoading(false);
+    }
+  }
+
+  async function handleOrderPipeline(order: Order, pipelineStage: NonNullable<Order["pipeline_stage"]>) {
+    if (!isAuthenticated || order.pipeline_stage === pipelineStage) return;
+    setOrdersLoading(true);
+    setMessage(null);
+    try {
+      await adminUpdateOrder(order.id, { pipeline_stage: pipelineStage });
+      await refreshOrders(false);
+      setMessage("Faza lead-a je ažurirana.");
+    } catch {
+      setMessage("Greška pri ažuriranju faze.");
+    } finally {
+      setOrdersLoading(false);
+    }
+  }
+
+  async function handleOrderFollowUp(order: Order) {
+    if (!isAuthenticated) return;
+    const next_follow_up_at =
+      orderFollowUpDrafts[order.id] !== undefined
+        ? orderFollowUpDrafts[order.id]
+        : order.next_follow_up_at || "";
+    const lost_reason =
+      orderLostReasonDrafts[order.id] !== undefined
+        ? orderLostReasonDrafts[order.id]
+        : order.lost_reason || "";
+
+    setOrdersLoading(true);
+    setMessage(null);
+    try {
+      await adminUpdateOrder(order.id, {
+        next_follow_up_at: next_follow_up_at || null,
+        lost_reason: lost_reason || null,
+      });
+      await refreshOrders(false);
+      setMessage("Lead podaci su sačuvani.");
+    } catch {
+      setMessage("Greška pri čuvanju lead podataka.");
+    } finally {
+      setOrdersLoading(false);
+    }
+  }
+
+  async function loadOrderNotes(orderId: number) {
+    if (!isAuthenticated) return;
+    setOrderNotesLoading((prev) => ({ ...prev, [orderId]: true }));
+    try {
+      const res = await adminListOrderNotes(orderId);
+      setOrderNotes((prev) => ({ ...prev, [orderId]: res.data || [] }));
+    } catch {
+      setMessage("Neuspešno učitavanje beleški.");
+    } finally {
+      setOrderNotesLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  }
+
+  async function handleCreateOrderNote(order: Order) {
+    if (!isAuthenticated) return;
+    const note = (orderNoteDrafts[order.id] || "").trim();
+    if (!note) {
+      setMessage("Unesite belešku pre čuvanja.");
+      return;
+    }
+    setOrdersLoading(true);
+    setMessage(null);
+    try {
+      await adminCreateOrderNote(order.id, note);
+      setOrderNoteDrafts((prev) => ({ ...prev, [order.id]: "" }));
+      await loadOrderNotes(order.id);
+      setMessage("Beleška je sačuvana.");
+    } catch {
+      setMessage("Greška pri čuvanju beleške.");
     } finally {
       setOrdersLoading(false);
     }
@@ -829,6 +939,10 @@ export default function AdminPanel({
   }
 
   function resolveOrderService(order: Order): OrderServiceFilter {
+    if (order.service_type === "beton" || order.service_type === "behaton" || order.service_type === "other") {
+      return order.service_type;
+    }
+
     const subject = (order.subject || "").trim().toLowerCase();
     const type = (order.concrete_type || "").trim().toLowerCase();
 
@@ -1309,14 +1423,14 @@ export default function AdminPanel({
                           ))}
                         </Select>
                         <Button color="primary" type="submit" isDisabled={productsLoading}>
-                          SaÄuvaj
+                          Sačuvaj
                         </Button>
                       </form>
                     </CardBody>
                   </Card>
 
                   <Card>
-                    <CardHeader className="font-semibold">Brzi unos (viÅ¡e behatona)</CardHeader>
+                    <CardHeader className="font-semibold">Brzi unos (više behatona)</CardHeader>
                     <CardBody>
                       <form className="grid gap-3" onSubmit={handleBulkProducts}>
                         <Textarea
@@ -1361,7 +1475,7 @@ export default function AdminPanel({
                       onPress={() => refreshProducts()}
                       isDisabled={productsLoading}
                     >
-                      OsveÅ¾i
+                      Osveži
                     </Button>
                     <Button
                       color="primary"
@@ -1369,7 +1483,7 @@ export default function AdminPanel({
                       onPress={handleSaveAllProducts}
                       isDisabled={productsLoading || !hasProductDrafts}
                     >
-                      SaÄuvaj sve izmene
+                      Sačuvaj sve izmene
                     </Button>
                   </div>
                 </div>
@@ -1476,8 +1590,8 @@ export default function AdminPanel({
                       fallback: NonNullable<Product[K]>
                     ): Product[K] =>
                       draft && draft[field] !== undefined
-                        ? (draft[field] ?? fallback)
-                        : (product[field] ?? fallback);
+                        ? (draft[field] as Product[K])
+                        : ((product[field] ?? fallback) as Product[K]);
 
                     return (
                       <div key={product.id} id={`product-${product.id}`}>
@@ -1691,7 +1805,7 @@ export default function AdminPanel({
                               onPress={() => handleSaveProduct(product)}
                               isDisabled={productsLoading}
                             >
-                              SaÄuvaj
+                              Sačuvaj
                             </Button>
                             <Button
                               color="danger"
@@ -1699,7 +1813,7 @@ export default function AdminPanel({
                               onPress={() => handleDeleteProduct(product)}
                               isDisabled={productsLoading}
                             >
-                              ObriÅ¡i
+                              Obriši
                             </Button>
                           </div>
                         </CardBody>
@@ -1718,76 +1832,84 @@ export default function AdminPanel({
             </>
           )}
 
-          {section === "orders" && (() => {
-            const filteredOrders = orders.filter((order) => {
-              if (orderServiceFilter === "all") return true;
-              return resolveOrderService(order) === orderServiceFilter;
-            });
-
-            return (
-              <section className="space-y-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h2 className="text-2xl font-semibold">Porudžbine</h2>
-                    <p className="text-sm text-gray-600">
-                      Pregled online porudžbina sa forme (status: nova / u obradi / zatvorena).
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Select
-                      label="Filter"
-                      items={orderServiceFilters as unknown as { key: string; label: string }[]}
-                      selectedKeys={[orderServiceFilter]}
-                      onSelectionChange={(keys) =>
-                        setOrderServiceFilter(
-                          (Array.from(keys).at(0)?.toString() as OrderServiceFilter) || "all"
-                        )
-                      }
-                    >
-                      {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
-                    </Select>
-                    <Button variant="flat" onPress={() => refreshOrders()} isDisabled={ordersLoading}>
-                      Osveži
-                    </Button>
-                  </div>
+          {section === "orders" && (
+            <section className="space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-2xl font-semibold">Porudžbine</h2>
+                  <p className="text-sm text-gray-600">
+                    Lead pipeline: status, faza, follow-up i beleške.
+                  </p>
                 </div>
+                <Button variant="flat" onPress={() => refreshOrders()} isDisabled={ordersLoading}>
+                  Osveži
+                </Button>
+              </div>
 
-                {filteredOrders.length === 0 ? (
-                  <p className="text-sm text-gray-600">Još uvek nema porudžbina.</p>
-                ) : (
-                  <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
-                    <div className="hidden md:grid md:grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] md:gap-4 border-b border-black/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                      <span>Kontakt</span>
-                      <span>Detalji</span>
-                      <span>Poruka</span>
-                      <span>Status</span>
-                      <span>Akcije</span>
-                    </div>
-                    <div className="divide-y divide-black/5">
-                      {filteredOrders.map((order) => (
-                        <div
-                          key={order.id}
-                          className="grid gap-4 px-4 py-4 text-sm md:grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr]"
-                        >
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                <Select
+                  label="Usluga"
+                  items={orderServiceFilters as unknown as { key: string; label: string }[]}
+                  selectedKeys={[orderServiceFilter]}
+                  onSelectionChange={(keys) =>
+                    setOrderServiceFilter(
+                      (Array.from(keys).at(0)?.toString() as OrderServiceFilter) || "all"
+                    )
+                  }
+                >
+                  {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
+                </Select>
+                <Select
+                  label="Faza"
+                  items={[{ key: "all", label: "Sve faze" }, ...orderPipelineOptions] as {
+                    key: string;
+                    label: string;
+                  }[]}
+                  selectedKeys={[orderPipelineFilter]}
+                  onSelectionChange={(keys) =>
+                    setOrderPipelineFilter(Array.from(keys).at(0)?.toString() || "all")
+                  }
+                >
+                  {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
+                </Select>
+                <Input
+                  label="Od datuma"
+                  type="date"
+                  value={orderFromDate}
+                  onChange={(e) => setOrderFromDate(e.target.value)}
+                />
+                <Input
+                  label="Do datuma"
+                  type="date"
+                  value={orderToDate}
+                  onChange={(e) => setOrderToDate(e.target.value)}
+                />
+                <Input
+                  label="Pretraga"
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  placeholder="Ime, email, telefon..."
+                />
+              </div>
+
+              {orders.length === 0 ? (
+                <p className="text-sm text-gray-600">Još uvek nema porudžbina.</p>
+              ) : (
+                <div className="space-y-4">
+                  {orders.map((order) => (
+                    <Card key={order.id} className="border border-black/5 shadow-sm">
+                      <CardBody className="space-y-4">
+                        <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_1.2fr]">
                           <div className="space-y-1">
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
-                              Kontakt
-                            </p>
-                            <p className="font-semibold">{order.name}</p>
-                            <p className="text-gray-600">
-                              <a
-                                href={`mailto:${order.email}`}
-                                className="hover:text-primary"
-                              >
+                            <p className="font-semibold text-dark">{order.name}</p>
+                            <p className="text-sm text-gray-600">
+                              <a href={`mailto:${order.email}`} className="hover:text-primary">
                                 {order.email}
                               </a>
                             </p>
                             {order.phone && (
-                              <p className="text-gray-600">
-                                <a
-                                  href={toTelHref(order.phone)}
-                                  className="hover:text-primary"
-                                >
+                              <p className="text-sm text-gray-600">
+                                <a href={toTelHref(order.phone)} className="hover:text-primary">
                                   {order.phone}
                                 </a>
                               </p>
@@ -1796,72 +1918,172 @@ export default function AdminPanel({
                               {new Date(order.created_at).toLocaleString("sr-RS")}
                             </p>
                           </div>
-                          <div className="space-y-1 text-gray-700">
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
-                              Detalji
-                            </p>
-                            {order.subject && <p>{order.subject}</p>}
-                            {order.concrete_type && (
-                              <p className="text-xs text-gray-500">Beton: {order.concrete_type}</p>
+
+                          <div className="space-y-2 text-sm text-gray-700">
+                            {order.subject && <p>Tema: {order.subject}</p>}
+                            {order.concrete_type && <p>Tip: {order.concrete_type}</p>}
+                            <p>Usluga: {resolveOrderService(order)}</p>
+                            {order.quantity && (
+                              <p>
+                                Količina: {order.quantity} {order.quantity_unit || ""}
+                              </p>
                             )}
                           </div>
-                          <div className="text-gray-700">
-                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
-                              Poruka
-                            </p>
-                            <p className="line-clamp-4 whitespace-pre-wrap">{order.message}</p>
-                          </div>
-                          <div className="flex items-center">
-                            <p className="mr-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
-                              Status
-                            </p>
+
+                          <div className="space-y-2">
                             <Chip
                               color={
                                 order.status === "done"
                                   ? "success"
                                   : order.status === "in_progress"
-                                  ? "warning"
-                                  : "default"
+                                    ? "warning"
+                                    : "default"
                               }
                               variant="flat"
                             >
-                              {orderStatusOptions.find((o) => o.key === order.status)?.label ||
-                                order.status}
+                              {orderStatusOptions.find((o) => o.key === order.status)?.label || order.status}
                             </Chip>
+                            <Select
+                              label="Lead faza"
+                              selectedKeys={[order.pipeline_stage || "new"]}
+                              onSelectionChange={(keys) =>
+                                handleOrderPipeline(
+                                  order,
+                                  (Array.from(keys).at(0)?.toString() as NonNullable<Order["pipeline_stage"]>) || "new"
+                                )
+                              }
+                            >
+                              {orderPipelineOptions.map((item) => (
+                                <SelectItem key={item.key}>{item.label}</SelectItem>
+                              ))}
+                            </Select>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="mr-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400 md:hidden">
-                              Akcije
+
+                          <div className="space-y-2">
+                            <p className="line-clamp-4 whitespace-pre-wrap text-sm text-gray-700">
+                              {order.message}
                             </p>
-                            {orderStatusOptions.map((opt) => (
+                            <div className="flex flex-wrap gap-2">
+                              {orderStatusOptions.map((opt) => (
+                                <Button
+                                  key={opt.key}
+                                  size="sm"
+                                  variant={order.status === opt.key ? "solid" : "flat"}
+                                  onPress={() => handleOrderStatus(order, opt.key)}
+                                  isDisabled={ordersLoading}
+                                >
+                                  {opt.label}
+                                </Button>
+                              ))}
                               <Button
-                                key={opt.key}
                                 size="sm"
-                                variant={order.status === opt.key ? "solid" : "flat"}
-                                onPress={() => handleOrderStatus(order, opt.key)}
+                                color="danger"
+                                variant="light"
+                                onPress={() => handleDeleteOrder(order)}
                                 isDisabled={ordersLoading}
                               >
-                                {opt.label}
+                                Obriši
                               </Button>
-                            ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-3 md:grid-cols-3">
+                          <Input
+                            label="Sledeći follow-up"
+                            type="datetime-local"
+                            value={
+                              orderFollowUpDrafts[order.id] ??
+                              (order.next_follow_up_at
+                                ? new Date(order.next_follow_up_at).toISOString().slice(0, 16)
+                                : "")
+                            }
+                            onChange={(e) =>
+                              setOrderFollowUpDrafts((prev) => ({
+                                ...prev,
+                                [order.id]: e.target.value,
+                              }))
+                            }
+                          />
+                          <Input
+                            label="Razlog izgubljenog lead-a"
+                            value={orderLostReasonDrafts[order.id] ?? order.lost_reason ?? ""}
+                            onChange={(e) =>
+                              setOrderLostReasonDrafts((prev) => ({
+                                ...prev,
+                                [order.id]: e.target.value,
+                              }))
+                            }
+                            placeholder="npr. cena / konkurencija / odloženo"
+                          />
+                          <div className="flex items-end">
                             <Button
-                              size="sm"
-                              color="danger"
-                              variant="light"
-                              onPress={() => handleDeleteOrder(order)}
+                              color="primary"
+                              variant="flat"
+                              onPress={() => handleOrderFollowUp(order)}
                               isDisabled={ordersLoading}
                             >
-                              Obriši
+                              Sačuvaj lead polja
                             </Button>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </section>
-            );
-          })()}
+
+                        <div className="rounded-2xl border border-black/5 bg-gray-50 p-4">
+                          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-dark">Beleške</p>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              onPress={() => loadOrderNotes(order.id)}
+                              isDisabled={orderNotesLoading[order.id]}
+                            >
+                              Učitaj beleške
+                            </Button>
+                          </div>
+                          <Textarea
+                            label="Nova beleška"
+                            value={orderNoteDrafts[order.id] || ""}
+                            onChange={(e) =>
+                              setOrderNoteDrafts((prev) => ({
+                                ...prev,
+                                [order.id]: e.target.value,
+                              }))
+                            }
+                            minRows={2}
+                          />
+                          <div className="mt-2">
+                            <Button
+                              size="sm"
+                              color="primary"
+                              onPress={() => handleCreateOrderNote(order)}
+                              isDisabled={ordersLoading}
+                            >
+                              Dodaj belešku
+                            </Button>
+                          </div>
+                          {(orderNotes[order.id] || []).length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              {(orderNotes[order.id] || []).map((note) => (
+                                <div
+                                  key={note.id}
+                                  className="rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
+                                >
+                                  <p className="whitespace-pre-wrap text-gray-700">{note.note}</p>
+                                  <p className="mt-1 text-xs text-gray-400">
+                                    {new Date(note.created_at).toLocaleString("sr-RS")}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
         </>
       )}
     </div>

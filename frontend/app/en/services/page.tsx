@@ -1,4 +1,16 @@
+import type { Metadata } from "next";
 import PageHero from "@/components/page-hero";
+import { buildMetadata, srEnLanguages } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Services | Prevoz Kop",
+  description:
+    "Concrete delivery, demolition, excavation, grading and transport services across Niš and southern Serbia.",
+  path: "/en/services",
+  locale: "en_US",
+  image: "/img/volvonov2.webp",
+  languages: srEnLanguages("/usluge", "/en/services"),
+});
 
 export default function ServicesEn() {
   return (

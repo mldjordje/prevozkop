@@ -1,33 +1,38 @@
 # API i admin specifikacija (PHP, cPanel)
 
-## Endpoints (read-only, javni)
-- `GET /api/projects`  
-  - Query: `status=published` (default), `limit`, `offset`, `tag`.  
-  - Response: `{ data: [ { id, title, slug, excerpt, hero_image, published_at } ], meta: { total, limit, offset } }`
-- `GET /api/projects/{slug}`  
-  - Response: `{ id, title, slug, body, excerpt, hero_image, gallery: [ { src, alt } ], published_at, tags }`  
-  - 404 ako ne postoji ili je `status != published` (osim ako je admin auth).
+## Javni endpointi
+- `GET /api/projects`
+  - Query: `status`, `limit`, `offset`
+- `GET /api/projects/{slug}`
+- `GET /api/products`
+  - Query: `status`, `category`, `q`, `limit`, `offset`
+- `GET /api/products/{slug}`
+- `POST /api/orders`
+  - Prima: `name`, `email`, `phone`, `subject`, `concrete_type`, `message`
+  - Dodatno prima lead polja: `service_type`, `quantity`, `quantity_unit`, `city_slug`, `source_page`, `utm_source`, `utm_medium`, `utm_campaign`
 
 ## Admin auth
-- Session-based login na `POST /admin/login` (email + password); rate limit (npr. 5 pokušaja / 10 min po IP).  
-- Logout: `POST /admin/logout`.  
-- Svi admin API pozivi zahtevaju session cookie.
+- `POST /api/admin/login`
+- `POST /api/admin/logout`
+- Session cookie je obavezan za sve admin rute.
 
-## Admin CRUD za projekte
-- `GET /admin/projects` (lista, filter po statusu).  
-- `POST /admin/projects` (create). Body: `title`, `slug`, `excerpt`, `body`, `tags`, `status`, `published_at`.  
-- `PUT /admin/projects/{id}` (update).  
-- `DELETE /admin/projects/{id}` (soft delete opciono).  
-- Upload hero: `POST /admin/projects/{id}/hero` (multipart). Validacija MIME (jpg/png/webp), max size (npr. 5 MB), generisati webp + smanjene verzije ako GD/Imagick postoje.  
-- Upload galerije: `POST /admin/projects/{id}/media` (multipart). Response vraća `file_path` i `id`.
+## Admin projekti/proizvodi
+- Standardni CRUD i upload endpointi ostaju nepromenjeni:
+  - `/api/admin/projects*`
+  - `/api/admin/products*`
 
-## Sigurnost i zaštita
-- PDO sa prepared statements, CORS samo za Vercel domen, CSRF tokeni za admin forme.  
-- Gasi `display_errors`; logovi u fajl van webroot-a.  
-- `.htaccess` u `uploads` da zabrani izvršne ekstenzije; serviranje fajlova kroz PHP koji provodi MIME i Content-Disposition.
+## Admin porudzbine (lead pipeline)
+- `GET /api/admin/orders`
+  - Filteri: `status`, `pipeline_stage`, `service_type`, `city_slug`, `from`, `to`, `q`, `limit`, `offset`
+- `PUT /api/admin/orders/{id}`
+  - Podrzano: `status`, `pipeline_stage`, `next_follow_up_at`, `lost_reason`
+- `DELETE /api/admin/orders/{id}`
 
-## SEO/Ads integracija (front)
-- Server-side meta: title/description/canonical per slug; `ld+json` za `BreadcrumbList`, `Organization`, `Product/Service`.  
-- Sitemap ruta: `GET /sitemap.xml` generisana iz baze (status=published).  
-- Robots: `GET /robots.txt` sa pravilima i lokacijom sitemap-a.  
-- GA4/Google Ads: gtag sa consent bannerom; event-i na CTA i submit forme; server-ili front-side event dispatch.
+## Admin lead beleske
+- `GET /api/admin/orders/{id}/notes`
+- `POST /api/admin/orders/{id}/notes`
+  - Body: `{ "note": "..." }`
+
+## Napomene
+- JSON response koristi `utf-8`.
+- Za upload i staticke fajlove ostaju postojeca pravila i validacija MIME tipa.

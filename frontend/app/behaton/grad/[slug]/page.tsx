@@ -14,6 +14,7 @@ import {
 } from "@/content/behaton";
 import { getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api";
+import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -24,18 +25,22 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const city = behatonCities.find((item) => item.slug === params.slug);
   if (!city) {
-    return {
+    return buildMetadata({
       title: "Behaton lokalna ponuda",
       description: "Lokalne behaton ponude i ugradnja.",
-      alternates: { canonical: "/behaton" },
-    };
+      path: "/behaton",
+      image: "/img/behaton/SLI_4930.JPG",
+      languages: srEnLanguages("/behaton", "/en"),
+    });
   }
 
-  return {
+  return buildMetadata({
     title: `Behaton ${city.name} - prodaja i ugradnja`,
     description: city.intro,
-    alternates: { canonical: `/behaton/grad/${city.slug}` },
-  };
+    path: `/behaton/grad/${city.slug}`,
+    image: "/img/behaton/SLI_4930.JPG",
+    languages: srEnLanguages(`/behaton/grad/${city.slug}`, "/en"),
+  });
 }
 
 export default async function BehatonCityPage({ params }: PageProps) {

@@ -1,4 +1,4 @@
-import type { Order, Project, Product } from "./api";
+import type { Order, OrderNote, Project, Product } from "./api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 
@@ -198,20 +198,61 @@ export async function deleteGalleryImage(projectId: number, mediaId: number) {
   });
 }
 
-export async function adminListOrders(status: string = "all") {
-  return adminFetch<{ data: Order[] }>(`/admin/orders?status=${status}`, { method: "GET" });
+export async function adminListOrders(params: {
+  status?: string;
+  pipeline_stage?: string;
+  service_type?: string;
+  city_slug?: string;
+  from?: string;
+  to?: string;
+  q?: string;
+  limit?: number;
+  offset?: number;
+} = {}) {
+  const search = new URLSearchParams();
+  if (params.status) search.set("status", params.status);
+  if (params.pipeline_stage) search.set("pipeline_stage", params.pipeline_stage);
+  if (params.service_type) search.set("service_type", params.service_type);
+  if (params.city_slug) search.set("city_slug", params.city_slug);
+  if (params.from) search.set("from", params.from);
+  if (params.to) search.set("to", params.to);
+  if (params.q) search.set("q", params.q);
+  if (params.limit) search.set("limit", String(params.limit));
+  if (params.offset) search.set("offset", String(params.offset));
+  const qs = search.toString();
+  return adminFetch<{ data: Order[] }>(qs ? `/admin/orders?${qs}` : "/admin/orders", {
+    method: "GET",
+  });
 }
 
-export async function adminUpdateOrderStatus(id: number, status: Order["status"]) {
+export async function adminUpdateOrder(id: number, payload: {
+  status?: Order["status"];
+  pipeline_stage?: Order["pipeline_stage"];
+  next_follow_up_at?: string | null;
+  lost_reason?: string | null;
+}) {
   return adminFetch<Order>(`/admin/orders/${id}`, {
     method: "PUT",
-    json: { status },
+    json: payload,
   });
 }
 
 export async function adminDeleteOrder(id: number) {
   return adminFetch<{ ok: boolean }>(`/admin/orders/${id}`, {
     method: "DELETE",
+  });
+}
+
+export async function adminListOrderNotes(orderId: number) {
+  return adminFetch<{ data: OrderNote[] }>(`/admin/orders/${orderId}/notes`, {
+    method: "GET",
+  });
+}
+
+export async function adminCreateOrderNote(orderId: number, note: string) {
+  return adminFetch<OrderNote>(`/admin/orders/${orderId}/notes`, {
+    method: "POST",
+    json: { note },
   });
 }
 
