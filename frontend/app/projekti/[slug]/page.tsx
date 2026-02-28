@@ -1,26 +1,47 @@
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getProject } from "@/lib/api";
 
+type RouteParams = { slug: string };
 type Props = {
-  params: { slug: string };
+  params: Promise<RouteParams> | RouteParams;
 };
 
 export async function generateMetadata({ params }: Props) {
-  const project = await getProject(params.slug);
-  return {
-    title: `${project.title} | Prevoz Kop`,
-    description: project.excerpt || "Projekat Prevoz Kop",
-    alternates: {
-      canonical: `${
-        process.env.NEXT_PUBLIC_SITE_URL || "https://prevozkop.rs"
-      }/projekti/${params.slug}`,
-    },
-  };
+  const { slug } = await params;
+  try {
+    const project = await getProject(slug);
+    return {
+      title: `${project.title} | Prevoz Kop`,
+      description: project.excerpt || "Projekat Prevoz Kop",
+      alternates: {
+        canonical: `${
+          process.env.NEXT_PUBLIC_SITE_URL || "https://prevozkop.rs"
+        }/projekti/${slug}`,
+      },
+    };
+  } catch {
+    return {
+      title: "Projekat | Prevoz Kop",
+      description: "Detalji projekta Prevoz Kop.",
+      alternates: {
+        canonical: `${
+          process.env.NEXT_PUBLIC_SITE_URL || "https://prevozkop.rs"
+        }/projekti/${slug}`,
+      },
+    };
+  }
 }
 
 export default async function ProjectPage({ params }: Props) {
-  const project = await getProject(params.slug);
+  const { slug } = await params;
+  let project = null;
+  try {
+    project = await getProject(slug);
+  } catch {
+    notFound();
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-6 py-12">

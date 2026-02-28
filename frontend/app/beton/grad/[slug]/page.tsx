@@ -9,8 +9,9 @@ import { betonCities } from "@/content/behaton";
 import { company } from "@/content/site";
 import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
 
+type RouteParams = { slug: string };
 type PageProps = {
-  params: { slug: string };
+  params: Promise<RouteParams> | RouteParams;
 };
 
 const betonFaq = [
@@ -29,7 +30,8 @@ const betonFaq = [
 ];
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const city = betonCities.find((item) => item.slug === params.slug);
+  const { slug } = await params;
+  const city = betonCities.find((item) => item.slug === slug);
   if (!city) {
     return buildMetadata({
       title: "Isporuka betona po gradu | Prevozkop",
@@ -49,8 +51,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 }
 
-export default function BetonCityPage({ params }: PageProps) {
-  const city = betonCities.find((item) => item.slug === params.slug);
+export default async function BetonCityPage({ params }: PageProps) {
+  const { slug } = await params;
+  const city = betonCities.find((item) => item.slug === slug);
   if (!city) notFound();
 
   return (

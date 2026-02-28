@@ -18,12 +18,14 @@ import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
 export const revalidate = 300;
 
+type RouteParams = { slug: string };
 type PageProps = {
-  params: { slug: string };
+  params: Promise<RouteParams> | RouteParams;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const city = behatonCities.find((item) => item.slug === params.slug);
+  const { slug } = await params;
+  const city = behatonCities.find((item) => item.slug === slug);
   if (!city) {
     return buildMetadata({
       title: "Behaton lokalna ponuda",
@@ -44,7 +46,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BehatonCityPage({ params }: PageProps) {
-  const city = behatonCities.find((item) => item.slug === params.slug);
+  const { slug } = await params;
+  const city = behatonCities.find((item) => item.slug === slug);
 
   if (!city) {
     notFound();

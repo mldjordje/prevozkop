@@ -7,13 +7,15 @@ import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
 
 export const revalidate = 300;
 
+type RouteParams = { slug: string };
 type PageProps = {
-  params: { slug: string };
+  params: Promise<RouteParams> | RouteParams;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
   try {
-    const product = await getProduct(params.slug);
+    const product = await getProduct(slug);
     return buildMetadata({
       title: `${product.name} | Behaton`,
       description:
@@ -36,11 +38,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BehatonProductPage({ params }: PageProps) {
+  const { slug } = await params;
   let product: Product | null = null;
   let related: Product[] = [];
 
   try {
-    product = await getProduct(params.slug);
+    product = await getProduct(slug);
   } catch {
     product = null;
   }
@@ -59,7 +62,7 @@ export default async function BehatonProductPage({ params }: PageProps) {
 
   return (
     <>
-      <BehatonProductClient slug={params.slug} initialProduct={product} initialRelated={related} />
+      <BehatonProductClient slug={slug} initialProduct={product} initialRelated={related} />
       <Script id="behaton-product-breadcrumbs" type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
@@ -81,7 +84,7 @@ export default async function BehatonProductPage({ params }: PageProps) {
               "@type": "ListItem",
               position: 3,
               name: product?.name || "Behaton proizvod",
-              item: `${SITE_URL}/behaton/${params.slug}`,
+              item: `${SITE_URL}/behaton/${slug}`,
             },
           ],
         })}
