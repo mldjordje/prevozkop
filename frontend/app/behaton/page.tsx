@@ -23,22 +23,25 @@ import { buildMetadata, srEnLanguages } from "@/lib/seo";
 export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
-  title: "Behaton Nis - cena, prodaja, isporuka i ugradnja",
+  title: "Behaton Srbija - cena, prodaja, isporuka i ugradnja",
   description:
-    "Behaton Nis i jug Srbije: prodaja behaton kocki i ploca, pomoc oko izbora modela, procena kolicine, isporuka i ugradnja.",
+    "Behaton za dvorista, prilaze, parkinge i poslovne povrsine sirom Srbije: preporuka modela, procena kolicine, isporuka i ugradnja.",
   path: "/behaton",
   image: "/img/behaton/SLI_4930.JPG",
   keywords: [
     "behaton",
+    "behaton srbija",
+    "behaton beograd",
+    "behaton novi sad",
     "behaton nis",
+    "behaton kragujevac",
     "cena behaton",
-    "behaton leskovac",
-    "behaton prokuplje",
-    "behaton aleksinac",
-    "behaton jug srbije",
+    "prodaja behatona",
+    "ugradnja behatona",
+    "behaton kocke srbija",
+    "behaton ploce srbija",
     "behaton kocke",
     "behaton ploce",
-    "ugradnja behatona",
     "behaton dvoriste",
   ],
   languages: srEnLanguages("/behaton", "/en"),
@@ -67,9 +70,9 @@ export default async function BehatonPage() {
   return (
     <div className="space-y-16 sm:space-y-24">
       <PageHero
-        title="Behaton Nis - prodaja i ugradnja behatona"
+        title="Behaton Srbija - prodaja i ugradnja behatona"
         kicker="Behaton Pro"
-        description="Konkretne ponude za behaton kocke i ploce, uz savet oko izbora modela, pripreme podloge i dogovor oko isporuke i ugradnje."
+        description="Konkretne ponude za behaton kocke i ploce, uz savet oko izbora modela, pripreme podloge i dogovor oko isporuke i ugradnje sirom Srbije."
         background="/img/napolje5.webp"
         priority
         actions={[
@@ -89,7 +92,7 @@ export default async function BehatonPage() {
             </h2>
             <p className="text-sm text-gray-700">
               Dobijate jasnu preporuku za model, debljinu i namenu behatona, kao i smernice za
-              pripremu podloge, rokove i logistiku isporuke.
+              pripremu podloge, rokove i logistiku isporuke za projekte sirom Srbije.
             </p>
           </ScrollReveal>
           <StaggerReveal className="grid gap-3">
@@ -174,7 +177,8 @@ export default async function BehatonPage() {
           </span>
           <h2 className="text-3xl font-bold text-dark sm:text-4xl">Posaljite upit za behaton</h2>
           <p className="max-w-3xl text-sm text-gray-700">
-            Navedite povrsinu, namenu i grad. Dobicete odgovor sa preporukom i sledecim koracima.
+            Navedite povrsinu, namenu i grad. Dobicete odgovor sa preporukom, logistikom i
+            sledecim koracima.
           </p>
         </div>
         <ContactForm
@@ -278,11 +282,12 @@ export default async function BehatonPage() {
               Lokacije
             </span>
             <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Behaton za Nis, Leskovac i jug Srbije
+              Behaton za gradove sirom Srbije
             </h2>
             <p className="max-w-3xl text-sm text-gray-700">
-              Radimo prodaju i ugradnju behatona u Nisu, Leskovcu, Prokuplju, Aleksincu i okolini,
-              uz preciznu procenu i dogovor oko termina.
+              Radimo prodaju i ugradnju behatona u Beogradu, Novom Sadu, Nisu, Kragujevcu,
+              Subotici, Valjevu, Cacku i drugim gradovima, uz preciznu procenu i dogovor oko
+              termina.
             </p>
           </div>
         </ScrollReveal>
@@ -364,7 +369,7 @@ export default async function BehatonPage() {
             <ul className="space-y-3 text-sm text-gray-200">
               <li>- Behaton kocke i ploce za sve tipove povrsina</li>
               <li>- Saveti oko podloge i nivelacije terena</li>
-              <li>- Lokalna isporuka i dogovor termina</li>
+              <li>- Isporuka i logistika po dogovoru sirom Srbije</li>
               <li>- Brza preporuka modela i okvirna kalkulacija</li>
             </ul>
           </div>

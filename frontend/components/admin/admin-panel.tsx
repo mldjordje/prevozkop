@@ -956,6 +956,10 @@ export default function AdminPanel({
     return "other";
   }
 
+  function getOrderServiceLabel(service: OrderServiceFilter) {
+    return orderServiceFilters.find((item) => item.key === service)?.label || service;
+  }
+
   function toTelHref(phone?: string | null) {
     if (!phone) return "";
     const digits = phone.replace(/\D/g, "");
@@ -1834,19 +1838,24 @@ export default function AdminPanel({
 
           {section === "orders" && (
             <section className="space-y-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-semibold">Porudžbine</h2>
                   <p className="text-sm text-gray-600">
                     Lead pipeline: status, faza, follow-up i beleške.
                   </p>
                 </div>
-                <Button variant="flat" onPress={() => refreshOrders()} isDisabled={ordersLoading}>
+                <Button
+                  variant="flat"
+                  onPress={() => refreshOrders()}
+                  isDisabled={ordersLoading}
+                  className="w-full sm:w-auto"
+                >
                   Osveži
                 </Button>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 <Select
                   label="Usluga"
                   items={orderServiceFilters as unknown as { key: string; label: string }[]}
@@ -1898,51 +1907,62 @@ export default function AdminPanel({
                 <div className="space-y-4">
                   {orders.map((order) => (
                     <Card key={order.id} className="border border-black/5 shadow-sm">
-                      <CardBody className="space-y-4">
-                        <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_1.2fr]">
-                          <div className="space-y-1">
+                      <CardBody className="space-y-4 p-4 sm:p-5">
+                        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.15fr)]">
+                          <div className="min-w-0 rounded-2xl border border-black/5 bg-gray-50 p-3 sm:p-4">
                             <p className="font-semibold text-dark">{order.name}</p>
-                            <p className="text-sm text-gray-600">
+                            <p className="mt-1 break-all text-sm text-gray-600">
                               <a href={`mailto:${order.email}`} className="hover:text-primary">
                                 {order.email}
                               </a>
                             </p>
                             {order.phone && (
-                              <p className="text-sm text-gray-600">
+                              <p className="mt-1 text-sm text-gray-600">
                                 <a href={toTelHref(order.phone)} className="hover:text-primary">
                                   {order.phone}
                                 </a>
                               </p>
                             )}
-                            <p className="text-xs text-gray-400">
+                            <p className="mt-2 text-xs text-gray-400">
                               {new Date(order.created_at).toLocaleString("sr-RS")}
                             </p>
                           </div>
 
-                          <div className="space-y-2 text-sm text-gray-700">
+                          <div className="min-w-0 rounded-2xl border border-black/5 bg-white p-3 sm:p-4">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                              Detalji upita
+                            </p>
+                            <div className="space-y-2 text-sm text-gray-700">
                             {order.subject && <p>Tema: {order.subject}</p>}
                             {order.concrete_type && <p>Tip: {order.concrete_type}</p>}
-                            <p>Usluga: {resolveOrderService(order)}</p>
+                              <p>Usluga: {getOrderServiceLabel(resolveOrderService(order))}</p>
                             {order.quantity && (
                               <p>
-                                Količina: {order.quantity} {order.quantity_unit || ""}
+                                  Kolicina: {order.quantity} {order.quantity_unit || ""}
                               </p>
                             )}
+                            </div>
                           </div>
 
-                          <div className="space-y-2">
-                            <Chip
-                              color={
-                                order.status === "done"
-                                  ? "success"
-                                  : order.status === "in_progress"
-                                    ? "warning"
-                                    : "default"
-                              }
-                              variant="flat"
-                            >
-                              {orderStatusOptions.find((o) => o.key === order.status)?.label || order.status}
-                            </Chip>
+                          <div className="min-w-0 rounded-2xl border border-black/5 bg-white p-3 sm:p-4">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                              Lead status
+                            </p>
+                            <div className="mb-3 flex flex-wrap gap-2">
+                              <Chip
+                                color={
+                                  order.status === "done"
+                                    ? "success"
+                                    : order.status === "in_progress"
+                                      ? "warning"
+                                      : "default"
+                                }
+                                variant="flat"
+                              >
+                                {orderStatusOptions.find((o) => o.key === order.status)?.label || order.status}
+                              </Chip>
+                              <Chip variant="bordered">{getOrderServiceLabel(resolveOrderService(order))}</Chip>
+                            </div>
                             <Select
                               label="Lead faza"
                               selectedKeys={[order.pipeline_stage || "new"]}
@@ -1959,11 +1979,14 @@ export default function AdminPanel({
                             </Select>
                           </div>
 
-                          <div className="space-y-2">
-                            <p className="line-clamp-4 whitespace-pre-wrap text-sm text-gray-700">
+                          <div className="min-w-0 rounded-2xl border border-black/5 bg-white p-3 sm:p-4">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                              Poruka i akcije
+                            </p>
+                            <p className="line-clamp-5 whitespace-pre-wrap break-words text-sm text-gray-700">
                               {order.message}
                             </p>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
                               {orderStatusOptions.map((opt) => (
                                 <Button
                                   key={opt.key}
@@ -1971,6 +1994,7 @@ export default function AdminPanel({
                                   variant={order.status === opt.key ? "solid" : "flat"}
                                   onPress={() => handleOrderStatus(order, opt.key)}
                                   isDisabled={ordersLoading}
+                                  className="w-full sm:w-auto"
                                 >
                                   {opt.label}
                                 </Button>
@@ -1981,6 +2005,7 @@ export default function AdminPanel({
                                 variant="light"
                                 onPress={() => handleDeleteOrder(order)}
                                 isDisabled={ordersLoading}
+                                className="w-full sm:w-auto"
                               >
                                 Obriši
                               </Button>
@@ -1988,7 +2013,7 @@ export default function AdminPanel({
                           </div>
                         </div>
 
-                        <div className="grid gap-3 md:grid-cols-3">
+                        <div className="grid gap-3 rounded-2xl border border-black/5 bg-gray-50 p-3 sm:p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
                           <Input
                             label="Sledeći follow-up"
                             type="datetime-local"
@@ -2022,8 +2047,9 @@ export default function AdminPanel({
                               variant="flat"
                               onPress={() => handleOrderFollowUp(order)}
                               isDisabled={ordersLoading}
+                              className="w-full lg:w-auto"
                             >
-                              Sačuvaj lead polja
+                              Sacuvaj lead polja
                             </Button>
                           </div>
                         </div>
