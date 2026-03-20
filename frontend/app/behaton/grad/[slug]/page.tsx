@@ -12,8 +12,10 @@ import {
   behatonProcess,
   behatonUseCases,
 } from "@/content/behaton";
+import { company } from "@/content/site";
 import { getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api";
+import { getProductSelectLabel } from "@/lib/products";
 import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
 export const revalidate = 300;
@@ -33,6 +35,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       path: "/behaton",
       image: "/img/behaton/SLI_4930.JPG",
       languages: srEnLanguages("/behaton", "/en"),
+    });
+  }
+
+  if (city.slug === "nis") {
+    return buildMetadata({
+      title: "Behaton Nis - prodaja, cena i ugradnja",
+      description:
+        "Behaton u Nisu za dvorista, prilaze i parkinge: preporuka modela, procena kolicine, isporuka i ugradnja.",
+      path: `/behaton/grad/${city.slug}`,
+      image: "/img/behaton/SLI_4930.JPG",
+      languages: srEnLanguages(`/behaton/grad/${city.slug}`, "/en"),
     });
   }
 
@@ -63,6 +76,37 @@ export default async function BehatonCityPage({ params }: PageProps) {
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs";
+  const isNis = city.slug === "nis";
+  const localAreas = isNis
+    ? ["Pantelej", "Palilula", "Crveni Krst", "Medijana", "Durlan", "Ledena Stena"]
+    : city.focus;
+  const localFaq = isNis
+    ? [
+        {
+          q: "Da li radite behaton u Nisu za dvorista i garazne prilaze?",
+          a: "Da. U Nisu najcesce radimo privatna dvorista, garazne prilaze, parking mesta i staze oko objekata, uz savet za podlogu i odvodnjavanje.",
+        },
+        {
+          q: "Kako ide procena za behaton u Nisu?",
+          a: "Posaljete kvadraturu, lokaciju i namenu povrsine, a mi predlazemo odgovarajuci model, debljinu, okvirnu kolicinu i logistiku isporuke.",
+        },
+        {
+          q: "Da li organizujete i ugradnju behatona u Nisu?",
+          a: "Da. Po dogovoru organizujemo i ugradnju, posebno kada je potrebna priprema podloge, nivelacija i jasna dinamika radova.",
+        },
+      ]
+    : behatonFaq;
+  const relatedLinks = isNis
+    ? [
+        { href: "/behaton", label: "Glavna behaton stranica" },
+        { href: "/porucivanje-betona", label: "Isporuka betona Nis" },
+        { href: "/beton/grad/nis", label: "Beton Nis" },
+        { href: "/kontakt", label: "Kontakt i upit" },
+      ]
+    : [
+        { href: "/behaton", label: "Glavna behaton stranica" },
+        { href: "/kontakt", label: "Kontakt" },
+      ];
 
   return (
     <div className="space-y-16 sm:space-y-24">
@@ -101,6 +145,32 @@ export default async function BehatonCityPage({ params }: PageProps) {
               </ScrollReveal>
             ))}
           </StaggerReveal>
+        </div>
+      </section>
+
+      <section className="content-section space-y-6">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Lokalne zone
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Gde se behaton najcesce trazi u {city.name}
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            {isNis
+              ? "Najcesci upiti iz Nisa dolaze za dvorista, prilaze i parkinge oko porodicnih kuca, manjih zgrada i poslovnih objekata."
+              : `Najcesci upiti u ${city.name} dolaze za prilaze, staze, parkinge i uredjenje oko objekata.`}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {localAreas.map((area) => (
+            <span
+              key={area}
+              className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-dark"
+            >
+              {area}
+            </span>
+          ))}
         </div>
       </section>
 
@@ -184,6 +254,28 @@ export default async function BehatonCityPage({ params }: PageProps) {
         </section>
       )}
 
+      <section className="content-section space-y-6">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Povezane stranice
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Korisni linkovi za behaton i logistiku
+          </h2>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {relatedLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section className="content-section space-y-6" id="forma">
         <div className="space-y-2">
           <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
@@ -201,7 +293,7 @@ export default async function BehatonCityPage({ params }: PageProps) {
           subjectPlaceholder={`Behaton za ${city.name}`}
           selectLabel="Model behatona (opciono)"
           selectPlaceholder="Izaberite model behatona"
-          selectOptions={products.map((item) => item.name)}
+          selectOptions={products.map((item) => getProductSelectLabel(item))}
           showQuantity
           quantityLabel="Kolicina behatona (opciono)"
           quantityPlaceholder="npr. 120"
@@ -245,7 +337,7 @@ export default async function BehatonCityPage({ params }: PageProps) {
           <h2 className="text-3xl font-bold text-dark sm:text-4xl">Cesta pitanja</h2>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
-          {behatonFaq.map((item) => (
+          {localFaq.map((item) => (
             <div key={item.q} className="rounded-3xl border border-black/5 bg-white p-6 shadow-lg">
               <h3 className="text-base font-semibold text-dark">{item.q}</h3>
               <p className="mt-2 text-sm text-gray-700">{item.a}</p>
@@ -278,6 +370,33 @@ export default async function BehatonCityPage({ params }: PageProps) {
               item: `${siteUrl}/behaton/grad/${city.slug}`,
             },
           ],
+        })}
+      </Script>
+      <Script id="behaton-city-service-jsonld" type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: `Behaton ${city.name}`,
+          serviceType: "Prodaja i ugradnja behatona",
+          provider: {
+            "@type": "LocalBusiness",
+            name: company.name,
+            telephone: company.phone,
+            url: siteUrl,
+          },
+          areaServed: [city.name, ...(isNis ? ["Pantelej", "Palilula", "Medijana"] : [])],
+          url: `${siteUrl}/behaton/grad/${city.slug}`,
+        })}
+      </Script>
+      <Script id="behaton-city-faq-jsonld" type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: localFaq.map((item) => ({
+            "@type": "Question",
+            name: item.q,
+            acceptedAnswer: { "@type": "Answer", text: item.a },
+          })),
         })}
       </Script>
     </div>
