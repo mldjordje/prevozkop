@@ -10,6 +10,7 @@
 - `POST /api/orders`
   - Prima: `name`, `email`, `phone`, `subject`, `concrete_type`, `message`
   - Dodatno prima lead polja: `service_type`, `quantity`, `quantity_unit`, `city_slug`, `source_page`, `utm_source`, `utm_medium`, `utm_campaign`
+  - Preporuka: `source_page` neka sadrzi i query string kako bi `gclid` i `utm_*` ostali vezani za lead.
 
 ## Admin auth
 - `POST /api/admin/login`

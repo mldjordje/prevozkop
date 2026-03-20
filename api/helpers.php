@@ -155,6 +155,8 @@ function store_upload(array $config, array $file, int $projectId, array $allowed
         'image/jpeg' => 'jpg',
         'image/png' => 'png',
         'image/webp' => 'webp',
+        'image/heic' => 'heic',
+        'image/heif' => 'heif',
         default => 'bin',
     };
 
@@ -172,15 +174,105 @@ function store_upload(array $config, array $file, int $projectId, array $allowed
     return $relative;
 }
 
+function ensure_upload_dir_products(array $config, int $productId): string
+{
+    $dir = rtrim($config['uploads_products']['dir'], '/\\') . '/' . $productId;
+    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+        throw new RuntimeException('Cannot create product upload directory');
+    }
+    return $dir;
+}
+
+function resolve_upload_ext(string $mime, array $mimeMap): string
+{
+    if (isset($mimeMap[$mime])) {
+        return $mimeMap[$mime];
+    }
+    return match ($mime) {
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'image/heic' => 'heic',
+        'image/heif' => 'heif',
+        default => 'bin',
+    };
+}
+
+function store_product_upload(array $config, array $file, int $productId, array $allowedMime, array $mimeMap = []): string
+{
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        throw new RuntimeException('Upload failed with code ' . ($file['error'] ?? 'unknown'));
+    }
+
+    if (($file['size'] ?? 0) <= 0 || $file['size'] > $config['uploads_products']['max_size']) {
+        throw new RuntimeException('File too large');
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->file($file['tmp_name']);
+    if (!$mime || !in_array($mime, $allowedMime, true)) {
+        throw new RuntimeException('Invalid mime type');
+    }
+
+    $ext = resolve_upload_ext($mime, $mimeMap);
+
+    $dir = ensure_upload_dir_products($config, $productId);
+    $name = pathinfo($file['name'] ?? ('file.' . $ext), PATHINFO_FILENAME);
+    $safe = sanitize_filename($name);
+    $target = $dir . '/' . $safe . '-' . uniqid() . '.' . $ext;
+
+    if (!move_uploaded_file($file['tmp_name'], $target)) {
+        throw new RuntimeException('Failed to move upload');
+    }
+
+    $relative = $productId . '/' . basename($target);
+    return $relative;
+}
+
+function build_upload_url(array $config, string $key, string $relative): ?string
+{
+    $relative = trim($relative);
+    if ($relative === '') {
+        return null;
+    }
+    if (preg_match('~^https?://~i', $relative) || str_starts_with($relative, '/uploads/')) {
+        return $relative;
+    }
+    $base = (string) ($config[$key]['base_url'] ?? '');
+    if ($base === '') {
+        return $relative;
+    }
+    return rtrim($base, '/') . '/' . ltrim($relative, '/');
+}
+
 function header_safe(string $value): string
 {
     return str_replace(["\r", "\n"], '', $value);
 }
 
+function normalize_mail_recipients(string $value): string
+{
+    $emails = preg_split('/[;,]+/', $value) ?: [];
+    $valid = [];
+
+    foreach ($emails as $email) {
+        $email = trim($email);
+        if ($email === '') {
+            continue;
+        }
+        $validated = filter_var($email, FILTER_VALIDATE_EMAIL);
+        if ($validated !== false) {
+            $valid[] = header_safe($validated);
+        }
+    }
+
+    return implode(',', array_unique($valid));
+}
+
 function notify_order_via_email(array $config, array $order): bool
 {
     $mail = $config['mail'] ?? [];
-    $to = (string) ($mail['orders_to'] ?? '');
+    $to = normalize_mail_recipients((string) ($mail['orders_to'] ?? ''));
     if ($to === '') {
         return false;
     }
@@ -204,7 +296,16 @@ function notify_order_via_email(array $config, array $order): bool
     $lines[] = 'Email: ' . (string) ($order['email'] ?? '');
     $lines[] = 'Telefon: ' . (string) ($order['phone'] ?? '');
     $lines[] = 'Tema: ' . (string) ($order['subject'] ?? '');
+    $lines[] = 'Usluga: ' . (string) ($order['service_type'] ?? '');
     $lines[] = 'Tip betona: ' . (string) ($order['concrete_type'] ?? '');
+    $quantity = trim((string) ($order['quantity'] ?? ''));
+    $quantityUnit = trim((string) ($order['quantity_unit'] ?? ''));
+    $lines[] = 'Kolicina: ' . ($quantity !== '' ? $quantity . ($quantityUnit !== '' ? ' ' . $quantityUnit : '') : '');
+    $lines[] = 'Grad: ' . (string) ($order['city_slug'] ?? '');
+    $lines[] = 'Izvor stranice: ' . (string) ($order['source_page'] ?? '');
+    $lines[] = 'UTM source: ' . (string) ($order['utm_source'] ?? '');
+    $lines[] = 'UTM medium: ' . (string) ($order['utm_medium'] ?? '');
+    $lines[] = 'UTM campaign: ' . (string) ($order['utm_campaign'] ?? '');
     $lines[] = '';
     $lines[] = "Poruka:\n" . (string) ($order['message'] ?? '');
     $body = implode("\n", $lines);

@@ -9,6 +9,8 @@ import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import { behatonBenefits, behatonCities, behatonFaq, behatonProcess } from "@/content/behaton";
 import { company } from "@/content/site";
 import type { Product } from "@/lib/api";
+import { applyBehatonProductMedia } from "@/lib/behaton-media";
+import { getProductSelectLabel } from "@/lib/products";
 
 type Props = {
   slug: string;
@@ -19,13 +21,17 @@ type Props = {
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 
 export default function BehatonProductClient({ slug, initialProduct, initialRelated }: Props) {
-  const [product, setProduct] = useState<Product | null>(initialProduct);
-  const [related, setRelated] = useState<Product[]>(initialRelated);
+  const [product, setProduct] = useState<Product | null>(
+    initialProduct ? applyBehatonProductMedia(initialProduct) : null
+  );
+  const [related, setRelated] = useState<Product[]>(
+    initialRelated.map((item) => applyBehatonProductMedia(item))
+  );
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    setProduct(initialProduct);
-    setRelated(initialRelated);
+    setProduct(initialProduct ? applyBehatonProductMedia(initialProduct) : null);
+    setRelated(initialRelated.map((item) => applyBehatonProductMedia(item)));
     setLoadError(false);
   }, [initialProduct, initialRelated, slug]);
 
@@ -40,7 +46,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
           cache: "no-store",
         });
         if (!res.ok) throw new Error(`Status ${res.status}`);
-        const data = (await res.json()) as Product;
+        const data = applyBehatonProductMedia((await res.json()) as Product);
         if (!canceled) {
           setProduct(data);
         }
@@ -71,6 +77,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
         const list = (data.data || [])
           .filter((item) => item.category?.trim().toLowerCase() === "behaton")
           .filter((item) => item.slug !== currentSlug)
+          .map((item) => applyBehatonProductMedia(item))
           .slice(0, 3);
         if (!canceled) {
           setRelated(list);
@@ -87,8 +94,11 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
   }, [product, related.length, slug]);
 
   const productOptions = useMemo(() => {
-    if (!product) return related.map((item) => item.name);
-    return [product.name, ...related.map((item) => item.name)];
+    const labels = [
+      ...(product ? [getProductSelectLabel(product)] : []),
+      ...related.map((item) => getProductSelectLabel(item)),
+    ];
+    return Array.from(new Set(labels));
   }, [product, related]);
 
   if (!product) {
@@ -99,7 +109,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
           kicker="Behaton"
           description={
             loadError
-              ? "Trenutno ne mozemo da ucitamo detalje. Posaljite upit i navestite model."
+              ? "Trenutno ne mozemo da ucitamo detalje. Posaljite upit i navedite model."
               : "Ucitavanje detalja proizvoda."
           }
           background="/img/napolje1.webp"
@@ -143,6 +153,17 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
   const specsEntries = specsValue && !Array.isArray(specsValue) ? Object.entries(specsValue) : [];
   const specsList = Array.isArray(specsValue) ? specsValue : [];
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs";
+  const displayTitle = product.short_description
+    ? `${product.name} ${product.short_description}`
+    : product.name;
+  const displaySpecsEntries = [...specsEntries];
+  if (
+    product.short_description &&
+    !displaySpecsEntries.some(([label]) => label.trim().toLowerCase() === "dimenzija")
+  ) {
+    displaySpecsEntries.unshift(["Dimenzija", product.short_description]);
+  }
+
   const galleryImages = (() => {
     const images: string[] = [];
     if (product.image) images.push(product.image);
@@ -156,10 +177,30 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
     return images;
   })();
 
+  const descriptionLines = (product.description || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const pricingRows = descriptionLines
+    .filter((line) => line.includes(" - "))
+    .map((line) => {
+      const [label, ...rest] = line.split(" - ");
+      return {
+        label: label?.trim() || "",
+        value: rest.join(" - ").trim(),
+      };
+    })
+    .filter((item) => item.label && item.value);
+  const detailParagraphs =
+    pricingRows.length > 0
+      ? descriptionLines.filter((line) => !/^cene po boji:?$/i.test(line) && !line.includes(" - "))
+      : descriptionLines;
+  const selectedProductOption = getProductSelectLabel(product);
+
   return (
     <div className="space-y-16 sm:space-y-24">
       <PageHero
-        title={product.name}
+        title={displayTitle}
         kicker={product.product_type || "Behaton"}
         description={product.short_description || product.description || undefined}
         background={product.image || "/img/napolje1.webp"}
@@ -176,11 +217,15 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
             <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               Detalji
             </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">{product.name}</h2>
+            <h2 className="text-3xl font-bold text-dark sm:text-4xl">{displayTitle}</h2>
             {product.short_description && (
               <p className="text-sm font-semibold text-dark">{product.short_description}</p>
             )}
-            {product.description && <p className="text-sm text-gray-700">{product.description}</p>}
+            {detailParagraphs.map((paragraph, idx) => (
+              <p key={`${paragraph}-${idx}`} className="text-sm text-gray-700">
+                {paragraph}
+              </p>
+            ))}
             {product.applications && (
               <div className="rounded-2xl border border-black/5 bg-white px-5 py-4 text-sm text-gray-700 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
@@ -204,17 +249,35 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
                 </a>
               </div>
             )}
+            {pricingRows.length > 0 && (
+              <div className="rounded-2xl border border-black/5 bg-white px-5 py-4 text-sm text-gray-700 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  Cene po boji
+                </p>
+                <div className="mt-3 grid gap-3">
+                  {pricingRows.map((item) => (
+                    <div
+                      key={`${item.label}-${item.value}`}
+                      className="flex items-center justify-between gap-4 rounded-xl border border-black/5 bg-gray-50 px-3 py-2"
+                    >
+                      <span className="font-semibold text-dark">{item.label}</span>
+                      <span className="text-right text-gray-600">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </ScrollReveal>
           <ScrollReveal className="space-y-3" from="right">
             <div className="rounded-3xl border border-black/5 bg-white px-6 py-6 shadow-lg">
               <h3 className="text-xl font-bold text-dark">Specifikacije</h3>
-              {specsEntries.length === 0 && specsList.length === 0 ? (
+              {displaySpecsEntries.length === 0 && specsList.length === 0 ? (
                 <p className="mt-3 text-sm text-gray-600">
                   Specifikacije ce biti dostavljene na upit.
                 </p>
               ) : (
                 <div className="mt-4 grid gap-3 text-sm text-gray-700">
-                  {specsEntries.map(([label, value]) => (
+                  {displaySpecsEntries.map(([label, value]) => (
                     <div key={label} className="flex items-center justify-between gap-4">
                       <span className="font-semibold text-dark">{label}</span>
                       <span className="text-gray-600">
@@ -223,7 +286,10 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
                     </div>
                   ))}
                   {specsList.map((item, idx) => (
-                    <div key={`${item}-${idx}`} className="rounded-xl border border-black/5 bg-gray-50 px-3 py-2">
+                    <div
+                      key={`${item}-${idx}`}
+                      className="rounded-xl border border-black/5 bg-gray-50 px-3 py-2"
+                    >
                       {String(item)}
                     </div>
                   ))}
@@ -247,20 +313,27 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
             </div>
           </ScrollReveal>
           <StaggerReveal className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {galleryImages.map((src, idx) => (
+            {galleryImages.map((src, idx) => {
+              const isPackshot =
+                src.startsWith("/img/behaton/products/") && src.endsWith(".png");
+
+              return (
               <ScrollReveal key={`${src}-${idx}`} from="up">
                 <div className="group overflow-hidden rounded-3xl border border-black/5 bg-white shadow-lg">
                   <div className="relative h-56 overflow-hidden">
                     <img
                       src={src}
-                      alt={`${product.name} ${idx + 1}`}
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      alt={`${displayTitle} ${idx + 1}`}
+                      className={`h-full w-full transition duration-700 group-hover:scale-105 ${
+                        isPackshot ? "object-contain bg-gradient-to-br from-stone-100 via-white to-stone-50 p-4" : "object-cover"
+                      }`}
                       loading="lazy"
                     />
                   </div>
                 </div>
               </ScrollReveal>
-            ))}
+              );
+            })}
           </StaggerReveal>
         </section>
       )}
@@ -271,15 +344,15 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
             Upit
           </span>
           <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Posaljite upit za {product.name}
+            Posaljite upit za {displayTitle}
           </h2>
           <p className="max-w-3xl text-sm text-gray-700">
             Navedite grad, povrsinu i planirani rok. Javljamo se sa predlogom i cenom.
           </p>
         </div>
         <ContactForm
-          defaultSubject={`Behaton - ${product.name}`}
-          defaultSelectValue={product.name}
+          defaultSubject={`Behaton - ${displayTitle}`}
+          defaultSelectValue={selectedProductOption}
           selectLabel="Model behatona (opciono)"
           selectPlaceholder="Izaberite model behatona"
           selectOptions={productOptions}
@@ -319,7 +392,8 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
             </span>
             <h3 className="text-2xl font-bold text-dark sm:text-3xl">Kako ide ugradnja</h3>
             <p className="text-sm text-gray-700">
-              Od izbora modela do zavrsnih radova, pratimo jasne korake da bi povrsina ostala stabilna.
+              Od izbora modela do zavrsnih radova, pratimo jasne korake da bi povrsina ostala
+              stabilna.
             </p>
           </ScrollReveal>
           <StaggerReveal className="grid gap-4 sm:grid-cols-2">
@@ -345,7 +419,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
               Brzi dogovor
             </span>
             <h2 className="text-3xl font-bold leading-tight sm:text-4xl">
-              Zelite ponudu za {product.name}?
+              Zelite ponudu za {displayTitle}?
             </h2>
             <p className="text-sm text-gray-200">
               Posaljite upit ili pozovite. Dobicete savet oko podloge, isporuke i ugradnje.
@@ -451,12 +525,12 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Product",
-          name: product.name,
+          name: displayTitle,
           description: product.short_description || product.description || undefined,
           image: galleryImages.length > 0 ? galleryImages : undefined,
           brand: { "@type": "Brand", name: company.name },
           category: product.category,
-          additionalProperty: specsEntries.map(([label, value]) => ({
+          additionalProperty: displaySpecsEntries.map(([label, value]) => ({
             "@type": "PropertyValue",
             name: label,
             value: Array.isArray(value) ? value.join(", ") : String(value),
@@ -483,7 +557,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
             {
               "@type": "ListItem",
               position: 3,
-              name: product.name,
+              name: displayTitle,
               item: `${siteUrl}/behaton/${product.slug}`,
             },
           ],

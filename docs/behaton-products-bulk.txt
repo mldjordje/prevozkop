@@ -1,0 +1,17 @@
+PLOCA  ''BEHATON'' | behaton |  | 16,5x20 d=6 cm
+PLOCA  ''BEHATON'' | behaton |  | 16,5x20 d=8 cm
+PLOCA  ''BEHATON'' | behaton |  | (ravna ivica) 16,5x20 d=10 cm
+PLOCA CLASSIC | behaton |  | Dimenzija 30x30 d=6 cm
+PLOCA ELEGANCE | behaton |  | Dimenzija 20x20 d=6 cm
+PLOCA ELEGANCE | behaton |  | Dimenzija 20x20 d=8 cm
+PLOCA UNI ELEGANCE | behaton |  | Dimenzija 20x10 d=6 cm
+PLOCA MINI ELEGANCE | behaton |  | Dimenzija 10x10 d=6 cm
+PLOCA UNI PROFIL | behaton |  | Dimenzija 24x12 d=6 cm
+PLOCA SACE | behaton |  | Dimenzija 22x22 d=6 cm
+PLOCA CITY LINE (ravna ivica) | behaton |  | Dimenzija 24x16 d=6 cm
+PLOCA ANTICA | behaton |  | Dimenzija 7,50 x 11,50 x 10 d=6 cm
+PLOCA COMBO (ravna ivica) 60x40 d=6 cm (1 kom/m²) 40x40 d=6 cm (2 kom/m²) 40x20 d=6 cm (3 kom/m²) | behaton |  | 20x20 d=6 cm (4 kom/m²)
+PLOCA CITY PARK (ravna ivica) 7x14 d=6 cm (12 kom/m²) 14x14 d=6 cm (18 kom/m²) | behaton |  | 21x14 d=6 cm (18 kom/m²)
+PLOCA  VODILJA | behaton |  | TAKTILNA Dimenzija 30x30 d=6 cm
+PLOCA ECO | behaton |  | Dimenzija 20x20 d=8 cm
+PLOCA RASTER | behaton |  | Dimenzija 60x40 d=10 cm

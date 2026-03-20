@@ -3,6 +3,7 @@
 import { FormEvent, useRef, useState } from "react";
 import clsx from "clsx";
 import type { Order } from "@/lib/api";
+import { getCurrentPathWithSearch, trackEvent, trackGoogleAdsConversion } from "@/lib/tracking";
 
 type FormState = "idle" | "loading" | "success" | "error";
 
@@ -52,11 +53,13 @@ export default function ContactForm({
   const [error, setError] = useState<string | null>(null);
   const submitInFlightRef = useRef(false);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
-  const DEFAULT_SEND_TO = "AW-17801652604/1aABCMrT9tIbEPzSvqHC";
-  const GOOGLE_ADS_SEND_TO =
+  const DEFAULT_FORM_SEND_TO = "AW-17801652604/1aABCMrT9tIbEPzSvqHC";
+  const GOOGLE_ADS_FORM_SEND_TO =
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_FORM_SEND_TO ||
     process.env.NEXT_PUBLIC_GOOGLE_ADS_SEND_TO ||
+    process.env.NEXT_PUBLIC_GADS_FORM_SEND_TO ||
     process.env.NEXT_PUBLIC_GADS_SEND_TO ||
-    DEFAULT_SEND_TO;
+    DEFAULT_FORM_SEND_TO;
   const resolvedSelectOptions = selectOptions ?? concreteTypes;
   const resolvedSelectLabel = selectLabel || "Vrsta betona (nije obavezno)";
   const resolvedSelectPlaceholder = selectPlaceholder || "Izaberite vrstu betona";
@@ -105,8 +108,7 @@ export default function ContactForm({
 
     const subject = (data.get("subject") as string) || "";
     const serviceType = detectServiceType(subject, selectedType);
-    const currentPath =
-      typeof window !== "undefined" ? window.location.pathname : "/";
+    const currentPath = getCurrentPathWithSearch();
     const citySlug = detectCitySlug(currentPath);
     const currentSearch =
       typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
@@ -135,11 +137,17 @@ export default function ContactForm({
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`Status ${res.status}`);
-      const gtag = typeof window !== "undefined" ? (window as any).gtag : undefined;
-      if (typeof gtag === "function" && GOOGLE_ADS_SEND_TO) {
-        // Google Ads conversion event (requires proper send_to value with conversion label)
-        gtag("event", "conversion", { send_to: GOOGLE_ADS_SEND_TO });
-      }
+      const response = (await res.json()) as { id?: number; ok?: boolean };
+
+      trackEvent("generate_lead", {
+        lead_type: serviceType,
+        source_page: currentPath,
+        city_slug: citySlug || undefined,
+      });
+      trackGoogleAdsConversion(GOOGLE_ADS_FORM_SEND_TO, {
+        transaction_id: response.id ? `order-${response.id}` : undefined,
+      });
+
       setState("success");
       form.reset();
     } catch (err) {
@@ -163,7 +171,7 @@ export default function ContactForm({
             required
             name="name"
             className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
-            placeholder="Vaše ime"
+            placeholder="Vase ime"
           />
         </label>
         <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
@@ -254,7 +262,7 @@ export default function ContactForm({
           name="message"
           rows={4}
           className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
-          placeholder="Kako možemo da pomognemo?"
+          placeholder="Kako mozemo da pomognemo?"
         />
       </label>
 
@@ -268,10 +276,10 @@ export default function ContactForm({
             state === "loading" && "opacity-70"
           )}
         >
-          {state === "loading" ? "Slanje..." : "Pošalji upit"}
+          {state === "loading" ? "Slanje..." : "Posalji upit"}
         </button>
         {state === "success" && (
-          <p className="text-sm font-semibold text-green-600">Vaš upit je uspešno poslat!</p>
+          <p className="text-sm font-semibold text-green-600">Vas upit je uspesno poslat!</p>
         )}
         {state === "error" && <p className="text-sm font-semibold text-red-600">{error}</p>}
       </div>

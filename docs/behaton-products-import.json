@@ -1,0 +1,164 @@
+[
+    {
+        "name":  "PLOCA  \u0027\u0027BEHATON\u0027\u0027",
+        "short_description":  "16,5x20 d=6 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,175.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,290.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²\nMULTIKOLOR - 1,530.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image9.jpeg",
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image27.jpeg",
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image34.jpeg"
+                        ],
+        "row":  4
+    },
+    {
+        "name":  "PLOCA  \u0027\u0027BEHATON\u0027\u0027",
+        "short_description":  "16,5x20 d=8 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,290.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,410.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,470.00 RSD/m²\nMULTIKOLOR - 1,700.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image10.jpeg",
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image24.jpeg",
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image36.png"
+                        ],
+        "row":  8
+    },
+    {
+        "name":  "PLOCA  \u0027\u0027BEHATON\u0027\u0027",
+        "short_description":  "(ravna ivica) 16,5x20 d=10 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,650.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,760.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,880.00 RSD/m²\nMULTIKOLOR - 1,900.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image8.jpeg"
+                        ],
+        "row":  12
+    },
+    {
+        "name":  "PLOCA CLASSIC",
+        "short_description":  "Dimenzija 30x30 d=6 cm",
+        "description":  "Cene po boji:\nSIVA - 1,175.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,290.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²\nMULTIKOLOR - 1,530.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image6.jpeg",
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image7.jpeg"
+                        ],
+        "row":  16
+    },
+    {
+        "name":  "PLOCA ELEGANCE",
+        "short_description":  "Dimenzija 20x20 d=6 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,175.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,290.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²\nMULTIKOLOR - 1,530.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image3.jpeg",
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image4.jpeg"
+                        ],
+        "row":  20
+    },
+    {
+        "name":  "PLOCA ELEGANCE",
+        "short_description":  "Dimenzija 20x20 d=8 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,290.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,410.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,470.00 RSD/m²\nMULTIKOLOR - 1,700.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image3.jpeg",
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image11.jpeg"
+                        ],
+        "row":  24
+    },
+    {
+        "name":  "PLOCA UNI ELEGANCE",
+        "short_description":  "Dimenzija 20x10 d=6 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,175.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,290.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²\nMULTIKOLOR - 1,530.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image1.jpeg",
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image2.jpeg"
+                        ],
+        "row":  28
+    },
+    {
+        "name":  "PLOCA MINI ELEGANCE",
+        "short_description":  "Dimenzija 10x10 d=6 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,175.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,290.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²\nMULTIKOLOR - 1,530.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image5.jpeg"
+                        ],
+        "row":  32
+    },
+    {
+        "name":  "PLOCA UNI PROFIL",
+        "short_description":  "Dimenzija 24x12 d=6 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,175.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,290.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image13.jpeg"
+                        ],
+        "row":  36
+    },
+    {
+        "name":  "PLOCA SACE",
+        "short_description":  "Dimenzija 22x22 d=6 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,175.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,290.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image22.jpeg"
+                        ],
+        "row":  39
+    },
+    {
+        "name":  "PLOCA CITY LINE (ravna ivica)",
+        "short_description":  "Dimenzija 24x16 d=6 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,175.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,290.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²\nMULTIKOLOR - 1,650.00 RSD/m²",
+        "image_files":  [
+
+                        ],
+        "row":  42
+    },
+    {
+        "name":  "PLOCA ANTICA",
+        "short_description":  "Dimenzija 7,50 x 11,50 x 10 d=6 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,175.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,290.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²\nMULTIKOLOR - 1,650.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image19.jpeg",
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image20.jpeg"
+                        ],
+        "row":  46
+    },
+    {
+        "name":  "PLOCA COMBO (ravna ivica) 60x40 d=6 cm (1 kom/m²) 40x40 d=6 cm (2 kom/m²) 40x20 d=6 cm (3 kom/m²)",
+        "short_description":  "20x20 d=6 cm (4 kom/m²)",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,250.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,350.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,410.00 RSD/m²\nMULTIKOLOR - 1,650.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image15.jpeg"
+                        ],
+        "row":  50
+    },
+    {
+        "name":  "PLOCA CITY PARK (ravna ivica) 7x14 d=6 cm (12 kom/m²) 14x14 d=6 cm (18 kom/m²)",
+        "short_description":  "21x14 d=6 cm (18 kom/m²)",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,250.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,350.00 RSD/m²\nU BOJI (BELA, ZUTA, ZELENA) - 1,470.00 RSD/m²\nMULTIKOLOR - 1,650.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image17.jpeg"
+                        ],
+        "row":  54
+    },
+    {
+        "name":  "PLOCA  VODILJA",
+        "short_description":  "TAKTILNA Dimenzija 30x30 d=6 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,290.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,410.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image18.jpeg"
+                        ],
+        "row":  58
+    },
+    {
+        "name":  "PLOCA ECO",
+        "short_description":  "Dimenzija 20x20 d=8 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,290.00 RSD/m²\nU BOJI (CRNA, BORDO, BRAON) - 1,410.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image21.jpeg"
+                        ],
+        "row":  61
+    },
+    {
+        "name":  "PLOCA RASTER",
+        "short_description":  "Dimenzija 60x40 d=10 cm",
+        "description":  "Cene po boji:\nCEMENT SIVA - 1,290.00 RSD/m²",
+        "image_files":  [
+                            "docs\\\\behaton-xlsx-extract\\xl\\\\media\\image14.jpeg"
+                        ],
+        "row":  63
+    }
+]

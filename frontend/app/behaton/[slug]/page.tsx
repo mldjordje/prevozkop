@@ -3,6 +3,7 @@ import Script from "next/script";
 import BehatonProductClient from "./product-client";
 import { getProduct, getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api";
+import { applyBehatonProductMedia } from "@/lib/behaton-media";
 import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
 
 export const revalidate = 300;
@@ -12,12 +13,26 @@ type PageProps = {
   params: Promise<RouteParams> | RouteParams;
 };
 
+export async function generateStaticParams() {
+  try {
+    const allProducts = await getProducts({ category: "behaton", limit: 100, offset: 0 });
+    return (allProducts.data || [])
+      .filter((item) => item.category?.trim().toLowerCase() === "behaton")
+      .map((item) => ({ slug: item.slug }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const product = await getProduct(slug);
+    const product = applyBehatonProductMedia(await getProduct(slug));
+    const productTitle = product.short_description
+      ? `${product.name} ${product.short_description}`
+      : product.name;
     return buildMetadata({
-      title: `${product.name} | Behaton`,
+      title: `${productTitle} | Behaton`,
       description:
         product.short_description ||
         product.description ||
@@ -43,7 +58,7 @@ export default async function BehatonProductPage({ params }: PageProps) {
   let related: Product[] = [];
 
   try {
-    product = await getProduct(slug);
+    product = applyBehatonProductMedia(await getProduct(slug));
   } catch {
     product = null;
   }
@@ -54,6 +69,7 @@ export default async function BehatonProductPage({ params }: PageProps) {
       related = (allProducts.data || [])
         .filter((item) => item.category?.trim().toLowerCase() === "behaton")
         .filter((item) => item.slug !== product!.slug)
+        .map((item) => applyBehatonProductMedia(item))
         .slice(0, 3);
     } catch {
       related = [];

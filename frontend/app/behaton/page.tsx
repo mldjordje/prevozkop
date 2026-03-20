@@ -18,6 +18,8 @@ import {
 import { company } from "@/content/site";
 import { getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api";
+import { getBehatonProductListingImage } from "@/lib/behaton-media";
+import { getProductSelectLabel } from "@/lib/products";
 import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
 export const revalidate = 300;
@@ -65,7 +67,7 @@ export default async function BehatonPage() {
     console.error("Neuspelo ucitavanje behaton proizvoda:", error);
   }
 
-  const productOptions = products.map((product) => product.name);
+  const productOptions = Array.from(new Set(products.map((product) => getProductSelectLabel(product))));
 
   return (
     <div className="space-y-16 sm:space-y-24">
@@ -133,7 +135,12 @@ export default async function BehatonPage() {
           </ScrollReveal>
         ) : (
           <StaggerReveal className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
+            {products.map((product) => {
+              const cardImage = getBehatonProductListingImage(product) || "/img/napolje1.webp";
+              const isPackshot =
+                cardImage.startsWith("/img/behaton/products/") && cardImage.endsWith(".png");
+
+              return (
               <ScrollReveal key={product.id} from="up" className="h-full">
                 <Link
                   href={`/behaton/${product.slug}`}
@@ -141,11 +148,17 @@ export default async function BehatonPage() {
                   aria-label={`Detalji i upit za ${product.name}`}
                 >
                   <TiltCard className="h-full overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md">
-                    <div className="relative h-44 overflow-hidden">
+                    <div
+                      className={`relative h-44 overflow-hidden ${
+                        isPackshot ? "bg-gradient-to-br from-stone-100 via-white to-stone-50" : ""
+                      }`}
+                    >
                       <img
-                        src={product.image || "/img/napolje1.webp"}
+                        src={cardImage}
                         alt={product.name}
-                        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                        className={`h-full w-full transition duration-700 group-hover:scale-105 ${
+                          isPackshot ? "object-contain p-4" : "object-cover"
+                        }`}
                         loading="lazy"
                       />
                     </div>
@@ -165,7 +178,8 @@ export default async function BehatonPage() {
                   </TiltCard>
                 </Link>
               </ScrollReveal>
-            ))}
+              );
+            })}
           </StaggerReveal>
         )}
       </section>
