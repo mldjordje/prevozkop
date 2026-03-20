@@ -162,56 +162,56 @@ export default function ContactForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid gap-4 rounded-2xl border border-black/5 bg-white p-6 shadow-lg sm:p-8"
+      className="grid w-full gap-4 overflow-hidden rounded-2xl border border-black/5 bg-white p-6 shadow-lg sm:p-8"
     >
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+      <div className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
+        <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-dark">
           Ime i prezime*
           <input
             required
             name="name"
-            className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+            className="block w-full min-w-0 max-w-full rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
             placeholder="Vase ime"
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+        <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-dark">
           Email*
           <input
             required
             name="email"
             type="email"
-            className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+            className="block w-full min-w-0 max-w-full rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
             placeholder="primer@email.com"
           />
         </label>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+      <div className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
+        <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-dark">
           Tema razgovora*
           <input
             required
             name="subject"
-            className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+            className="block w-full min-w-0 max-w-full rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
             placeholder={subjectPlaceholder || "Nasipanje, beton..."}
             defaultValue={defaultSubject}
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+        <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-dark">
           Kontakt telefon
           <input
             name="phone"
-            className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+            className="block w-full min-w-0 max-w-full rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
             placeholder="+381..."
           />
         </label>
       </div>
 
-      <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+      <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-dark">
         {resolvedSelectLabel}
         <select
           name="concrete_type"
-          className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+          className="block w-full min-w-0 max-w-full rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
           defaultValue={defaultSelectValue || ""}
           required={selectRequired}
         >
@@ -225,23 +225,23 @@ export default function ContactForm({
       </label>
 
       {showQuantity && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+        <div className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-dark">
             {resolvedQuantityLabel}
             <input
               name="quantity"
               type="number"
               min="0"
               step="0.01"
-              className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+              className="block w-full min-w-0 max-w-full rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
               placeholder={resolvedQuantityPlaceholder}
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-dark">
             {resolvedQuantityUnitLabel}
             <select
               name="quantity_unit"
-              className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+              className="block w-full min-w-0 max-w-full rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
               defaultValue={defaultQuantityUnit || ""}
             >
               <option value="">Izaberite jedinicu</option>
@@ -255,13 +255,13 @@ export default function ContactForm({
         </div>
       )}
 
-      <label className="flex flex-col gap-2 text-sm font-semibold text-dark">
+      <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-dark">
         Poruka*
         <textarea
           required
           name="message"
           rows={4}
-          className="rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
+          className="block w-full min-w-0 max-w-full rounded-lg border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary"
           placeholder="Kako mozemo da pomognemo?"
         />
       </label>

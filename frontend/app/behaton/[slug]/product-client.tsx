@@ -351,7 +351,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
           </p>
         </div>
         <ContactForm
-          defaultSubject={`Behaton - ${displayTitle}`}
+          defaultSubject={`Behaton - ${product.name}`}
           defaultSelectValue={selectedProductOption}
           selectLabel="Model behatona (opciono)"
           selectPlaceholder="Izaberite model behatona"
