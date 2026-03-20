@@ -67,7 +67,7 @@ export default function Navigation() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <nav className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 sm:px-6 sm:py-3 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
           <img src="/img/logo.webp" alt="Prevoz Kop" className="h-11 w-auto" />
           <div className="hidden sm:block">
@@ -76,30 +76,30 @@ export default function Navigation() {
           </div>
         </Link>
 
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white/90 text-dark shadow-sm transition hover:shadow-lg sm:hidden"
-          aria-label="Toggle navigation"
-        >
-          <motion.span
-            initial={false}
-            animate={open ? { rotate: 45, y: 0 } : { rotate: 0, y: -4 }}
-            className="absolute h-0.5 w-6 rounded-full bg-dark"
-          />
-          <motion.span
-            initial={false}
-            animate={open ? { opacity: 0 } : { opacity: 1 }}
-            className="absolute h-0.5 w-6 rounded-full bg-dark"
-          />
-          <motion.span
-            initial={false}
-            animate={open ? { rotate: -45, y: 0 } : { rotate: 0, y: 4 }}
-            className="absolute h-0.5 w-6 rounded-full bg-dark"
-          />
-        </button>
+        <div className="ml-auto flex flex-1 items-center justify-end gap-3 sm:gap-6">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white/90 text-dark shadow-sm transition hover:shadow-lg sm:hidden"
+            aria-label="Toggle navigation"
+          >
+            <motion.span
+              initial={false}
+              animate={open ? { rotate: 45, y: 0 } : { rotate: 0, y: -4 }}
+              className="absolute h-0.5 w-6 rounded-full bg-dark"
+            />
+            <motion.span
+              initial={false}
+              animate={open ? { opacity: 0 } : { opacity: 1 }}
+              className="absolute h-0.5 w-6 rounded-full bg-dark"
+            />
+            <motion.span
+              initial={false}
+              animate={open ? { rotate: -45, y: 0 } : { rotate: 0, y: 4 }}
+              className="absolute h-0.5 w-6 rounded-full bg-dark"
+            />
+          </button>
 
-        <div className="flex flex-1 items-center justify-end gap-3 sm:gap-6">
           <div className="hidden items-center gap-6 sm:flex">
             <ul className="flex items-center gap-5">
               {links.map((link) => (

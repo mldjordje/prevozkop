@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { TouchEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
-import { AnimatePresence, motion, cubicBezier } from "framer-motion";
+import { AnimatePresence, cubicBezier, motion } from "framer-motion";
 import type { HeroSlide } from "@/content/site";
 
 type Props = {
@@ -16,6 +16,7 @@ const fadeEase = cubicBezier(0.22, 1, 0.36, 1);
 export default function HeroSlider({ slides }: Props) {
   const [index, setIndex] = useState(0);
   const [autoPlay, setAutoPlay] = useState(false);
+  const touchStartXRef = useRef<number | null>(null);
   const activeSlide = slides[index];
   const imageInitial = index === 0 ? { scale: 1, opacity: 1 } : { scale: 1.06, opacity: 0 };
 
@@ -44,7 +45,6 @@ export default function HeroSlider({ slides }: Props) {
     return () => clearInterval(id);
   }, [autoPlay, slides.length]);
 
-  // Preload narednog slajda da slike ne kasne u prelazu.
   useEffect(() => {
     if (!autoPlay) return;
     const next = slides[(index + 1) % slides.length];
@@ -54,12 +54,50 @@ export default function HeroSlider({ slides }: Props) {
   }, [autoPlay, index, slides]);
 
   const label = useMemo(
-    () => "Betonska baza u Nišu · isporuka betona · pumpe · zemljani radovi",
+    () => "Betonska baza u Nisu · isporuka · pumpe · zemljani radovi",
     []
   );
 
+  const mobileDescription = useMemo(() => {
+    if (activeSlide.description.length <= 58) return activeSlide.description;
+    return `${activeSlide.description.slice(0, 58).replace(/\s+\S*$/, "")}...`;
+  }, [activeSlide.description]);
+
+  function goToPrevious() {
+    setIndex((prev) => (prev - 1 + slides.length) % slides.length);
+    setAutoPlay(true);
+  }
+
+  function goToNext() {
+    setIndex((prev) => (prev + 1) % slides.length);
+    setAutoPlay(true);
+  }
+
+  function handleTouchStart(event: TouchEvent<HTMLElement>) {
+    touchStartXRef.current = event.touches[0]?.clientX ?? null;
+  }
+
+  function handleTouchEnd(event: TouchEvent<HTMLElement>) {
+    if (touchStartXRef.current === null) return;
+
+    const endX = event.changedTouches[0]?.clientX ?? touchStartXRef.current;
+    const deltaX = endX - touchStartXRef.current;
+    touchStartXRef.current = null;
+
+    if (Math.abs(deltaX) < 40) return;
+    if (deltaX > 0) {
+      goToPrevious();
+      return;
+    }
+    goToNext();
+  }
+
   return (
-    <section className="relative isolate overflow-hidden bg-zinc-900 text-white">
+    <section
+      className="relative isolate -mt-px overflow-hidden bg-zinc-900 text-white [touch-action:pan-y]"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="absolute inset-0">
         <AnimatePresence mode="wait">
           <motion.div
@@ -103,7 +141,7 @@ export default function HeroSlider({ slides }: Props) {
             "radial-gradient(circle at 15% 25%, rgba(244,161,0,0.28), transparent 35%), radial-gradient(circle at 85% 65%, rgba(255,255,255,0.14), transparent 35%)",
         }}
       />
-      <div className="relative z-10 mx-auto flex min-h-[70vh] max-w-6xl flex-col justify-center gap-6 px-4 py-16 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-72px)] max-w-6xl flex-col justify-center gap-5 px-4 py-10 sm:min-h-[70vh] sm:gap-6 sm:px-6 sm:py-16 lg:px-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSlide.title}
@@ -111,19 +149,24 @@ export default function HeroSlider({ slides }: Props) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.85, ease: fadeEase }}
-            className="space-y-6 rounded-3xl bg-black/45 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.45)] ring-1 ring-white/10 backdrop-blur-sm sm:p-8 lg:p-10"
+            className="space-y-4 rounded-3xl bg-black/45 p-4 shadow-[0_30px_80px_rgba(0,0,0,0.45)] ring-1 ring-white/10 backdrop-blur-sm sm:space-y-6 sm:p-8 lg:p-10"
           >
             <div className="flex flex-wrap items-center gap-3">
               <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                 {activeSlide.kicker}
               </span>
-              <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-gray-200">{label}</span>
+              <span className="hidden rounded-full bg-white/5 px-3 py-1 text-xs text-gray-200 sm:inline-flex">
+                {label}
+              </span>
             </div>
-            <div className="max-w-3xl space-y-4">
-              <h1 className="text-3xl font-bold leading-tight text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] sm:text-4xl lg:text-5xl">
+            <div className="max-w-3xl space-y-3 sm:space-y-4">
+              <h1 className="max-w-2xl text-2xl font-bold leading-tight text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] sm:text-4xl lg:text-5xl">
                 {activeSlide.title}
               </h1>
-              <p className="text-base text-gray-100 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] sm:text-lg">
+              <p className="text-sm text-gray-100 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] sm:hidden">
+                {mobileDescription}
+              </p>
+              <p className="hidden text-base text-gray-100 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] sm:block sm:text-lg">
                 {activeSlide.description}
               </p>
             </div>
@@ -136,7 +179,7 @@ export default function HeroSlider({ slides }: Props) {
               </Link>
               <Link
                 href="/usluge"
-                className="inline-flex items-center rounded-full border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-dark"
+                className="hidden items-center rounded-full border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-dark sm:inline-flex"
               >
                 Pogledaj usluge
               </Link>
@@ -149,7 +192,10 @@ export default function HeroSlider({ slides }: Props) {
               key={slide.title}
               type="button"
               aria-label={`Idi na slajd ${i + 1}`}
-              onClick={() => setIndex(i)}
+              onClick={() => {
+                setIndex(i);
+                setAutoPlay(true);
+              }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className={clsx(
