@@ -25,17 +25,17 @@ import { buildMetadata, srEnLanguages } from "@/lib/seo";
 export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
-  title: "Behaton Srbija - cena, prodaja, isporuka i ugradnja",
+  title: "Behaton Nis i Srbija - cena, prodaja, isporuka i ugradnja",
   description:
-    "Behaton za dvorista, prilaze, parkinge i poslovne povrsine sirom Srbije: preporuka modela, procena kolicine, isporuka i ugradnja.",
+    "Behaton za Nis, dvorista, prilaze, parkinge i poslovne povrsine sirom Srbije: preporuka modela, procena kolicine, isporuka i ugradnja.",
   path: "/behaton",
   image: "/img/behaton/SLI_4930.JPG",
   keywords: [
     "behaton",
     "behaton srbija",
+    "behaton nis",
     "behaton beograd",
     "behaton novi sad",
-    "behaton nis",
     "behaton kragujevac",
     "cena behaton",
     "prodaja behatona",
@@ -68,6 +68,12 @@ export default async function BehatonPage() {
   }
 
   const productOptions = Array.from(new Set(products.map((product) => getProductSelectLabel(product))));
+  const featuredSeoLinks = [
+    { href: "/behaton/grad/nis", label: "Behaton Nis" },
+    { href: "/behaton/grad/beograd", label: "Behaton Beograd" },
+    { href: "/behaton/grad/novi-sad", label: "Behaton Novi Sad" },
+    { href: "/kontakt", label: "Kontakt za behaton" },
+  ];
 
   return (
     <div className="space-y-16 sm:space-y-24">
@@ -106,6 +112,32 @@ export default async function BehatonPage() {
               </ScrollReveal>
             ))}
           </StaggerReveal>
+        </div>
+      </section>
+
+      <section className="content-section space-y-6">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Vazni linkovi
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Glavne stranice za behaton i lokalne upite
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            Ove stranice su najvaznije za upite kao sto su behaton Nis, behaton Beograd, cena
+            behatona i lokalna ugradnja.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {featuredSeoLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
       </section>
 

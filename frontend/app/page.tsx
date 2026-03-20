@@ -12,14 +12,17 @@ import type { Project } from "@/lib/api";
 import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Prevozkop Nis - Beton, behaton i zemljani radovi",
+  title: "Prevozkop Nis - isporuka betona, behaton i beton pumpa",
   description:
-    "Prevozkop iz Nisa obezbedjuje isporuku gotovog betona, behaton, visinske pumpe i zemljane radove za stambenu i poslovnu gradnju.",
+    "Prevozkop iz Nisa obezbedjuje isporuku gotovog betona, behaton, beton pumpe i zemljane radove za stambenu i poslovnu gradnju.",
   path: "/",
   image: "/img/napolje1.webp",
   keywords: [
     "beton nis",
+    "isporuka betona nis",
     "isporuka betona",
+    "behaton nis",
+    "behaton",
     "gotov beton",
     "beton pumpa",
     "zemljani radovi",
@@ -43,6 +46,39 @@ const homepageFaq = [
   },
 ];
 
+const priorityLinks = [
+  {
+    href: "/porucivanje-betona",
+    title: "Isporuka betona Nis",
+    description: "Landing stranica za porucivanje betona, miksera i beton pumpi u Nisu i okolini.",
+  },
+  {
+    href: "/behaton",
+    title: "Behaton Nis i Srbija",
+    description: "Glavna SEO stranica za behaton, modele, cene, isporuku i ugradnju.",
+  },
+  {
+    href: "/beton/grad/nis",
+    title: "Beton Nis",
+    description: "Lokalna stranica za beton, pumpu i termin isporuke u Nisu.",
+  },
+  {
+    href: "/behaton/grad/nis",
+    title: "Behaton Nis",
+    description: "Lokalna stranica za behaton u Nisu sa upitom i preporukama modela.",
+  },
+  {
+    href: "/usluge",
+    title: "Usluge",
+    description: "Pregled betona, pumpi, zemljanih radova i logistike gradilista.",
+  },
+  {
+    href: "/projekti",
+    title: "Projekti",
+    description: "Reference i galerija radova za dodatni signal poverenja.",
+  },
+];
+
 export default async function HomePage() {
   const featuredServices = services.slice(0, 4);
   let featuredProjects: Project[] = [];
@@ -60,6 +96,36 @@ export default async function HomePage() {
         Prevozkop - isporuka betona, visinske pumpe za beton i zemljani radovi u Nisu
       </h1>
       <HeroSlider slides={heroSlides} />
+
+      <section className="content-section space-y-6">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Vazne stranice
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Glavne stranice za beton, behaton i lokalnu isporuku
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            Ako trazite isporuku betona u Nisu, behaton, beton pumpu ili kompletne usluge, ovde su
+            najvaznije stranice sajta sa konkretnim informacijama i upitom.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {priorityLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="rounded-3xl border border-black/5 bg-white p-6 shadow-lg transition hover:-translate-y-1"
+            >
+              <h3 className="text-lg font-semibold text-dark">{link.title}</h3>
+              <p className="mt-2 text-sm text-gray-700">{link.description}</p>
+              <span className="mt-4 inline-flex text-sm font-semibold text-primary">
+                Otvori stranicu {"->"}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <section className="content-section space-y-6">
         <div className="space-y-2">

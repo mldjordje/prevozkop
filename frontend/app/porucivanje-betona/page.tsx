@@ -8,21 +8,42 @@ import { company } from "@/content/site";
 import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Porucivanje betona - isporuka i pumpe | Prevozkop",
+  title: "Isporuka betona Nis - porucivanje, pumpa i visinske pumpe",
   description:
-    "Porucite beton u Nisu i regionu: isporuka mikserima, beton pumpe, visinske pumpe i podrska na gradilistu.",
+    "Porucite beton u Nisu i regionu: isporuka mikserima, beton pumpa, visinske pumpe i podrska na gradilistu.",
   path: "/porucivanje-betona",
   image: "/img/kamionislika2.webp",
   keywords: [
     "porucivanje betona",
     "beton nis",
     "isporuka betona",
+    "isporuka betona nis",
+    "gotov beton nis",
     "beton pumpa",
     "visinska pumpa",
     "zemljani radovi",
   ],
   languages: srEnLanguages("/porucivanje-betona", "/en/order-concrete"),
 });
+
+const betonPriorityLinks = [
+  {
+    href: "/beton/grad/nis",
+    label: "Beton Nis",
+  },
+  {
+    href: "/beton/grad/leskovac",
+    label: "Beton Leskovac",
+  },
+  {
+    href: "/beton/grad/prokuplje",
+    label: "Beton Prokuplje",
+  },
+  {
+    href: "/usluge",
+    label: "Sve usluge",
+  },
+];
 
 const benefits = [
   "Beton iz sopstvene baze, klase po zahtevu (MB10-MB40)",
@@ -122,6 +143,32 @@ export default function OrderConcretePage() {
             >
               {city}
             </span>
+          ))}
+        </div>
+      </section>
+
+      <section className="content-section space-y-6">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Brzi linkovi
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Najvaznije stranice za isporuku betona
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            Google i korisnici lakse razumeju temu sajta kada su glavne stranice za beton jasno
+            povezane i imaju direktne ulaze za gradove i usluge.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {betonPriorityLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
+            >
+              {link.label}
+            </Link>
           ))}
         </div>
       </section>

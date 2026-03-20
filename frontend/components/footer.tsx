@@ -2,11 +2,12 @@ import Link from "next/link";
 import { company } from "@/content/site";
 
 const footerLinks = [
+  { href: "/porucivanje-betona", label: "Porucivanje betona" },
   { href: "/o-nama", label: "O nama" },
   { href: "/usluge", label: "Usluge" },
   { href: "/behaton", label: "Behaton" },
+  { href: "/behaton/grad/nis", label: "Behaton Nis" },
   { href: "/projekti", label: "Projekti" },
-  { href: "/projekti-video", label: "Video" },
   { href: "/kontakt", label: "Kontakt" },
 ];
 
@@ -26,9 +27,9 @@ export default function Footer() {
               </div>
             </div>
             <p className="max-w-md text-sm text-gray-300">
-              Prevozkop (Prevoz Kop) je građevinska podrška iz Niša: isporuka gotovog betona,
-              visinske pumpe za beton i zemljani radovi (iskopi, ravnanje terena, priprema
-              gradilišta) za stambenu i poslovnu gradnju u Nišu i regionu.
+              Prevozkop (Prevoz Kop) je gradjevinska podrska iz Nisa: isporuka gotovog betona,
+              beton pumpe, behaton i zemljani radovi za stambenu i poslovnu gradnju u Nisu i
+              regionu.
             </p>
           </div>
 
@@ -78,7 +79,7 @@ export default function Footer() {
 
         <div className="flex flex-col gap-3 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-gray-400">
-            © {new Date().getFullYear()} {company.name}. Sva prava zadržana.
+            (c) {new Date().getFullYear()} {company.name}. Sva prava zadrzana.
           </p>
           <div className="text-xs text-gray-500">
             Izradio <span className="text-primary">Prevoz Kop tim</span>

@@ -19,11 +19,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Prevozkop Nis | Beton, behaton i zemljani radovi",
+    default: "Prevozkop Nis | Isporuka betona, behaton i beton pumpa",
     template: "%s | Prevozkop",
   },
   description:
-    "Prevozkop iz Nisa: isporuka gotovog betona, behaton, pumpe za beton i zemljani radovi. Radimo Nis, Leskovac, Prokuplje, Aleksinac i okolinu.",
+    "Prevozkop iz Nisa: isporuka gotovog betona, behaton, beton pumpe i zemljani radovi. Radimo Nis, Leskovac, Prokuplje, Aleksinac i okolinu.",
   applicationName: "Prevozkop",
   keywords: [
     "porucivanje betona",
@@ -62,15 +62,15 @@ export const metadata: Metadata = {
     locale: "sr_RS",
     url: "/",
     siteName: "Prevozkop",
-    title: "Prevozkop Nis | Beton, behaton i zemljani radovi",
+    title: "Prevozkop Nis | Isporuka betona, behaton i beton pumpa",
     description:
       "Beton i logistika gradilista: isporuka gotovog betona, behaton, pumpe za beton i zemljani radovi iz Nisa za jug i centralnu Srbiju.",
     images: [{ url: "/img/napolje1.webp" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Prevozkop Nis | Beton, behaton i zemljani radovi",
-    description: "Isporuka betona, behaton, pumpe za beton i zemljani radovi iz Nisa.",
+    title: "Prevozkop Nis | Isporuka betona, behaton i beton pumpa",
+    description: "Isporuka betona, behaton, beton pumpe i zemljani radovi iz Nisa.",
     images: ["/img/napolje1.webp"],
   },
   robots: {
@@ -100,6 +100,7 @@ export default function RootLayout({
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "ConstructionCompany",
+            "@id": `${SITE_URL}#organization`,
             name: "Prevozkop",
             alternateName: company.name,
             url: SITE_URL,
@@ -143,6 +144,20 @@ export default function RootLayout({
                 itemOffered: { "@type": "Service", name: "Zemljani radovi i priprema gradilista" },
               },
             ],
+          })}
+        </Script>
+        <Script id="prevozkop-website-jsonld" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "@id": `${SITE_URL}#website`,
+            url: SITE_URL,
+            name: "Prevozkop",
+            alternateName: ["Prevoz Kop", "Prevozkop Nis"],
+            inLanguage: "sr-Latn-RS",
+            publisher: {
+              "@id": `${SITE_URL}#organization`,
+            },
           })}
         </Script>
 

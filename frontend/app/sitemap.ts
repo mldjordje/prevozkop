@@ -4,6 +4,16 @@ import { getProducts, getProjects } from "@/lib/api";
 import { SITE_URL } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const priorityRoutes: Record<string, number> = {
+    "/": 1,
+    "/porucivanje-betona": 0.95,
+    "/behaton": 0.95,
+    "/usluge": 0.9,
+    "/kontakt": 0.8,
+    "/behaton/grad/nis": 0.85,
+    "/beton/grad/nis": 0.85,
+  };
+
   const staticRoutes = [
     "/",
     "/porucivanje-betona",
@@ -55,7 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE_URL}${route === "/" ? "" : route}`,
       lastModified: new Date(),
       changeFrequency: route === "/" ? "weekly" : "monthly",
-      priority: route === "/" ? 1 : 0.7,
+      priority: priorityRoutes[route] ?? 0.7,
     })
   );
 
