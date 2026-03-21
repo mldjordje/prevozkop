@@ -8,9 +8,9 @@ import { company } from "@/content/site";
 import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Isporuka betona Nis - porucivanje, pumpa i visinske pumpe",
+  title: "Isporuka betona Nis i okolina - porucivanje, pumpa i visinske pumpe",
   description:
-    "Porucite beton u Nisu i regionu: isporuka mikserima, beton pumpa, visinske pumpe i podrska na gradilistu.",
+    "Porucite beton za Nis, Leskovac, Prokuplje, Aleksinac i okolinu: isporuka mikserima, beton pumpa, visinske pumpe i podrska na gradilistu.",
   path: "/porucivanje-betona",
   image: "/img/kamionislika2.webp",
   keywords: [
@@ -29,7 +29,7 @@ export const metadata: Metadata = buildMetadata({
 const betonPriorityLinks = [
   {
     href: "/beton/grad/nis",
-    label: "Beton Nis",
+    label: "Beton Nis i okolina",
   },
   {
     href: "/beton/grad/leskovac",
@@ -79,7 +79,7 @@ export default function OrderConcretePage() {
   return (
     <div className="space-y-16 sm:space-y-24">
       <PageHero
-        title="Porucivanje betona Nis - brza isporuka"
+        title="Porucivanje betona za Nis i okolinu"
         kicker="Porudzbina betona"
         description="Mikseri, pumpe i terenska podrska za efikasno betoniranje."
         background="/img/kamionislika2.webp"
@@ -132,7 +132,7 @@ export default function OrderConcretePage() {
             Servisna zona
           </span>
           <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Nis i okolni gradovi - jug i centralna Srbija
+            Nis i okolina - gradovi koje najcesce pokrivamo
           </h2>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -157,7 +157,7 @@ export default function OrderConcretePage() {
           </h2>
           <p className="max-w-3xl text-sm text-gray-700">
             Google i korisnici lakse razumeju temu sajta kada su glavne stranice za beton jasno
-            povezane i imaju direktne ulaze za gradove i usluge.
+            povezane i imaju direktne ulaze za Nis, okolne gradove i usluge.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -227,9 +227,9 @@ export default function OrderConcretePage() {
             name: "Prevoz Kop",
             telephone: company.phone,
             url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
-            areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Juzna Srbija", "Centralna Srbija"],
+            areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Doljevac", "Merosina"],
           },
-          areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Juzna Srbija", "Centralna Srbija"],
+          areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Doljevac", "Merosina"],
         })}
       </Script>
       <Script id="porucivanje-betona-faq-jsonld" type="application/ld+json">

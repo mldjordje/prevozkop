@@ -19,11 +19,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Prevozkop Nis | Isporuka betona, behaton i beton pumpa",
+    default: "Prevozkop Nis | Beton za Nis i okolinu, behaton za Srbiju",
     template: "%s | Prevozkop",
   },
   description:
-    "Prevozkop iz Nisa: isporuka gotovog betona, behaton, beton pumpe i zemljani radovi. Radimo Nis, Leskovac, Prokuplje, Aleksinac i okolinu.",
+    "Prevozkop iz Nisa: isporuka gotovog betona za Nis i okolinu, behaton za Srbiju, beton pumpe i zemljani radovi.",
   applicationName: "Prevozkop",
   keywords: [
     "porucivanje betona",
@@ -62,15 +62,15 @@ export const metadata: Metadata = {
     locale: "sr_RS",
     url: "/",
     siteName: "Prevozkop",
-    title: "Prevozkop Nis | Isporuka betona, behaton i beton pumpa",
+    title: "Prevozkop Nis | Beton za Nis i okolinu, behaton za Srbiju",
     description:
       "Beton i logistika gradilista: isporuka gotovog betona, behaton, pumpe za beton i zemljani radovi iz Nisa za jug i centralnu Srbiju.",
     images: [{ url: "/img/napolje1.webp" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Prevozkop Nis | Isporuka betona, behaton i beton pumpa",
-    description: "Isporuka betona, behaton, beton pumpe i zemljani radovi iz Nisa.",
+    title: "Prevozkop Nis | Beton za Nis i okolinu, behaton za Srbiju",
+    description: "Isporuka betona za Nis i okolinu, behaton za Srbiju i beton pumpe.",
     images: ["/img/napolje1.webp"],
   },
   robots: {
@@ -122,7 +122,7 @@ export default function RootLayout({
               "Juzna i centralna Srbija",
             ],
             description:
-              "Prevozkop je gradjevinska podrska iz Nisa specijalizovana za isporuku gotovog betona, behaton, visoke pumpe za beton i zemljane radove za stambenu i poslovnu gradnju.",
+              "Prevozkop je gradjevinska podrska iz Nisa specijalizovana za isporuku gotovog betona za Nis i okolinu, behaton za Srbiju, visoke pumpe za beton i zemljane radove.",
             knowsAbout: [
               "isporuka betona",
               "behaton",

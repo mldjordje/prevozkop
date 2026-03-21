@@ -25,9 +25,9 @@ import { buildMetadata, srEnLanguages } from "@/lib/seo";
 export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
-  title: "Behaton Nis i Srbija - cena, prodaja, isporuka i ugradnja",
+  title: "Behaton Srbija - cena, prodaja, isporuka i ugradnja",
   description:
-    "Behaton za Nis, dvorista, prilaze, parkinge i poslovne povrsine sirom Srbije: preporuka modela, procena kolicine, isporuka i ugradnja.",
+    "Behaton za dvorista, prilaze, parkinge i poslovne povrsine sirom Srbije: preporuka modela, procena kolicine, isporuka i ugradnja.",
   path: "/behaton",
   image: "/img/behaton/SLI_4930.JPG",
   keywords: [
@@ -69,6 +69,7 @@ export default async function BehatonPage() {
 
   const productOptions = Array.from(new Set(products.map((product) => getProductSelectLabel(product))));
   const featuredSeoLinks = [
+    { href: "/behaton", label: "Behaton Srbija" },
     { href: "/behaton/grad/nis", label: "Behaton Nis" },
     { href: "/behaton/grad/beograd", label: "Behaton Beograd" },
     { href: "/behaton/grad/novi-sad", label: "Behaton Novi Sad" },
@@ -121,11 +122,11 @@ export default async function BehatonPage() {
             Vazni linkovi
           </span>
           <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Glavne stranice za behaton i lokalne upite
+            Glavne stranice za behaton u Srbiji i lokalne upite
           </h2>
           <p className="max-w-3xl text-sm text-gray-700">
-            Ove stranice su najvaznije za upite kao sto su behaton Nis, behaton Beograd, cena
-            behatona i lokalna ugradnja.
+            Ove stranice su najvaznije za upite kao sto su behaton Srbija, behaton Beograd,
+            behaton Nis, cena behatona i lokalna ugradnja.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -463,19 +464,25 @@ export default async function BehatonPage() {
             telephone: company.phone,
             url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
             areaServed: [
+              "Srbija",
+              "Beograd",
+              "Novi Sad",
               "Nis",
+              "Kragujevac",
+              "Subotica",
+              "Valjevo",
               "Leskovac",
-              "Prokuplje",
-              "Aleksinac",
-              "Juzna Srbija",
             ],
           },
           areaServed: [
+            "Srbija",
+            "Beograd",
+            "Novi Sad",
             "Nis",
+            "Kragujevac",
+            "Subotica",
+            "Valjevo",
             "Leskovac",
-            "Prokuplje",
-            "Aleksinac",
-            "Juzna Srbija",
           ],
         })}
       </Script>

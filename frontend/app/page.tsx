@@ -12,9 +12,9 @@ import type { Project } from "@/lib/api";
 import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Prevozkop Nis - isporuka betona, behaton i beton pumpa",
+  title: "Prevozkop Nis - beton za Nis i okolinu, behaton za Srbiju",
   description:
-    "Prevozkop iz Nisa obezbedjuje isporuku gotovog betona, behaton, beton pumpe i zemljane radove za stambenu i poslovnu gradnju.",
+    "Prevozkop iz Nisa obezbedjuje isporuku gotovog betona za Nis i okolinu, behaton za Srbiju, beton pumpe i zemljane radove za stambenu i poslovnu gradnju.",
   path: "/",
   image: "/img/napolje1.webp",
   keywords: [
@@ -54,8 +54,8 @@ const priorityLinks = [
   },
   {
     href: "/behaton",
-    title: "Behaton Nis i Srbija",
-    description: "Glavna SEO stranica za behaton, modele, cene, isporuku i ugradnju.",
+    title: "Behaton Srbija",
+    description: "Glavna SEO stranica za behaton, modele, cene, isporuku i ugradnju sirom Srbije.",
   },
   {
     href: "/beton/grad/nis",
@@ -103,11 +103,11 @@ export default async function HomePage() {
             Vazne stranice
           </span>
           <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Glavne stranice za beton, behaton i lokalnu isporuku
+            Glavne stranice za beton u okolini Nisa i behaton u Srbiji
           </h2>
           <p className="max-w-3xl text-sm text-gray-700">
-            Ako trazite isporuku betona u Nisu, behaton, beton pumpu ili kompletne usluge, ovde su
-            najvaznije stranice sajta sa konkretnim informacijama i upitom.
+            Ako trazite isporuku betona za Nis i okolinu, behaton za Srbiju, beton pumpu ili
+            kompletne usluge, ovde su najvaznije stranice sajta sa konkretnim informacijama i upitom.
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

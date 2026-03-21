@@ -27,9 +27,9 @@ export default function Footer() {
               </div>
             </div>
             <p className="max-w-md text-sm text-gray-300">
-              Prevozkop (Prevoz Kop) je gradjevinska podrska iz Nisa: isporuka gotovog betona,
-              beton pumpe, behaton i zemljani radovi za stambenu i poslovnu gradnju u Nisu i
-              regionu.
+              Prevozkop (Prevoz Kop) je gradjevinska podrska iz Nisa: isporuka gotovog betona za
+              Nis i okolinu, beton pumpe, behaton za Srbiju i zemljani radovi za stambenu i
+              poslovnu gradnju.
             </p>
           </div>
 
