@@ -142,6 +142,46 @@ export default async function BehatonPage() {
         </div>
       </section>
 
+      <section className="content-section space-y-6">
+        <div className="grid gap-6 rounded-3xl border border-black/5 bg-white px-6 py-8 shadow-xl lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-3">
+            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+              Behaton Nis
+            </span>
+            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+              Behaton Nis kao jak lokalni signal uz glavni fokus na Srbiju
+            </h2>
+            <p className="text-sm text-gray-700">
+              Pored glavnog fokusa na upit behaton Srbija, ova stranica podrzava i lokalne pretrage
+              kao sto su behaton Nis, cena behatona u Nisu i ugradnja behatona u Nisu kroz interne
+              linkove, lokalne stranice i upit za konkretan grad.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                href="/behaton/grad/nis"
+                className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.35)] transition hover:translate-y-[-2px]"
+              >
+                Otvori Behaton Nis
+              </Link>
+              <Link
+                href="#lokacije"
+                className="inline-flex items-center rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
+              >
+                Svi gradovi
+              </Link>
+            </div>
+          </div>
+          <div className="rounded-3xl border border-black/5 bg-gray-50 p-5">
+            <ul className="space-y-3 text-sm text-gray-700">
+              <li>- Behaton Nis cena i preporuka modela</li>
+              <li>- Behaton Nis prodaja i isporuka po dogovoru</li>
+              <li>- Ugradnja behatona u Nisu i okolini</li>
+              <li>- Nacionalna ponuda za gradove sirom Srbije</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section className="content-section space-y-6" id="ponuda">
         <div className="flex flex-col gap-2">
           <ScrollReveal>

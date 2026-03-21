@@ -40,9 +40,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (city.slug === "nis") {
     return buildMetadata({
-      title: "Behaton Nis - prodaja, cena i ugradnja",
+      title: "Behaton Nis - prodaja, cena, isporuka i ugradnja",
       description:
-        "Behaton u Nisu za dvorista, prilaze i parkinge: preporuka modela, procena kolicine, isporuka i ugradnja.",
+        "Behaton u Nisu za dvorista, prilaze i parkinge: prodaja, cena, preporuka modela, isporuka i ugradnja.",
       path: `/behaton/grad/${city.slug}`,
       image: "/img/behaton/SLI_4930.JPG",
       languages: srEnLanguages(`/behaton/grad/${city.slug}`, "/en"),
@@ -145,6 +145,32 @@ export default async function BehatonCityPage({ params }: PageProps) {
               </ScrollReveal>
             ))}
           </StaggerReveal>
+        </div>
+      </section>
+
+      <section className="content-section space-y-6">
+        <div className="grid gap-6 rounded-3xl border border-black/5 bg-white px-6 py-8 shadow-xl lg:grid-cols-3">
+          {isNis
+            ? [
+                {
+                  title: "Behaton Nis cena",
+                  text: "Okvirna cena zavisi od modela, debljine, kolicine, boje i logistike isporuke do lokacije u Nisu.",
+                },
+                {
+                  title: "Behaton Nis prodaja",
+                  text: "Pomazemo pri izboru modela i kolicine za dvorista, prilaze, parkinge i poslovne povrsine u Nisu.",
+                },
+                {
+                  title: "Behaton Nis ugradnja",
+                  text: "Po dogovoru organizujemo i ugradnju uz plan podloge, nivelaciju i raspored radova na terenu.",
+                },
+              ].map((item) => (
+                <div key={item.title} className="rounded-2xl border border-black/5 bg-gray-50 p-5">
+                  <h3 className="text-lg font-semibold text-dark">{item.title}</h3>
+                  <p className="mt-2 text-sm text-gray-700">{item.text}</p>
+                </div>
+              ))
+            : null}
         </div>
       </section>
 
