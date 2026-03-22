@@ -25,6 +25,10 @@ type PageProps = {
   params: Promise<RouteParams> | RouteParams;
 };
 
+export function generateStaticParams() {
+  return behatonCities.map((city) => ({ slug: city.slug }));
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const city = behatonCities.find((item) => item.slug === slug);
@@ -33,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: "Behaton lokalna ponuda",
       description: "Lokalne behaton ponude i ugradnja.",
       path: "/behaton",
-      image: "/img/behaton/SLI_4930.JPG",
+      image: "/img/behaton/optimized/SLI_4930.webp",
       languages: srEnLanguages("/behaton", "/en"),
     });
   }
@@ -44,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description:
         "Behaton u Nisu za dvorista, prilaze i parkinge: prodaja, cena, preporuka modela, isporuka i ugradnja.",
       path: `/behaton/grad/${city.slug}`,
-      image: "/img/behaton/SLI_4930.JPG",
+      image: "/img/behaton/optimized/SLI_4930.webp",
       languages: srEnLanguages(`/behaton/grad/${city.slug}`, "/en"),
     });
   }
@@ -53,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `Behaton ${city.name} - prodaja i ugradnja`,
     description: city.intro,
     path: `/behaton/grad/${city.slug}`,
-    image: "/img/behaton/SLI_4930.JPG",
+    image: "/img/behaton/optimized/SLI_4930.webp",
     languages: srEnLanguages(`/behaton/grad/${city.slug}`, "/en"),
   });
 }
@@ -68,7 +72,7 @@ export default async function BehatonCityPage({ params }: PageProps) {
 
   let products: Product[] = [];
   try {
-    const res = await getProducts({ limit: 50, offset: 0 });
+    const res = await getProducts({ category: "behaton", limit: 50, offset: 0 });
     products =
       res.data?.filter((item) => item.category?.trim().toLowerCase() === "behaton") || [];
   } catch {

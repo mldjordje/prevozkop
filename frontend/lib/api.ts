@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 export type Project = {
   id: number;
   title: string;
@@ -64,16 +66,32 @@ export type OrderNote = {
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
+export const PUBLIC_REVALIDATE_SECONDS = 300;
 
-async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+type PublicFetchOptions = RequestInit & {
+  revalidate?: number;
+  tags?: string[];
+  next?: {
+    revalidate?: number;
+    tags?: string[];
+  };
+};
+
+async function fetchJson<T>(path: string, init: PublicFetchOptions = {}): Promise<T> {
+  const { revalidate = PUBLIC_REVALIDATE_SECONDS, tags = [], next, ...requestInit } = init;
+  const headers = new Headers(requestInit.headers);
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
+    ...requestInit,
+    headers,
+    next: {
+      revalidate,
+      ...(tags.length > 0 ? { tags } : {}),
+      ...(next || {}),
     },
-    // Revalidate every 5 minutes by default for SSG pages
-    next: { revalidate: 300 },
   });
 
   if (!res.ok) {
@@ -82,15 +100,37 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+const getProjectsCached = cache(async (limit: number, offset: number) =>
+  fetchJson<{ data: Project[]; meta: { limit: number; offset: number } }>(
+    `/projects?limit=${limit}&offset=${offset}`,
+    {
+      tags: ["projects", `projects:list:${limit}:${offset}`],
+    }
+  )
+);
+
 export async function getProjects(limit = 20, offset = 0) {
-  return fetchJson<{ data: Project[]; meta: { limit: number; offset: number } }>(
-    `/projects?limit=${limit}&offset=${offset}`
-  );
+  return getProjectsCached(limit, offset);
 }
 
+const getProjectCached = cache(async (slug: string) =>
+  fetchJson<Project>(`/projects/${encodeURIComponent(slug)}`, {
+    tags: ["projects", `projects:${slug}`],
+  })
+);
+
 export async function getProject(slug: string) {
-  return fetchJson<Project>(`/projects/${encodeURIComponent(slug)}`);
+  return getProjectCached(slug);
 }
+
+const getProductsCached = cache(async (query: string) =>
+  fetchJson<{ data: Product[]; meta: { limit: number; offset: number } }>(
+    query ? `/products?${query}` : "/products",
+    {
+      tags: ["products", `products:query:${query || "all"}`],
+    }
+  )
+);
 
 export async function getProducts(params: {
   limit?: number;
@@ -106,11 +146,15 @@ export async function getProducts(params: {
   if (params.q) search.set("q", params.q);
   if (params.status) search.set("status", params.status);
   const qs = search.toString();
-  return fetchJson<{ data: Product[]; meta: { limit: number; offset: number } }>(
-    qs ? `/products?${qs}` : "/products"
-  );
+  return getProductsCached(qs);
 }
 
+const getProductCached = cache(async (slug: string) =>
+  fetchJson<Product>(`/products/${encodeURIComponent(slug)}`, {
+    tags: ["products", `products:${slug}`],
+  })
+);
+
 export async function getProduct(slug: string) {
-  return fetchJson<Product>(`/products/${encodeURIComponent(slug)}`);
+  return getProductCached(slug);
 }

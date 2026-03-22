@@ -3,6 +3,8 @@ import { behatonCities, betonCities } from "@/content/behaton";
 import { getProducts, getProjects } from "@/lib/api";
 import { SITE_URL } from "@/lib/seo";
 
+export const revalidate = 300;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const priorityRoutes: Record<string, number> = {
     "/": 1,

@@ -1,12 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProject } from "@/lib/api";
+import { getProject, getProjects } from "@/lib/api";
+
+export const revalidate = 300;
 
 type RouteParams = { slug: string };
 type Props = {
   params: Promise<RouteParams> | RouteParams;
 };
+
+export async function generateStaticParams() {
+  try {
+    const projects = await getProjects(300, 0);
+    return (projects.data || []).map((project) => ({ slug: project.slug }));
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
@@ -58,7 +69,13 @@ export default async function ProjectPage({ params }: Props) {
 
       {project.hero_image && (
         <div className="relative aspect-[16/9] overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-          <Image src={project.hero_image} alt={project.title} fill className="object-cover" />
+          <Image
+            src={project.hero_image}
+            alt={project.title}
+            fill
+            sizes="(max-width: 1024px) 100vw, 80rem"
+            className="object-cover"
+          />
         </div>
       )}
 
@@ -81,6 +98,7 @@ export default async function ProjectPage({ params }: Props) {
                   src={img.src}
                   alt={img.alt || project.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                   className="object-cover"
                 />
               </div>

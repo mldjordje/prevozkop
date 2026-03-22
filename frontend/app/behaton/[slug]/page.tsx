@@ -15,7 +15,7 @@ type PageProps = {
 
 export async function generateStaticParams() {
   try {
-    const allProducts = await getProducts({ category: "behaton", limit: 100, offset: 0 });
+    const allProducts = await getProducts({ category: "behaton", limit: 300, offset: 0 });
     return (allProducts.data || [])
       .filter((item) => item.category?.trim().toLowerCase() === "behaton")
       .map((item) => ({ slug: item.slug }));
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         product.description ||
         "Detalji o behaton proizvodu i preporuke za ugradnju.",
       path: `/behaton/${product.slug}`,
-      image: product.image || "/img/behaton/SLI_4930.JPG",
+      image: product.image || "/img/behaton/optimized/SLI_4930.webp",
       languages: srEnLanguages(`/behaton/${product.slug}`, "/en"),
     });
   } catch {
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: "Behaton proizvod",
       description: "Detalji o behaton proizvodu i ponudi.",
       path: "/behaton",
-      image: "/img/behaton/SLI_4930.JPG",
+      image: "/img/behaton/optimized/SLI_4930.webp",
       languages: srEnLanguages("/behaton", "/en"),
     });
   }
@@ -57,16 +57,18 @@ export default async function BehatonProductPage({ params }: PageProps) {
   let product: Product | null = null;
   let related: Product[] = [];
 
-  try {
-    product = applyBehatonProductMedia(await getProduct(slug));
-  } catch {
-    product = null;
+  const [productResult, relatedResult] = await Promise.allSettled([
+    getProduct(slug),
+    getProducts({ category: "behaton", limit: 80, offset: 0 }),
+  ]);
+
+  if (productResult.status === "fulfilled") {
+    product = applyBehatonProductMedia(productResult.value);
   }
 
-  if (product) {
+  if (product && relatedResult.status === "fulfilled") {
     try {
-      const allProducts = await getProducts({ category: "behaton", limit: 80, offset: 0 });
-      related = (allProducts.data || [])
+      related = (relatedResult.value.data || [])
         .filter((item) => item.category?.trim().toLowerCase() === "behaton")
         .filter((item) => item.slug !== product!.slug)
         .map((item) => applyBehatonProductMedia(item))

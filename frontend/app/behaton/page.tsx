@@ -29,7 +29,7 @@ export const metadata: Metadata = buildMetadata({
   description:
     "Behaton za dvorista, prilaze, parkinge i poslovne povrsine sirom Srbije: preporuka modela, procena kolicine, isporuka i ugradnja.",
   path: "/behaton",
-  image: "/img/behaton/SLI_4930.JPG",
+  image: "/img/behaton/optimized/SLI_4930.webp",
   keywords: [
     "behaton",
     "behaton srbija",
@@ -50,11 +50,11 @@ export const metadata: Metadata = buildMetadata({
 });
 
 const behatonGallery = [
-  { src: "/img/behaton/SLI_4651.JPG", alt: "Behaton projekat - dvoriste" },
-  { src: "/img/behaton/SLI_4906.JPG", alt: "Behaton projekat - prilaz" },
-  { src: "/img/behaton/SLI_4930.JPG", alt: "Behaton projekat - parking" },
-  { src: "/img/behaton/SLI_4939.JPG", alt: "Behaton projekat - staze" },
-  { src: "/img/behaton/SLI_4975.JPG", alt: "Behaton ploce - izlozeni dezen" },
+  { src: "/img/behaton/optimized/SLI_4651.webp", alt: "Behaton projekat - dvoriste" },
+  { src: "/img/behaton/optimized/SLI_4906.webp", alt: "Behaton projekat - prilaz" },
+  { src: "/img/behaton/optimized/SLI_4930.webp", alt: "Behaton projekat - parking" },
+  { src: "/img/behaton/optimized/SLI_4939.webp", alt: "Behaton projekat - staze" },
+  { src: "/img/behaton/optimized/SLI_4975.webp", alt: "Behaton ploce - izlozeni dezen" },
 ];
 
 export default async function BehatonPage() {
@@ -305,6 +305,7 @@ export default async function BehatonPage() {
                     src={item.src}
                     alt={item.alt}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover transition duration-700 group-hover:scale-105"
                   />

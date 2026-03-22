@@ -11,6 +11,8 @@ import { getProjects } from "@/lib/api";
 import type { Project } from "@/lib/api";
 import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
+export const revalidate = 300;
+
 export const metadata: Metadata = buildMetadata({
   title: "Prevozkop Nis - beton za Nis i okolinu, behaton za Srbiju",
   description:

@@ -35,6 +35,7 @@ export default async function ProjectsGrid({ featured = false, limit = 12 }: Pro
                 src={project.hero_image}
                 alt={project.title}
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (

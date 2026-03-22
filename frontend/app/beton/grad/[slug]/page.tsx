@@ -9,10 +9,16 @@ import { betonCities } from "@/content/behaton";
 import { company } from "@/content/site";
 import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
 
+export const revalidate = 300;
+
 type RouteParams = { slug: string };
 type PageProps = {
   params: Promise<RouteParams> | RouteParams;
 };
+
+export function generateStaticParams() {
+  return betonCities.map((city) => ({ slug: city.slug }));
+}
 
 const betonFaq = [
   {

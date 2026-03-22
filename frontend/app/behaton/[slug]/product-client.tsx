@@ -42,9 +42,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
     async function loadProduct() {
       setLoadError(false);
       try {
-        const res = await fetch(`${API_BASE}/products/${encodeURIComponent(slug)}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(`${API_BASE}/products/${encodeURIComponent(slug)}`);
         if (!res.ok) throw new Error(`Status ${res.status}`);
         const data = applyBehatonProductMedia((await res.json()) as Product);
         if (!canceled) {
@@ -69,7 +67,7 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
 
     async function loadRelated() {
       try {
-        const res = await fetch(`${API_BASE}/products?limit=60&offset=0`, { cache: "no-store" });
+        const res = await fetch(`${API_BASE}/products?category=behaton&limit=60&offset=0`);
         if (!res.ok) return;
         const data = (await res.json()) as { data?: Product[] };
         const currentSlug = product?.slug;
