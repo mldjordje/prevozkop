@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Card,
@@ -84,6 +84,8 @@ const orderServiceFilters = [
   { key: "other", label: "Ostalo" },
 ] as const;
 
+const ADMIN_AUTH_STORAGE_KEY = "prevozkop-admin-authenticated";
+
 type OrderServiceFilter = (typeof orderServiceFilters)[number]["key"];
 
 type ViewState = "loading" | "login" | "ready";
@@ -164,6 +166,24 @@ export default function AdminPanel({
   const hasProductDrafts =
     Object.keys(productDrafts).length > 0 || Object.keys(productSpecsDrafts).length > 0;
 
+  const orderStats = useMemo(() => {
+    const active = orders.filter((order) => order.status !== "done").length;
+    const won = orders.filter((order) => order.pipeline_stage === "won").length;
+    const followUps = orders.filter((order) => {
+      if (!order.next_follow_up_at || order.status === "done") return false;
+      return new Date(order.next_follow_up_at).getTime() <= Date.now() + 1000 * 60 * 60 * 24 * 3;
+    }).length;
+    const newest = orders[0]?.created_at ? new Date(orders[0].created_at).toLocaleDateString("sr-RS") : "-";
+
+    return [
+      { label: "Ukupno upita", value: orders.length, tone: "bg-gray-950 text-white" },
+      { label: "Aktivno", value: active, tone: "bg-amber-100 text-amber-900" },
+      { label: "Follow-up 3 dana", value: followUps, tone: "bg-sky-100 text-sky-900" },
+      { label: "Dobijeni poslovi", value: won, tone: "bg-emerald-100 text-emerald-900" },
+      { label: "Najnovija", value: newest, tone: "bg-white text-gray-900" },
+    ];
+  }, [orders]);
+
   function extractApiErrorMessage(error: unknown): string | null {
     if (!(error instanceof ApiError)) {
       return null;
@@ -208,16 +228,18 @@ export default function AdminPanel({
       setProjects(res.data);
       setIsAuthenticated(true);
       setView("ready");
+      localStorage.setItem(ADMIN_AUTH_STORAGE_KEY, "1");
       void loadProjectDetails(res.data);
       if (section === "orders") {
-        void refreshOrders(false);
+        void refreshOrders(false, true);
       }
       if (section === "products") {
-        void refreshProducts(false);
+        void refreshProducts(false, true);
       }
     } catch (error) {
       setIsAuthenticated(false);
       if (error instanceof ApiError && error.status === 401) {
+        localStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
         try {
           const published = await getProjects(50, 0);
           setProjects(published.data);
@@ -233,8 +255,8 @@ export default function AdminPanel({
     }
   }
 
-  async function refreshOrders(showLoader: boolean = true) {
-    if (!isAuthenticated) return;
+  async function refreshOrders(showLoader: boolean = true, force: boolean = false) {
+    if (!force && !isAuthenticated) return;
     if (showLoader) setOrdersLoading(true);
     setMessage(null);
     try {
@@ -255,8 +277,8 @@ export default function AdminPanel({
     }
   }
 
-  async function refreshProducts(showLoader: boolean = true) {
-    if (!isAuthenticated) return;
+  async function refreshProducts(showLoader: boolean = true, force: boolean = false) {
+    if (!force && !isAuthenticated) return;
     if (showLoader) setProductsLoading(true);
     setMessage(null);
     try {
@@ -343,6 +365,7 @@ export default function AdminPanel({
     setMessage(null);
     try {
       await adminLogin(loginEmail, loginPassword);
+      localStorage.setItem(ADMIN_AUTH_STORAGE_KEY, "1");
       setLoginPassword("");
       await refreshProjects();
     } catch (error) {
@@ -966,8 +989,48 @@ export default function AdminPanel({
     return digits ? `tel:+${digits}` : "";
   }
 
+  function getOrderPipelineLabel(stage?: Order["pipeline_stage"] | null) {
+    return orderPipelineOptions.find((item) => item.key === (stage || "new"))?.label || "Novi lead";
+  }
+
+  function getOrderStatusLabel(status: Order["status"]) {
+    return orderStatusOptions.find((item) => item.key === status)?.label || status;
+  }
+
+  function getOrderStatusClasses(status: Order["status"]) {
+    if (status === "done") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    if (status === "in_progress") return "border-amber-200 bg-amber-50 text-amber-800";
+    return "border-sky-200 bg-sky-50 text-sky-800";
+  }
+
+  function getOrderPipelineClasses(stage?: Order["pipeline_stage"] | null) {
+    if (stage === "won") return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    if (stage === "lost") return "border-rose-200 bg-rose-50 text-rose-800";
+    if (stage === "negotiation" || stage === "offered") {
+      return "border-amber-200 bg-amber-50 text-amber-800";
+    }
+    return "border-gray-200 bg-white text-gray-700";
+  }
+
+  function formatOrderDate(value?: string | null) {
+    if (!value) return "-";
+    return new Date(value).toLocaleString("sr-RS", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function formatFollowUpDate(value?: string | null) {
+    if (!value) return "Nije zakazano";
+    return formatOrderDate(value);
+  }
+
   async function handleLogout() {
     await adminLogout();
+    localStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
     setView("login");
     setIsAuthenticated(false);
   }
@@ -1837,134 +1900,198 @@ export default function AdminPanel({
           )}
 
           {section === "orders" && (
-            <section className="space-y-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-2xl font-semibold">Porudžbine</h2>
-                  <p className="text-sm text-gray-600">
-                    Lead pipeline: status, faza, follow-up i beleške.
-                  </p>
+            <section className="space-y-5">
+              <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm sm:p-5">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                  <div className="max-w-2xl">
+                    <h2 className="text-2xl font-semibold text-dark">Porudžbine</h2>
+                    <p className="mt-1 text-sm text-gray-600">
+                      Pregled upita, lead faza, follow-up i beleške na jednom mestu.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button
+                      variant="flat"
+                      onPress={() => {
+                        setOrderServiceFilter("all");
+                        setOrderPipelineFilter("all");
+                        setOrderFromDate("");
+                        setOrderToDate("");
+                        setOrderSearch("");
+                      }}
+                      className="w-full sm:w-auto"
+                    >
+                      Reset filtera
+                    </Button>
+                    <Button
+                      color="primary"
+                      onPress={() => refreshOrders()}
+                      isDisabled={ordersLoading}
+                      className="w-full sm:w-auto"
+                    >
+                      Osveži porudžbine
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  variant="flat"
-                  onPress={() => refreshOrders()}
-                  isDisabled={ordersLoading}
-                  className="w-full sm:w-auto"
-                >
-                  Osveži
-                </Button>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                  {orderStats.map((stat) => (
+                    <div
+                      key={stat.label}
+                      className={`rounded-xl border border-black/5 px-4 py-3 shadow-sm ${stat.tone}`}
+                    >
+                      <p className="text-xs font-semibold uppercase">{stat.label}</p>
+                      <p className="mt-1 text-2xl font-bold">{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                <Select
-                  label="Usluga"
-                  items={orderServiceFilters as unknown as { key: string; label: string }[]}
-                  selectedKeys={[orderServiceFilter]}
-                  onSelectionChange={(keys) =>
-                    setOrderServiceFilter(
-                      (Array.from(keys).at(0)?.toString() as OrderServiceFilter) || "all"
-                    )
-                  }
-                >
-                  {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
-                </Select>
-                <Select
-                  label="Faza"
-                  items={[{ key: "all", label: "Sve faze" }, ...orderPipelineOptions] as {
-                    key: string;
-                    label: string;
-                  }[]}
-                  selectedKeys={[orderPipelineFilter]}
-                  onSelectionChange={(keys) =>
-                    setOrderPipelineFilter(Array.from(keys).at(0)?.toString() || "all")
-                  }
-                >
-                  {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
-                </Select>
-                <Input
-                  label="Od datuma"
-                  type="date"
-                  value={orderFromDate}
-                  onChange={(e) => setOrderFromDate(e.target.value)}
-                />
-                <Input
-                  label="Do datuma"
-                  type="date"
-                  value={orderToDate}
-                  onChange={(e) => setOrderToDate(e.target.value)}
-                />
-                <Input
-                  label="Pretraga"
-                  value={orderSearch}
-                  onChange={(e) => setOrderSearch(e.target.value)}
-                  placeholder="Ime, email, telefon..."
-                />
+              <div className="rounded-2xl border border-black/5 bg-gray-50 p-4 shadow-sm">
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_1fr_0.8fr_0.8fr_1.3fr]">
+                  <Select
+                    label="Usluga"
+                    size="sm"
+                    items={orderServiceFilters as unknown as { key: string; label: string }[]}
+                    selectedKeys={[orderServiceFilter]}
+                    onSelectionChange={(keys) =>
+                      setOrderServiceFilter(
+                        (Array.from(keys).at(0)?.toString() as OrderServiceFilter) || "all"
+                      )
+                    }
+                  >
+                    {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
+                  </Select>
+                  <Select
+                    label="Faza"
+                    size="sm"
+                    items={[{ key: "all", label: "Sve faze" }, ...orderPipelineOptions] as {
+                      key: string;
+                      label: string;
+                    }[]}
+                    selectedKeys={[orderPipelineFilter]}
+                    onSelectionChange={(keys) =>
+                      setOrderPipelineFilter(Array.from(keys).at(0)?.toString() || "all")
+                    }
+                  >
+                    {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
+                  </Select>
+                  <Input
+                    label="Od datuma"
+                    size="sm"
+                    type="date"
+                    value={orderFromDate}
+                    onChange={(e) => setOrderFromDate(e.target.value)}
+                  />
+                  <Input
+                    label="Do datuma"
+                    size="sm"
+                    type="date"
+                    value={orderToDate}
+                    onChange={(e) => setOrderToDate(e.target.value)}
+                  />
+                  <Input
+                    label="Pretraga"
+                    size="sm"
+                    value={orderSearch}
+                    onChange={(e) => setOrderSearch(e.target.value)}
+                    placeholder="Ime, email, telefon..."
+                  />
+                </div>
               </div>
 
               {orders.length === 0 ? (
-                <p className="text-sm text-gray-600">Još uvek nema porudžbina.</p>
+                <div className="rounded-2xl border border-dashed border-black/10 bg-white px-5 py-8 text-center">
+                  <p className="text-sm font-semibold text-dark">Nema porudžbina za izabrane filtere.</p>
+                  <p className="mt-1 text-sm text-gray-500">Promenite filtere ili osvežite listu.</p>
+                </div>
               ) : (
-                <div className="space-y-4">
-                  {orders.map((order) => (
-                    <Card key={order.id} className="border border-black/5 shadow-sm">
-                      <CardBody className="space-y-4 p-4 sm:p-5">
-                        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.15fr)]">
-                          <div className="min-w-0 rounded-2xl border border-black/5 bg-gray-50 p-3 sm:p-4">
-                            <p className="font-semibold text-dark">{order.name}</p>
-                            <p className="mt-1 break-all text-sm text-gray-600">
-                              <a href={`mailto:${order.email}`} className="hover:text-primary">
+                <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
+                  <div className="hidden grid-cols-[1.25fr_1fr_1fr_1.15fr_0.9fr] gap-4 border-b border-black/5 bg-gray-50 px-5 py-3 text-xs font-semibold uppercase text-gray-500 xl:grid">
+                    <span>Kontakt</span>
+                    <span>Upit</span>
+                    <span>Status</span>
+                    <span>Lead rad</span>
+                    <span>Akcije</span>
+                  </div>
+
+                  <div className="divide-y divide-black/5">
+                    {orders.map((order) => {
+                      const service = resolveOrderService(order);
+                      const followUpValue =
+                        orderFollowUpDrafts[order.id] ??
+                        (order.next_follow_up_at
+                          ? new Date(order.next_follow_up_at).toISOString().slice(0, 16)
+                          : "");
+                      const notes = orderNotes[order.id] || [];
+
+                      return (
+                        <article
+                          key={order.id}
+                          className="grid gap-4 px-4 py-5 transition hover:bg-gray-50/80 sm:px-5 xl:grid-cols-[1.25fr_1fr_1fr_1.15fr_0.9fr]"
+                        >
+                          <div className="min-w-0">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="truncate text-base font-semibold text-dark">{order.name}</p>
+                                <p className="mt-1 text-xs text-gray-500">{formatOrderDate(order.created_at)}</p>
+                              </div>
+                              <span className="rounded-full border border-black/5 bg-white px-2 py-1 text-xs font-semibold text-gray-600">
+                                #{order.id}
+                              </span>
+                            </div>
+                            <div className="mt-3 space-y-1 text-sm">
+                              <a href={`mailto:${order.email}`} className="block break-all text-gray-700 hover:text-primary">
                                 {order.email}
                               </a>
-                            </p>
-                            {order.phone && (
-                              <p className="mt-1 text-sm text-gray-600">
-                                <a href={toTelHref(order.phone)} className="hover:text-primary">
+                              {order.phone && (
+                                <a href={toTelHref(order.phone)} className="block text-gray-700 hover:text-primary">
                                   {order.phone}
                                 </a>
-                              </p>
-                            )}
-                            <p className="mt-2 text-xs text-gray-400">
-                              {new Date(order.created_at).toLocaleString("sr-RS")}
-                            </p>
-                          </div>
-
-                          <div className="min-w-0 rounded-2xl border border-black/5 bg-white p-3 sm:p-4">
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                              Detalji upita
-                            </p>
-                            <div className="space-y-2 text-sm text-gray-700">
-                            {order.subject && <p>Tema: {order.subject}</p>}
-                            {order.concrete_type && <p>Tip: {order.concrete_type}</p>}
-                              <p>Usluga: {getOrderServiceLabel(resolveOrderService(order))}</p>
-                            {order.quantity && (
-                              <p>
-                                  Kolicina: {order.quantity} {order.quantity_unit || ""}
-                              </p>
-                            )}
+                              )}
                             </div>
                           </div>
 
-                          <div className="min-w-0 rounded-2xl border border-black/5 bg-white p-3 sm:p-4">
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                              Lead status
-                            </p>
+                          <div className="min-w-0 text-sm text-gray-700">
                             <div className="mb-3 flex flex-wrap gap-2">
-                              <Chip
-                                color={
-                                  order.status === "done"
-                                    ? "success"
-                                    : order.status === "in_progress"
-                                      ? "warning"
-                                      : "default"
-                                }
-                                variant="flat"
-                              >
-                                {orderStatusOptions.find((o) => o.key === order.status)?.label || order.status}
-                              </Chip>
-                              <Chip variant="bordered">{getOrderServiceLabel(resolveOrderService(order))}</Chip>
+                              <span className="rounded-full border border-black/5 bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                {getOrderServiceLabel(service)}
+                              </span>
+                              {order.city_slug && (
+                                <span className="rounded-full border border-black/5 bg-white px-2.5 py-1 text-xs font-semibold text-gray-600">
+                                  {order.city_slug}
+                                </span>
+                              )}
+                            </div>
+                            {order.subject && <p className="font-medium text-dark">{order.subject}</p>}
+                            {order.concrete_type && <p className="mt-1">Tip: {order.concrete_type}</p>}
+                            {order.quantity && (
+                              <p className="mt-1">
+                                Količina: {order.quantity} {order.quantity_unit || ""}
+                              </p>
+                            )}
+                            <details className="mt-3">
+                              <summary className="cursor-pointer text-xs font-semibold text-primary">
+                                Prikaži poruku
+                              </summary>
+                              <p className="mt-2 max-h-36 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
+                                {order.message || "Nema poruke."}
+                              </p>
+                            </details>
+                          </div>
+
+                          <div className="min-w-0 space-y-3">
+                            <div className="flex flex-wrap gap-2">
+                              <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${getOrderStatusClasses(order.status)}`}>
+                                {getOrderStatusLabel(order.status)}
+                              </span>
+                              <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${getOrderPipelineClasses(order.pipeline_stage)}`}>
+                                {getOrderPipelineLabel(order.pipeline_stage)}
+                              </span>
                             </div>
                             <Select
                               label="Lead faza"
+                              size="sm"
                               selectedKeys={[order.pipeline_stage || "new"]}
                               onSelectionChange={(keys) =>
                                 handleOrderPipeline(
@@ -1977,135 +2104,161 @@ export default function AdminPanel({
                                 <SelectItem key={item.key}>{item.label}</SelectItem>
                               ))}
                             </Select>
-                          </div>
-
-                          <div className="min-w-0 rounded-2xl border border-black/5 bg-white p-3 sm:p-4">
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                              Poruka i akcije
-                            </p>
-                            <p className="line-clamp-5 whitespace-pre-wrap break-words text-sm text-gray-700">
-                              {order.message}
-                            </p>
-                            <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+                            <div className="flex flex-wrap gap-2">
                               {orderStatusOptions.map((opt) => (
                                 <Button
                                   key={opt.key}
                                   size="sm"
                                   variant={order.status === opt.key ? "solid" : "flat"}
+                                  color={order.status === opt.key ? "primary" : "default"}
                                   onPress={() => handleOrderStatus(order, opt.key)}
                                   isDisabled={ordersLoading}
-                                  className="w-full sm:w-auto"
+                                  className="min-w-[5.5rem] px-3 text-xs"
                                 >
                                   {opt.label}
                                 </Button>
                               ))}
-                              <Button
-                                size="sm"
-                                color="danger"
-                                variant="light"
-                                onPress={() => handleDeleteOrder(order)}
-                                isDisabled={ordersLoading}
-                                className="w-full sm:w-auto"
-                              >
-                                Obriši
-                              </Button>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="grid gap-3 rounded-2xl border border-black/5 bg-gray-50 p-3 sm:p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-                          <Input
-                            label="Sledeći follow-up"
-                            type="datetime-local"
-                            value={
-                              orderFollowUpDrafts[order.id] ??
-                              (order.next_follow_up_at
-                                ? new Date(order.next_follow_up_at).toISOString().slice(0, 16)
-                                : "")
-                            }
-                            onChange={(e) =>
-                              setOrderFollowUpDrafts((prev) => ({
-                                ...prev,
-                                [order.id]: e.target.value,
-                              }))
-                            }
-                          />
-                          <Input
-                            label="Razlog izgubljenog lead-a"
-                            value={orderLostReasonDrafts[order.id] ?? order.lost_reason ?? ""}
-                            onChange={(e) =>
-                              setOrderLostReasonDrafts((prev) => ({
-                                ...prev,
-                                [order.id]: e.target.value,
-                              }))
-                            }
-                            placeholder="npr. cena / konkurencija / odloženo"
-                          />
-                          <div className="flex items-end">
+                          <div className="min-w-0 space-y-3">
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-gray-700">Sledeći follow-up</p>
+                              <Input
+                                aria-label="Sledeći follow-up"
+                                size="sm"
+                                type="datetime-local"
+                                value={followUpValue}
+                                onChange={(e) =>
+                                  setOrderFollowUpDrafts((prev) => ({
+                                    ...prev,
+                                    [order.id]: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-gray-700">Razlog izgubljenog lead-a</p>
+                              <Input
+                                aria-label="Razlog izgubljenog lead-a"
+                                size="sm"
+                                value={orderLostReasonDrafts[order.id] ?? order.lost_reason ?? ""}
+                                onChange={(e) =>
+                                  setOrderLostReasonDrafts((prev) => ({
+                                    ...prev,
+                                    [order.id]: e.target.value,
+                                  }))
+                                }
+                                placeholder="Cena, konkurencija, odloženo..."
+                              />
+                            </div>
+                            <div className="rounded-xl border border-black/5 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+                              Follow-up: <span className="font-semibold text-dark">{formatFollowUpDate(order.next_follow_up_at)}</span>
+                            </div>
                             <Button
+                              size="sm"
                               color="primary"
                               variant="flat"
                               onPress={() => handleOrderFollowUp(order)}
                               isDisabled={ordersLoading}
-                              className="w-full lg:w-auto"
+                              className="w-full"
                             >
-                              Sacuvaj lead polja
+                              Sačuvaj lead polja
                             </Button>
                           </div>
-                        </div>
 
-                        <div className="rounded-2xl border border-black/5 bg-gray-50 p-4">
-                          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                            <p className="text-sm font-semibold text-dark">Beleške</p>
-                            <Button
-                              size="sm"
-                              variant="flat"
-                              onPress={() => loadOrderNotes(order.id)}
-                              isDisabled={orderNotesLoading[order.id]}
-                            >
-                              Učitaj beleške
-                            </Button>
-                          </div>
-                          <Textarea
-                            label="Nova beleška"
-                            value={orderNoteDrafts[order.id] || ""}
-                            onChange={(e) =>
-                              setOrderNoteDrafts((prev) => ({
-                                ...prev,
-                                [order.id]: e.target.value,
-                              }))
-                            }
-                            minRows={2}
-                          />
-                          <div className="mt-2">
-                            <Button
-                              size="sm"
-                              color="primary"
-                              onPress={() => handleCreateOrderNote(order)}
-                              isDisabled={ordersLoading}
-                            >
-                              Dodaj belešku
-                            </Button>
-                          </div>
-                          {(orderNotes[order.id] || []).length > 0 && (
-                            <div className="mt-3 space-y-2">
-                              {(orderNotes[order.id] || []).map((note) => (
-                                <div
-                                  key={note.id}
-                                  className="rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
+                          <div className="min-w-0 space-y-3">
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                as="a"
+                                href={`mailto:${order.email}`}
+                                size="sm"
+                                variant="flat"
+                                className="min-w-0"
+                              >
+                                Email
+                              </Button>
+                              {order.phone ? (
+                                <Button
+                                  as="a"
+                                  href={toTelHref(order.phone)}
+                                  size="sm"
+                                  variant="flat"
+                                  className="min-w-0"
                                 >
-                                  <p className="whitespace-pre-wrap text-gray-700">{note.note}</p>
-                                  <p className="mt-1 text-xs text-gray-400">
-                                    {new Date(note.created_at).toLocaleString("sr-RS")}
-                                  </p>
-                                </div>
-                              ))}
+                                  Poziv
+                                </Button>
+                              ) : (
+                                <Button size="sm" variant="flat" isDisabled className="min-w-0">
+                                  Poziv
+                                </Button>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </CardBody>
-                    </Card>
-                  ))}
+                            <details className="rounded-xl border border-black/5 bg-gray-50 p-3">
+                              <summary className="cursor-pointer text-sm font-semibold text-dark">
+                                Beleške {notes.length > 0 ? `(${notes.length})` : ""}
+                              </summary>
+                              <div className="mt-3 space-y-3">
+                                <Textarea
+                                  label="Nova beleška"
+                                  size="sm"
+                                  value={orderNoteDrafts[order.id] || ""}
+                                  onChange={(e) =>
+                                    setOrderNoteDrafts((prev) => ({
+                                      ...prev,
+                                      [order.id]: e.target.value,
+                                    }))
+                                  }
+                                  minRows={2}
+                                />
+                                <div className="grid grid-cols-2 gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="flat"
+                                    onPress={() => loadOrderNotes(order.id)}
+                                    isDisabled={orderNotesLoading[order.id]}
+                                  >
+                                    Učitaj
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    color="primary"
+                                    onPress={() => handleCreateOrderNote(order)}
+                                    isDisabled={ordersLoading}
+                                  >
+                                    Dodaj
+                                  </Button>
+                                </div>
+                                {notes.length > 0 && (
+                                  <div className="space-y-2">
+                                    {notes.map((note) => (
+                                      <div
+                                        key={note.id}
+                                        className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                                      >
+                                        <p className="whitespace-pre-wrap text-gray-700">{note.note}</p>
+                                        <p className="mt-1 text-xs text-gray-400">{formatOrderDate(note.created_at)}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </details>
+                            <Button
+                              size="sm"
+                              color="danger"
+                              variant="light"
+                              onPress={() => handleDeleteOrder(order)}
+                              isDisabled={ordersLoading}
+                              className="w-full"
+                            >
+                              Obriši porudžbinu
+                            </Button>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </section>

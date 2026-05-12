@@ -7,6 +7,16 @@ require __DIR__ . '/db.php';
 require __DIR__ . '/helpers.php';
 
 allow_cors($config);
+
+$sessionLifetime = (int) ($config['admin_session']['lifetime'] ?? 60 * 60 * 24 * 90);
+ini_set('session.gc_maxlifetime', (string) $sessionLifetime);
+session_set_cookie_params([
+    'lifetime' => $sessionLifetime,
+    'path' => '/',
+    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
 session_start();
 
 $pdo = db($config);
@@ -294,6 +304,18 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
     }
 
     if ($sub === 'logout' && $method === 'POST') {
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', [
+                'expires' => time() - 42000,
+                'path' => $params['path'],
+                'domain' => $params['domain'],
+                'secure' => $params['secure'],
+                'httponly' => $params['httponly'],
+                'samesite' => $params['samesite'] ?? 'Lax',
+            ]);
+        }
         session_destroy();
         send_json(['ok' => true]);
     }
@@ -409,6 +431,7 @@ function admin_login(PDO $pdo): void
         error_json(401, 'Invalid credentials');
     }
 
+    session_regenerate_id(true);
     $_SESSION['admin_id'] = (int) $admin['id'];
     send_json(['ok' => true]);
 }

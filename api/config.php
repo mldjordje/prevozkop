@@ -43,6 +43,10 @@ return [
         'from_name' => getenv('MAIL_FROM_NAME') ?: 'Prevozkop',
         'subject_prefix' => getenv('MAIL_SUBJECT_PREFIX') ?: '[Prevozkop] ',
     ],
+    'admin_session' => [
+        // How long an admin login should remain valid in seconds. Default: 90 days.
+        'lifetime' => (int) (getenv('ADMIN_SESSION_LIFETIME') ?: 60 * 60 * 24 * 90),
+    ],
     'cache' => [
         // Cache directory for public GET responses (avoid slow DB calls).
         'dir' => getenv('CACHE_DIR') ?: (__DIR__ . '/cache'),
