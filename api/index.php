@@ -352,6 +352,18 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
         list_order_notes($pdo, (int) $m[1]);
     }
 
+    if (preg_match('#^orders/(\d+)/offers$#', $sub, $m) && $method === 'GET') {
+        list_order_offers($pdo, (int) $m[1]);
+    }
+
+    if (preg_match('#^orders/(\d+)/offers$#', $sub, $m) && $method === 'POST') {
+        create_order_offer($pdo, (int) $m[1], (int) ($_SESSION['admin_id'] ?? 0));
+    }
+
+    if (preg_match('#^offers/(\d+)$#', $sub, $m) && $method === 'PUT') {
+        update_order_offer($pdo, (int) $m[1]);
+    }
+
     if ($sub === 'projects' && $method === 'POST') {
         create_project($pdo, $config);
     }
@@ -1085,6 +1097,100 @@ function list_order_notes(PDO $pdo, int $orderId): void
     send_json(['data' => $rows]);
 }
 
+function list_order_offers(PDO $pdo, int $orderId): void
+{
+    ensure_order_exists($pdo, $orderId);
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM order_offers
+         WHERE order_id = :order_id
+         ORDER BY created_at DESC, id DESC'
+    );
+    $stmt->execute([':order_id' => $orderId]);
+    $rows = $stmt->fetchAll();
+    send_json(['data' => array_map('map_order_offer', $rows)]);
+}
+
+function create_order_offer(PDO $pdo, int $orderId, int $adminId): void
+{
+    ensure_order_exists($pdo, $orderId);
+
+    $data = read_json_body();
+    $items = normalize_offer_items($data['items'] ?? []);
+    if (!$items) {
+        error_json(400, 'At least one offer item is required');
+    }
+
+    $taxRate = max(0, min(100, (float) ($data['tax_rate'] ?? 0)));
+    $subtotal = calculate_offer_subtotal($items);
+    $taxAmount = round($subtotal * ($taxRate / 100), 2);
+    $total = round($subtotal + $taxAmount, 2);
+    $offerNumber = generate_offer_number($pdo);
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO order_offers (
+            order_id, offer_number, status, items, subtotal, tax_rate, tax_amount, total,
+            currency, valid_until, payment_terms, delivery_terms, note, created_by
+         ) VALUES (
+            :order_id, :offer_number, :status, :items, :subtotal, :tax_rate, :tax_amount, :total,
+            :currency, :valid_until, :payment_terms, :delivery_terms, :note, :created_by
+         )'
+    );
+    $stmt->execute([
+        ':order_id' => $orderId,
+        ':offer_number' => $offerNumber,
+        ':status' => 'draft',
+        ':items' => json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ':subtotal' => $subtotal,
+        ':tax_rate' => $taxRate,
+        ':tax_amount' => $taxAmount,
+        ':total' => $total,
+        ':currency' => trim((string) ($data['currency'] ?? 'RSD')) ?: 'RSD',
+        ':valid_until' => normalize_date_or_null($data['valid_until'] ?? null),
+        ':payment_terms' => trim((string) ($data['payment_terms'] ?? '')) ?: null,
+        ':delivery_terms' => trim((string) ($data['delivery_terms'] ?? '')) ?: null,
+        ':note' => trim((string) ($data['note'] ?? '')) ?: null,
+        ':created_by' => $adminId > 0 ? $adminId : null,
+    ]);
+
+    $id = (int) $pdo->lastInsertId();
+    $stmt = $pdo->prepare('SELECT * FROM order_offers WHERE id = :id LIMIT 1');
+    $stmt->execute([':id' => $id]);
+    send_json(map_order_offer($stmt->fetch()), 201);
+}
+
+function update_order_offer(PDO $pdo, int $offerId): void
+{
+    $data = read_json_body();
+    $fields = [];
+    $params = [':id' => $offerId];
+
+    if (array_key_exists('status', $data)) {
+        $status = (string) $data['status'];
+        if (!in_array($status, ['draft', 'sent', 'accepted', 'paid', 'rejected'], true)) {
+            error_json(400, 'Invalid offer status');
+        }
+        $fields[] = 'status = :status';
+        $params[':status'] = $status;
+    }
+
+    if (!$fields) {
+        error_json(400, 'No fields to update');
+    }
+
+    $stmt = $pdo->prepare('UPDATE order_offers SET ' . implode(', ', $fields) . ' WHERE id = :id');
+    $stmt->execute($params);
+
+    $stmt = $pdo->prepare('SELECT * FROM order_offers WHERE id = :id LIMIT 1');
+    $stmt->execute([':id' => $offerId]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Offer not found');
+    }
+    send_json(map_order_offer($row));
+}
+
 function delete_order(PDO $pdo, int $id): void
 {
     $stmt = $pdo->prepare('DELETE FROM orders WHERE id = :id');
@@ -1149,6 +1255,73 @@ function read_json_body(): array
     $raw = file_get_contents('php://input') ?: '';
     $data = json_decode($raw, true);
     return is_array($data) ? $data : [];
+}
+
+function ensure_order_exists(PDO $pdo, int $orderId): void
+{
+    $stmt = $pdo->prepare('SELECT id FROM orders WHERE id = :id LIMIT 1');
+    $stmt->execute([':id' => $orderId]);
+    if (!$stmt->fetch()) {
+        error_json(404, 'Order not found');
+    }
+}
+
+function normalize_offer_items(mixed $items): array
+{
+    if (!is_array($items)) {
+        return [];
+    }
+
+    $normalized = [];
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $description = trim((string) ($item['description'] ?? ''));
+        if ($description === '') {
+            continue;
+        }
+        $quantity = max(0, (float) ($item['quantity'] ?? 0));
+        $unitPrice = max(0, (float) ($item['unit_price'] ?? 0));
+        $lineTotal = round($quantity * $unitPrice, 2);
+        $normalized[] = [
+            'description' => $description,
+            'quantity' => $quantity,
+            'unit' => trim((string) ($item['unit'] ?? '')) ?: 'kom',
+            'unit_price' => $unitPrice,
+            'line_total' => $lineTotal,
+        ];
+    }
+
+    return $normalized;
+}
+
+function calculate_offer_subtotal(array $items): float
+{
+    $subtotal = 0.0;
+    foreach ($items as $item) {
+        $subtotal += (float) ($item['line_total'] ?? 0);
+    }
+    return round($subtotal, 2);
+}
+
+function normalize_date_or_null(mixed $value): ?string
+{
+    $date = trim((string) ($value ?? ''));
+    if ($date === '') {
+        return null;
+    }
+    $parsed = date_create($date);
+    return $parsed ? $parsed->format('Y-m-d') : null;
+}
+
+function generate_offer_number(PDO $pdo): string
+{
+    $prefix = 'PK-' . gmdate('Ymd') . '-';
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM order_offers WHERE offer_number LIKE :prefix');
+    $stmt->execute([':prefix' => $prefix . '%']);
+    $next = ((int) $stmt->fetchColumn()) + 1;
+    return $prefix . str_pad((string) $next, 3, '0', STR_PAD_LEFT);
 }
 
 function fetch_project(PDO $pdo, int $id): ?array
@@ -1320,5 +1493,34 @@ function map_order(array $row): array
         'utm_medium' => $row['utm_medium'] ?? null,
         'utm_campaign' => $row['utm_campaign'] ?? null,
         'created_at' => $row['created_at'],
+    ];
+}
+
+function map_order_offer(array $row): array
+{
+    $items = [];
+    if (!empty($row['items'])) {
+        $decoded = json_decode((string) $row['items'], true);
+        $items = is_array($decoded) ? $decoded : [];
+    }
+
+    return [
+        'id' => (int) $row['id'],
+        'order_id' => (int) $row['order_id'],
+        'offer_number' => $row['offer_number'],
+        'status' => $row['status'],
+        'items' => $items,
+        'subtotal' => (float) $row['subtotal'],
+        'tax_rate' => (float) $row['tax_rate'],
+        'tax_amount' => (float) $row['tax_amount'],
+        'total' => (float) $row['total'],
+        'currency' => $row['currency'],
+        'valid_until' => $row['valid_until'] ?? null,
+        'payment_terms' => $row['payment_terms'] ?? null,
+        'delivery_terms' => $row['delivery_terms'] ?? null,
+        'note' => $row['note'] ?? null,
+        'created_by' => isset($row['created_by']) ? (int) $row['created_by'] : null,
+        'created_at' => $row['created_at'],
+        'updated_at' => $row['updated_at'] ?? null,
     ];
 }

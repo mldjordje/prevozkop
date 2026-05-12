@@ -1,4 +1,4 @@
-import type { Order, OrderNote, Project, Product } from "./api";
+import type { Order, OrderNote, OrderOffer, OrderOfferItem, Project, Product } from "./api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 
@@ -253,6 +253,34 @@ export async function adminCreateOrderNote(orderId: number, note: string) {
   return adminFetch<OrderNote>(`/admin/orders/${orderId}/notes`, {
     method: "POST",
     json: { note },
+  });
+}
+
+export async function adminListOrderOffers(orderId: number) {
+  return adminFetch<{ data: OrderOffer[] }>(`/admin/orders/${orderId}/offers`, {
+    method: "GET",
+  });
+}
+
+export async function adminCreateOrderOffer(orderId: number, payload: {
+  items: Array<Pick<OrderOfferItem, "description" | "quantity" | "unit" | "unit_price">>;
+  tax_rate?: number;
+  currency?: string;
+  valid_until?: string | null;
+  payment_terms?: string | null;
+  delivery_terms?: string | null;
+  note?: string | null;
+}) {
+  return adminFetch<OrderOffer>(`/admin/orders/${orderId}/offers`, {
+    method: "POST",
+    json: payload,
+  });
+}
+
+export async function adminUpdateOrderOffer(id: number, payload: Pick<OrderOffer, "status">) {
+  return adminFetch<OrderOffer>(`/admin/offers/${id}`, {
+    method: "PUT",
+    json: payload,
   });
 }
 

@@ -12,7 +12,7 @@ import {
   SelectItem,
   Textarea,
 } from "@heroui/react";
-import type { Order, OrderNote, Product, Project } from "@/lib/api";
+import type { Order, OrderNote, OrderOffer, Product, Project } from "@/lib/api";
 import { getProjects } from "@/lib/api";
 import {
   ApiError,
@@ -30,7 +30,10 @@ import {
   adminDeleteOrder,
   adminUpdateOrder,
   adminCreateOrderNote,
+  adminCreateOrderOffer,
   adminListOrderNotes,
+  adminListOrderOffers,
+  adminUpdateOrderOffer,
   adminUpdateProject,
   adminUpdateProduct,
   deleteProductGalleryImage,
@@ -62,6 +65,14 @@ const orderPipelineOptions: { key: NonNullable<Order["pipeline_stage"]>; label: 
   { key: "negotiation", label: "Pregovori" },
   { key: "won", label: "Dobijen posao" },
   { key: "lost", label: "Izgubljen lead" },
+];
+
+const offerStatusOptions: { key: OrderOffer["status"]; label: string }[] = [
+  { key: "draft", label: "Priprema" },
+  { key: "sent", label: "Poslata" },
+  { key: "accepted", label: "Prihvaćena" },
+  { key: "paid", label: "Plaćena" },
+  { key: "rejected", label: "Odbijena" },
 ];
 
 const concreteTypeSet = new Set(
@@ -125,6 +136,24 @@ export default function AdminPanel({
   const [orderNoteDrafts, setOrderNoteDrafts] = useState<Record<number, string>>({});
   const [orderNotes, setOrderNotes] = useState<Record<number, OrderNote[]>>({});
   const [orderNotesLoading, setOrderNotesLoading] = useState<Record<number, boolean>>({});
+  const [orderOffers, setOrderOffers] = useState<Record<number, OrderOffer[]>>({});
+  const [orderOffersLoading, setOrderOffersLoading] = useState<Record<number, boolean>>({});
+  const [orderOfferDrafts, setOrderOfferDrafts] = useState<
+    Record<
+      number,
+      {
+        description: string;
+        quantity: string;
+        unit: string;
+        unitPrice: string;
+        taxRate: string;
+        validUntil: string;
+        paymentTerms: string;
+        deliveryTerms: string;
+        note: string;
+      }
+    >
+  >({});
   const [message, setMessage] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1015,6 +1044,113 @@ export default function AdminPanel({
       setMessage("Greška pri čuvanju beleške.");
     } finally {
       setOrdersLoading(false);
+    }
+  }
+
+  function getOfferDraft(order: Order) {
+    const service = resolveOrderService(order);
+    return (
+      orderOfferDrafts[order.id] || {
+        description: order.subject || (service === "beton" ? "Isporuka betona" : service === "behaton" ? "Isporuka behatona" : "Građevinska usluga"),
+        quantity: order.quantity || "1",
+        unit: order.quantity_unit || (service === "beton" ? "m3" : service === "behaton" ? "m2" : "kom"),
+        unitPrice: "",
+        taxRate: "0",
+        validUntil: "",
+        paymentTerms: "Avans / plaćanje po dogovoru",
+        deliveryTerms: "Rok isporuke po dogovoru",
+        note: "",
+      }
+    );
+  }
+
+  function updateOfferDraft(order: Order, field: keyof ReturnType<typeof getOfferDraft>, value: string) {
+    setOrderOfferDrafts((prev) => ({
+      ...prev,
+      [order.id]: {
+        ...getOfferDraft(order),
+        ...prev[order.id],
+        [field]: value,
+      },
+    }));
+  }
+
+  async function loadOrderOffers(orderId: number) {
+    if (!isAuthenticated) return;
+    setOrderOffersLoading((prev) => ({ ...prev, [orderId]: true }));
+    try {
+      const res = await adminListOrderOffers(orderId);
+      setOrderOffers((prev) => ({ ...prev, [orderId]: res.data || [] }));
+    } catch {
+      setMessage("Neuspešno učitavanje ponuda.");
+    } finally {
+      setOrderOffersLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  }
+
+  async function handleCreateOrderOffer(order: Order) {
+    if (!isAuthenticated) return;
+    const draft = getOfferDraft(order);
+    const description = draft.description.trim();
+    const quantity = Number(draft.quantity.replace(",", "."));
+    const unitPrice = Number(draft.unitPrice.replace(",", "."));
+    const taxRate = Number(draft.taxRate.replace(",", "."));
+
+    if (!description || !quantity || !unitPrice) {
+      setMessage("Unesite opis, količinu i cenu za ponudu.");
+      return;
+    }
+
+    setOrdersLoading(true);
+    setMessage(null);
+    try {
+      await adminCreateOrderOffer(order.id, {
+        items: [
+          {
+            description,
+            quantity,
+            unit: draft.unit.trim() || "kom",
+            unit_price: unitPrice,
+          },
+        ],
+        tax_rate: Number.isFinite(taxRate) ? taxRate : 0,
+        valid_until: draft.validUntil || null,
+        payment_terms: draft.paymentTerms || null,
+        delivery_terms: draft.deliveryTerms || null,
+        note: draft.note || null,
+      });
+      setOrderOfferDrafts((prev) => {
+        const next = { ...prev };
+        delete next[order.id];
+        return next;
+      });
+      await loadOrderOffers(order.id);
+      await handleOrderPipeline(order, "offered");
+      setMessage("Ponuda je kreirana i lead je prebačen u fazu ponude.");
+    } catch {
+      setMessage("Greška pri kreiranju ponude.");
+    } finally {
+      setOrdersLoading(false);
+    }
+  }
+
+  async function handleOfferStatus(offer: OrderOffer, status: OrderOffer["status"]) {
+    if (!isAuthenticated || offer.status === status) return;
+    setOrderOffersLoading((prev) => ({ ...prev, [offer.order_id]: true }));
+    setMessage(null);
+    try {
+      const updated = await adminUpdateOrderOffer(offer.id, { status });
+      setOrderOffers((prev) => ({
+        ...prev,
+        [offer.order_id]: (prev[offer.order_id] || []).map((item) =>
+          item.id === updated.id ? updated : item
+        ),
+      }));
+      setMessage("Status ponude je ažuriran.");
+    } catch {
+      setMessage("Greška pri ažuriranju ponude.");
+    } finally {
+      setOrderOffersLoading((prev) => ({ ...prev, [offer.order_id]: false }));
     }
   }
 
@@ -2307,11 +2443,18 @@ export default function AdminPanel({
                           ? new Date(order.next_follow_up_at).toISOString().slice(0, 16)
                           : "");
                       const notes = orderNotes[order.id] || [];
+                      const offers = orderOffers[order.id] || [];
+                      const offerDraft = getOfferDraft(order);
+                      const draftQuantity = Number(offerDraft.quantity.replace(",", ".")) || 0;
+                      const draftUnitPrice = Number(offerDraft.unitPrice.replace(",", ".")) || 0;
+                      const draftTaxRate = Number(offerDraft.taxRate.replace(",", ".")) || 0;
+                      const draftSubtotal = draftQuantity * draftUnitPrice;
+                      const draftTotal = draftSubtotal + draftSubtotal * (draftTaxRate / 100);
 
                       return (
                         <article
                           key={order.id}
-                          className="grid gap-4 px-4 py-5 transition hover:bg-gray-50/80 sm:px-5 xl:grid-cols-[1.25fr_1fr_1fr_1.15fr_0.9fr]"
+                          className="grid gap-4 px-4 py-5 transition hover:bg-gray-50/80 sm:px-5 xl:grid-cols-[1.1fr_1fr_0.9fr_1fr_1.2fr]"
                         >
                           <div className="min-w-0">
                             <div className="flex items-start justify-between gap-3">
@@ -2521,6 +2664,139 @@ export default function AdminPanel({
                                       >
                                         <p className="whitespace-pre-wrap text-gray-700">{note.note}</p>
                                         <p className="mt-1 text-xs text-gray-400">{formatOrderDate(note.created_at)}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </details>
+                            <details className="rounded-xl border border-black/5 bg-gray-50 p-3">
+                              <summary className="cursor-pointer text-sm font-semibold text-dark">
+                                Ponude {offers.length > 0 ? `(${offers.length})` : ""}
+                              </summary>
+                              <div className="mt-3 space-y-3">
+                                <div className="grid gap-2">
+                                  <Input
+                                    label="Opis stavke"
+                                    size="sm"
+                                    value={offerDraft.description}
+                                    onChange={(e) => updateOfferDraft(order, "description", e.target.value)}
+                                  />
+                                  <div className="grid gap-2">
+                                    <Input
+                                      label="Količina"
+                                      size="sm"
+                                      value={offerDraft.quantity}
+                                      onChange={(e) => updateOfferDraft(order, "quantity", e.target.value)}
+                                    />
+                                    <Input
+                                      label="Jedinica"
+                                      size="sm"
+                                      value={offerDraft.unit}
+                                      onChange={(e) => updateOfferDraft(order, "unit", e.target.value)}
+                                    />
+                                    <Input
+                                      label="Cena"
+                                      size="sm"
+                                      value={offerDraft.unitPrice}
+                                      onChange={(e) => updateOfferDraft(order, "unitPrice", e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="grid gap-2 sm:grid-cols-2">
+                                    <Input
+                                      label="PDV %"
+                                      size="sm"
+                                      value={offerDraft.taxRate}
+                                      onChange={(e) => updateOfferDraft(order, "taxRate", e.target.value)}
+                                    />
+                                    <Input
+                                      label="Važi do"
+                                      size="sm"
+                                      type="date"
+                                      value={offerDraft.validUntil}
+                                      onChange={(e) => updateOfferDraft(order, "validUntil", e.target.value)}
+                                    />
+                                  </div>
+                                  <Input
+                                    label="Uslovi plaćanja"
+                                    size="sm"
+                                    value={offerDraft.paymentTerms}
+                                    onChange={(e) => updateOfferDraft(order, "paymentTerms", e.target.value)}
+                                  />
+                                  <Input
+                                    label="Uslovi isporuke"
+                                    size="sm"
+                                    value={offerDraft.deliveryTerms}
+                                    onChange={(e) => updateOfferDraft(order, "deliveryTerms", e.target.value)}
+                                  />
+                                  <Textarea
+                                    label="Napomena za ponudu"
+                                    size="sm"
+                                    minRows={2}
+                                    value={offerDraft.note}
+                                    onChange={(e) => updateOfferDraft(order, "note", e.target.value)}
+                                  />
+                                  <div className="rounded-lg border border-black/5 bg-white px-3 py-2 text-sm">
+                                    <div className="flex justify-between gap-2">
+                                      <span className="text-gray-600">Ukupno za ponudu</span>
+                                      <span className="font-semibold text-dark">
+                                        {formatMetricNumber(draftTotal, 2)} RSD
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    color="primary"
+                                    onPress={() => handleCreateOrderOffer(order)}
+                                    isDisabled={ordersLoading}
+                                  >
+                                    Kreiraj ponudu
+                                  </Button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="flat"
+                                    onPress={() => loadOrderOffers(order.id)}
+                                    isDisabled={orderOffersLoading[order.id]}
+                                  >
+                                    Učitaj
+                                  </Button>
+                                  <Button size="sm" variant="flat" isDisabled>
+                                    PDF uskoro
+                                  </Button>
+                                </div>
+
+                                {offers.length > 0 && (
+                                  <div className="space-y-2">
+                                    {offers.map((offer) => (
+                                      <div key={offer.id} className="rounded-lg border border-black/10 bg-white p-3 text-sm">
+                                        <div className="flex flex-wrap items-start justify-between gap-2">
+                                          <div>
+                                            <p className="font-semibold text-dark">{offer.offer_number}</p>
+                                            <p className="text-xs text-gray-500">{formatOrderDate(offer.created_at)}</p>
+                                          </div>
+                                          <p className="font-semibold text-dark">
+                                            {formatMetricNumber(offer.total, 2)} {offer.currency}
+                                          </p>
+                                        </div>
+                                        <Select
+                                          label="Status ponude"
+                                          size="sm"
+                                          className="mt-2"
+                                          selectedKeys={[offer.status]}
+                                          onSelectionChange={(keys) =>
+                                            handleOfferStatus(
+                                              offer,
+                                              (Array.from(keys).at(0)?.toString() as OrderOffer["status"]) || "draft"
+                                            )
+                                          }
+                                        >
+                                          {offerStatusOptions.map((item) => (
+                                            <SelectItem key={item.key}>{item.label}</SelectItem>
+                                          ))}
+                                        </Select>
                                       </div>
                                     ))}
                                   </div>

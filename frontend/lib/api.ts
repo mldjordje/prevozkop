@@ -65,6 +65,34 @@ export type OrderNote = {
   created_at: string;
 };
 
+export type OrderOfferItem = {
+  description: string;
+  quantity: number;
+  unit: string;
+  unit_price: number;
+  line_total: number;
+};
+
+export type OrderOffer = {
+  id: number;
+  order_id: number;
+  offer_number: string;
+  status: "draft" | "sent" | "accepted" | "paid" | "rejected";
+  items: OrderOfferItem[];
+  subtotal: number;
+  tax_rate: number;
+  tax_amount: number;
+  total: number;
+  currency: string;
+  valid_until?: string | null;
+  payment_terms?: string | null;
+  delivery_terms?: string | null;
+  note?: string | null;
+  created_by?: number | null;
+  created_at: string;
+  updated_at?: string | null;
+};
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 export const PUBLIC_REVALIDATE_SECONDS = 300;
 
