@@ -33,6 +33,7 @@ import {
   adminCreateOrderOffer,
   adminListOrderNotes,
   adminListOrderOffers,
+  adminOfferPrintUrl,
   adminUpdateOrderOffer,
   adminUpdateProject,
   adminUpdateProduct,
@@ -2763,8 +2764,16 @@ export default function AdminPanel({
                                   >
                                     Učitaj
                                   </Button>
-                                  <Button size="sm" variant="flat" isDisabled>
-                                    PDF uskoro
+                                  <Button
+                                    as="a"
+                                    href={offers[0] ? adminOfferPrintUrl(offers[0].id) : undefined}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    size="sm"
+                                    variant="flat"
+                                    isDisabled={!offers[0]}
+                                  >
+                                    Otvori PDF prikaz
                                   </Button>
                                 </div>
 
@@ -2797,6 +2806,17 @@ export default function AdminPanel({
                                             <SelectItem key={item.key}>{item.label}</SelectItem>
                                           ))}
                                         </Select>
+                                        <Button
+                                          as="a"
+                                          href={adminOfferPrintUrl(offer.id)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          size="sm"
+                                          variant="flat"
+                                          className="mt-2 w-full"
+                                        >
+                                          Otvori PDF prikaz
+                                        </Button>
                                       </div>
                                     ))}
                                   </div>

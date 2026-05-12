@@ -364,6 +364,10 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
         update_order_offer($pdo, (int) $m[1]);
     }
 
+    if (preg_match('#^offers/(\d+)/print$#', $sub, $m) && $method === 'GET') {
+        render_order_offer_print($pdo, (int) $m[1]);
+    }
+
     if ($sub === 'projects' && $method === 'POST') {
         create_project($pdo, $config);
     }
@@ -1191,6 +1195,85 @@ function update_order_offer(PDO $pdo, int $offerId): void
     send_json(map_order_offer($row));
 }
 
+function render_order_offer_print(PDO $pdo, int $offerId): void
+{
+    $stmt = $pdo->prepare(
+        'SELECT
+            offers.*,
+            orders.name AS customer_name,
+            orders.email AS customer_email,
+            orders.phone AS customer_phone,
+            orders.subject AS order_subject,
+            orders.city_slug AS order_city,
+            orders.service_type AS order_service
+         FROM order_offers offers
+         INNER JOIN orders ON orders.id = offers.order_id
+         WHERE offers.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute([':id' => $offerId]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Offer not found');
+    }
+
+    $offer = map_order_offer($row);
+    $itemsHtml = '';
+    foreach ($offer['items'] as $index => $item) {
+        $itemsHtml .= '<tr>'
+            . '<td>' . ($index + 1) . '</td>'
+            . '<td>' . html_escape((string) ($item['description'] ?? '')) . '</td>'
+            . '<td class="num">' . offer_number((float) ($item['quantity'] ?? 0)) . '</td>'
+            . '<td>' . html_escape((string) ($item['unit'] ?? '')) . '</td>'
+            . '<td class="num">' . offer_money((float) ($item['unit_price'] ?? 0)) . '</td>'
+            . '<td class="num">' . offer_money((float) ($item['line_total'] ?? 0)) . '</td>'
+            . '</tr>';
+    }
+
+    $validUntil = !empty($offer['valid_until']) ? html_escape((string) $offer['valid_until']) : 'Po dogovoru';
+    $paymentTerms = html_escape((string) ($offer['payment_terms'] ?? 'Po dogovoru'));
+    $deliveryTerms = html_escape((string) ($offer['delivery_terms'] ?? 'Po dogovoru'));
+    $note = trim((string) ($offer['note'] ?? ''));
+    $noteHtml = $note !== ''
+        ? '<div class="note"><strong>Napomena:</strong><br>' . nl2br(html_escape($note)) . '</div>'
+        : '';
+
+    $html = '<!doctype html><html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+        . '<title>Ponuda ' . html_escape((string) $offer['offer_number']) . '</title>'
+        . '<style>'
+        . '@page{size:A4;margin:14mm}*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#111827;font-family:Arial,sans-serif}.sheet{max-width:210mm;margin:0 auto;background:#fff;padding:18mm 16mm;border:1px solid #e5e7eb}.header{display:flex;justify-content:space-between;gap:24px;border-bottom:4px solid #f4a100;padding-bottom:18px}.brand{font-size:28px;font-weight:700}.tag{margin-top:6px;color:#b45309;font-size:12px;text-transform:uppercase;letter-spacing:.12em}.meta{text-align:right;font-size:13px;line-height:1.6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}.panel{border:1px solid #e5e7eb;border-radius:10px;padding:14px}.panel h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;color:#6b7280}.panel p{margin:4px 0;font-size:14px}.title{margin:26px 0 12px;font-size:24px;font-weight:700}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}th,td{padding:10px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}th{background:#111827;color:#fff;text-align:left}.num{text-align:right;white-space:nowrap}.totals{margin-left:auto;margin-top:16px;width:320px;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}.totals div{display:flex;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #e5e7eb}.totals div:last-child{border-bottom:0;background:#fff7ed;font-size:18px;font-weight:700}.terms{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}.note{margin-top:18px;border-left:4px solid #f4a100;background:#fffbeb;padding:12px 14px;font-size:14px;line-height:1.5}.footer{margin-top:28px;padding-top:14px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px;display:flex;justify-content:space-between;gap:16px}.actions{max-width:210mm;margin:14px auto;display:flex;justify-content:flex-end}.actions button{border:0;border-radius:999px;background:#f4a100;color:#111827;font-weight:700;padding:12px 18px;cursor:pointer}@media print{body{background:#fff}.sheet{border:0;padding:0}.actions{display:none}}@media(max-width:760px){.sheet{padding:24px}.header,.footer{display:block}.meta{text-align:left;margin-top:12px}.grid,.terms{grid-template-columns:1fr}.totals{width:100%}}'
+        . '</style></head><body>'
+        . '<div class="actions"><button onclick="window.print()">Sačuvaj kao PDF / štampaj</button></div>'
+        . '<main class="sheet">'
+        . '<section class="header"><div><div class="brand">Prevoz Kop</div><div class="tag">Betonska baza i građevinske usluge</div></div>'
+        . '<div class="meta"><strong>Ponuda ' . html_escape((string) $offer['offer_number']) . '</strong><br>'
+        . 'Datum: ' . html_escape(substr((string) $offer['created_at'], 0, 10)) . '<br>'
+        . 'Važi do: ' . $validUntil . '<br>'
+        . 'Status: ' . html_escape((string) $offer['status']) . '</div></section>'
+        . '<div class="grid"><section class="panel"><h2>Kupac</h2>'
+        . '<p><strong>' . html_escape((string) ($row['customer_name'] ?? '')) . '</strong></p>'
+        . '<p>' . html_escape((string) ($row['customer_email'] ?? '')) . '</p>'
+        . '<p>' . html_escape((string) ($row['customer_phone'] ?? '')) . '</p></section>'
+        . '<section class="panel"><h2>Osnov ponude</h2>'
+        . '<p>' . html_escape((string) ($row['order_subject'] ?? 'Ponuda')) . '</p>'
+        . '<p>Usluga: ' . html_escape((string) ($row['order_service'] ?? '')) . '</p>'
+        . '<p>Grad: ' . html_escape((string) ($row['order_city'] ?? '')) . '</p></section></div>'
+        . '<div class="title">Komercijalna ponuda</div>'
+        . '<table><thead><tr><th>#</th><th>Opis</th><th class="num">Količina</th><th>JM</th><th class="num">Cena</th><th class="num">Iznos</th></tr></thead><tbody>' . $itemsHtml . '</tbody></table>'
+        . '<div class="totals">'
+        . '<div><span>Osnovica</span><strong>' . offer_money((float) $offer['subtotal']) . ' ' . html_escape((string) $offer['currency']) . '</strong></div>'
+        . '<div><span>PDV ' . offer_number((float) $offer['tax_rate']) . '%</span><strong>' . offer_money((float) $offer['tax_amount']) . ' ' . html_escape((string) $offer['currency']) . '</strong></div>'
+        . '<div><span>Ukupno</span><strong>' . offer_money((float) $offer['total']) . ' ' . html_escape((string) $offer['currency']) . '</strong></div>'
+        . '</div>'
+        . '<div class="terms"><section class="panel"><h2>Plaćanje</h2><p>' . $paymentTerms . '</p></section>'
+        . '<section class="panel"><h2>Isporuka</h2><p>' . $deliveryTerms . '</p></section></div>'
+        . $noteHtml
+        . '<footer class="footer"><span>Prevoz Kop</span><span>prevozkopbb@gmail.com | +381 60 588 7471</span></footer>'
+        . '</main></body></html>';
+
+    send_html($html);
+}
+
 function delete_order(PDO $pdo, int $id): void
 {
     $stmt = $pdo->prepare('DELETE FROM orders WHERE id = :id');
@@ -1322,6 +1405,21 @@ function generate_offer_number(PDO $pdo): string
     $stmt->execute([':prefix' => $prefix . '%']);
     $next = ((int) $stmt->fetchColumn()) + 1;
     return $prefix . str_pad((string) $next, 3, '0', STR_PAD_LEFT);
+}
+
+function html_escape(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function offer_number(float $value): string
+{
+    return number_format($value, abs($value - round($value)) < 0.001 ? 0 : 2, ',', '.');
+}
+
+function offer_money(float $value): string
+{
+    return number_format($value, 2, ',', '.');
 }
 
 function fetch_project(PDO $pdo, int $id): ?array

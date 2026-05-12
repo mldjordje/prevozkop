@@ -32,10 +32,13 @@
 ## Admin lead beleske
 - `GET /api/admin/orders/{id}/notes`
 - `POST /api/admin/orders/{id}/notes`
+  - Body: `{ "note": "..." }`
+
+## Admin ponude
 - `GET /api/admin/orders/{id}/offers`
 - `POST /api/admin/orders/{id}/offers`
 - `PUT /api/admin/offers/{id}`
-  - Body: `{ "note": "..." }`
+- `GET /api/admin/offers/{id}/print` - print-ready HTML view for Save as PDF / printing
 
 ## Napomene
 - JSON response koristi `utf-8`.

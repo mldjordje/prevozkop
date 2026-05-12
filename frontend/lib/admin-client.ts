@@ -284,4 +284,8 @@ export async function adminUpdateOrderOffer(id: number, payload: Pick<OrderOffer
   });
 }
 
+export function adminOfferPrintUrl(id: number) {
+  return `${API_BASE}/admin/offers/${id}/print`;
+}
+
 export { ApiError };

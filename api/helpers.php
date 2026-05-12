@@ -27,6 +27,14 @@ function send_json($data, int $status = 200): void
     exit;
 }
 
+function send_html(string $html, int $status = 200): void
+{
+    http_response_code($status);
+    header('Content-Type: text/html; charset=utf-8');
+    echo $html;
+    exit;
+}
+
 function set_public_cache_headers(int $ttl): void
 {
     if ($ttl <= 0) {
