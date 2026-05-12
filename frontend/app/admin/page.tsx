@@ -11,7 +11,13 @@ export default function AdminLandingPage() {
             Izaberite deo administracije.
           </p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Link
+            href="/admin/pregled"
+            className="rounded-2xl border border-black/5 bg-white px-5 py-6 text-center text-sm font-semibold text-dark shadow-sm transition hover:-translate-y-1"
+          >
+            Pregled
+          </Link>
           <Link
             href="/admin/projects"
             className="rounded-2xl border border-black/5 bg-white px-5 py-6 text-center text-sm font-semibold text-dark shadow-sm transition hover:-translate-y-1"
@@ -28,7 +34,7 @@ export default function AdminLandingPage() {
             href="/admin/orders"
             className="rounded-2xl border border-black/5 bg-white px-5 py-6 text-center text-sm font-semibold text-dark shadow-sm transition hover:-translate-y-1"
           >
-            Porudzbine
+            Porudžbine
           </Link>
         </div>
       </div>

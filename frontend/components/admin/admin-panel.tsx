@@ -89,18 +89,19 @@ const ADMIN_AUTH_STORAGE_KEY = "prevozkop-admin-authenticated";
 type OrderServiceFilter = (typeof orderServiceFilters)[number]["key"];
 
 type ViewState = "loading" | "login" | "ready";
+type AdminSection = "overview" | "projects" | "orders" | "products";
 
 type AdminPanelProps = {
-  defaultSection?: "projects" | "orders" | "products";
+  defaultSection?: AdminSection;
   showSectionSwitcher?: boolean;
 };
 
 export default function AdminPanel({
-  defaultSection = "projects",
+  defaultSection = "overview",
   showSectionSwitcher = true,
 }: AdminPanelProps) {
   const [view, setView] = useState<ViewState>("loading");
-  const [section, setSection] = useState<"projects" | "orders" | "products">(defaultSection);
+  const [section, setSection] = useState<AdminSection>(defaultSection);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectDetails, setProjectDetails] = useState<Record<number, Project>>({});
   const [detailsLoading, setDetailsLoading] = useState<Record<number, boolean>>({});
@@ -184,6 +185,78 @@ export default function AdminPanel({
     ];
   }, [orders]);
 
+  const overviewAnalytics = useMemo(() => {
+    const serviceCounts: Record<OrderServiceFilter, number> = {
+      all: orders.length,
+      beton: 0,
+      behaton: 0,
+      other: 0,
+    };
+    const statusCounts = orderStatusOptions.map((option) => ({
+      ...option,
+      count: orders.filter((order) => order.status === option.key).length,
+    }));
+    const pipelineCounts = orderPipelineOptions.map((option) => ({
+      ...option,
+      count: orders.filter((order) => (order.pipeline_stage || "new") === option.key).length,
+    }));
+    const sourceCounts = new Map<string, number>();
+    let concreteM3 = 0;
+    let behatonM2 = 0;
+
+    orders.forEach((order) => {
+      const service = resolveOrderService(order);
+      serviceCounts[service] += 1;
+
+      const quantity = parseOrderQuantity(order.quantity);
+      const unit = (order.quantity_unit || "").toLowerCase();
+      if (service === "beton" && (!unit || unit.includes("m3") || unit.includes("m³"))) {
+        concreteM3 += quantity;
+      }
+      if (service === "behaton" && (!unit || unit.includes("m2") || unit.includes("m²"))) {
+        behatonM2 += quantity;
+      }
+
+      const source =
+        order.utm_campaign ||
+        order.utm_source ||
+        order.source_page ||
+        "Direktno / bez izvora";
+      sourceCounts.set(source, (sourceCounts.get(source) || 0) + 1);
+    });
+
+    const followUps = orders
+      .filter((order) => order.next_follow_up_at && order.status !== "done")
+      .sort(
+        (a, b) =>
+          new Date(a.next_follow_up_at || "").getTime() -
+          new Date(b.next_follow_up_at || "").getTime()
+      )
+      .slice(0, 5);
+    const latestOrders = [...orders]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 5);
+    const topSources = Array.from(sourceCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    const maxPipelineCount = Math.max(1, ...pipelineCounts.map((item) => item.count));
+
+    return {
+      serviceCounts,
+      statusCounts,
+      pipelineCounts,
+      topSources,
+      followUps,
+      latestOrders,
+      concreteM3,
+      behatonM2,
+      maxPipelineCount,
+      activeOrders: orders.filter((order) => order.status !== "done").length,
+      wonOrders: orders.filter((order) => order.pipeline_stage === "won").length,
+      lostOrders: orders.filter((order) => order.pipeline_stage === "lost").length,
+    };
+  }, [orders]);
+
   function extractApiErrorMessage(error: unknown): string | null {
     if (!(error instanceof ApiError)) {
       return null;
@@ -203,13 +276,13 @@ export default function AdminPanel({
   }, []);
 
   useEffect(() => {
-    if (section === "orders" && isAuthenticated) {
+    if ((section === "orders" || section === "overview") && isAuthenticated) {
       refreshOrders();
     }
   }, [section, isAuthenticated]);
 
   useEffect(() => {
-    if (section === "orders" && isAuthenticated) {
+    if ((section === "orders" || section === "overview") && isAuthenticated) {
       refreshOrders();
     }
   }, [orderServiceFilter, orderPipelineFilter, orderSearch, orderFromDate, orderToDate]);
@@ -230,7 +303,7 @@ export default function AdminPanel({
       setView("ready");
       localStorage.setItem(ADMIN_AUTH_STORAGE_KEY, "1");
       void loadProjectDetails(res.data);
-      if (section === "orders") {
+      if (section === "orders" || section === "overview") {
         void refreshOrders(false, true);
       }
       if (section === "products") {
@@ -983,6 +1056,21 @@ export default function AdminPanel({
     return orderServiceFilters.find((item) => item.key === service)?.label || service;
   }
 
+  function parseOrderQuantity(value?: string | null) {
+    if (!value) return 0;
+    const normalized = value
+      .replace(/\./g, "")
+      .replace(",", ".")
+      .match(/\d+(\.\d+)?/);
+    return normalized ? Number(normalized[0]) || 0 : 0;
+  }
+
+  function formatMetricNumber(value: number, maximumFractionDigits: number = 1) {
+    return new Intl.NumberFormat("sr-RS", {
+      maximumFractionDigits,
+    }).format(value);
+  }
+
   function toTelHref(phone?: string | null) {
     if (!phone) return "";
     const digits = phone.replace(/\D/g, "");
@@ -1052,6 +1140,13 @@ export default function AdminPanel({
       {view === "ready" && showSectionSwitcher && (
         <div className="flex flex-wrap gap-2">
           <Button
+            variant={section === "overview" ? "solid" : "flat"}
+            color="primary"
+            onPress={() => setSection("overview")}
+          >
+            Pregled
+          </Button>
+          <Button
             variant={section === "projects" ? "solid" : "flat"}
             color="primary"
             onPress={() => setSection("projects")}
@@ -1108,6 +1203,194 @@ export default function AdminPanel({
         </Card>
       ) : (
         <>
+          {section === "overview" && (
+            <section className="space-y-6">
+              <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                  <div className="max-w-3xl">
+                    <h2 className="text-2xl font-semibold text-dark">Pregled poslovanja</h2>
+                    <p className="mt-1 text-sm text-gray-600">
+                      Analitika upita, količina i prodajnog toka za reklame, kontaktiranje i ponude.
+                    </p>
+                  </div>
+                  <Button
+                    color="primary"
+                    onPress={() => refreshOrders()}
+                    isDisabled={ordersLoading}
+                    className="w-full sm:w-auto"
+                  >
+                    Osveži analitiku
+                  </Button>
+                </div>
+
+                <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-xl bg-gray-950 px-4 py-4 text-white shadow-sm">
+                    <p className="text-xs font-semibold uppercase">Ukupno porudžbina</p>
+                    <p className="mt-2 text-3xl font-bold">{overviewAnalytics.serviceCounts.all}</p>
+                    <p className="mt-1 text-xs text-gray-300">Aktivno: {overviewAnalytics.activeOrders}</p>
+                  </div>
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-amber-950 shadow-sm">
+                    <p className="text-xs font-semibold uppercase">Beton količina</p>
+                    <p className="mt-2 text-3xl font-bold">
+                      {formatMetricNumber(overviewAnalytics.concreteM3)} m3
+                    </p>
+                    <p className="mt-1 text-xs text-amber-800">Upita: {overviewAnalytics.serviceCounts.beton}</p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-emerald-950 shadow-sm">
+                    <p className="text-xs font-semibold uppercase">Behaton količina</p>
+                    <p className="mt-2 text-3xl font-bold">
+                      {formatMetricNumber(overviewAnalytics.behatonM2)} m2
+                    </p>
+                    <p className="mt-1 text-xs text-emerald-800">Upita: {overviewAnalytics.serviceCounts.behaton}</p>
+                  </div>
+                  <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-4 text-sky-950 shadow-sm">
+                    <p className="text-xs font-semibold uppercase">Dobijeno / izgubljeno</p>
+                    <p className="mt-2 text-3xl font-bold">
+                      {overviewAnalytics.wonOrders} / {overviewAnalytics.lostOrders}
+                    </p>
+                    <p className="mt-1 text-xs text-sky-800">Pipeline rezultat</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-dark">Lead pipeline</h3>
+                      <p className="text-sm text-gray-500">Gde se trenutno nalaze upiti.</p>
+                    </div>
+                    <Chip variant="flat">{orders.length} ukupno</Chip>
+                  </div>
+                  <div className="space-y-3">
+                    {overviewAnalytics.pipelineCounts.map((item) => {
+                      const width = `${Math.max(6, (item.count / overviewAnalytics.maxPipelineCount) * 100)}%`;
+                      return (
+                        <div key={item.key}>
+                          <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                            <span className="font-medium text-gray-700">{item.label}</span>
+                            <span className="font-semibold text-dark">{item.count}</span>
+                          </div>
+                          <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                            <div className="h-full rounded-full bg-primary" style={{ width }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+                  <h3 className="text-lg font-semibold text-dark">Izvori i reklame</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Prati UTM kampanju, izvor i stranicu dolaska.
+                  </p>
+                  <div className="mt-4 space-y-3">
+                    {overviewAnalytics.topSources.length === 0 ? (
+                      <p className="text-sm text-gray-500">Još nema izvora za prikaz.</p>
+                    ) : (
+                      overviewAnalytics.topSources.map(([source, count]) => (
+                        <div
+                          key={source}
+                          className="flex items-center justify-between gap-3 rounded-xl border border-black/5 bg-gray-50 px-3 py-2 text-sm"
+                        >
+                          <span className="min-w-0 truncate text-gray-700">{source}</span>
+                          <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-dark">
+                            {count}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-5 xl:grid-cols-2">
+                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+                  <h3 className="text-lg font-semibold text-dark">Follow-up lista</h3>
+                  <p className="mt-1 text-sm text-gray-500">Najbliži aktivni kontakti za zatvaranje posla.</p>
+                  <div className="mt-4 divide-y divide-black/5">
+                    {overviewAnalytics.followUps.length === 0 ? (
+                      <p className="py-3 text-sm text-gray-500">Nema zakazanih follow-upova.</p>
+                    ) : (
+                      overviewAnalytics.followUps.map((order) => (
+                        <div key={order.id} className="py-3">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <p className="font-semibold text-dark">{order.name}</p>
+                              <p className="text-sm text-gray-600">{order.phone || order.email}</p>
+                            </div>
+                            <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800">
+                              {formatFollowUpDate(order.next_follow_up_at)}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-sm text-gray-600">
+                            {order.subject || getOrderServiceLabel(resolveOrderService(order))}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+                  <h3 className="text-lg font-semibold text-dark">Najnovije porudžbine</h3>
+                  <p className="mt-1 text-sm text-gray-500">Brzi pogled pre ulaska u detaljan CRM.</p>
+                  <div className="mt-4 divide-y divide-black/5">
+                    {overviewAnalytics.latestOrders.length === 0 ? (
+                      <p className="py-3 text-sm text-gray-500">Još nema porudžbina.</p>
+                    ) : (
+                      overviewAnalytics.latestOrders.map((order) => (
+                        <div key={order.id} className="py-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="font-semibold text-dark">{order.name}</p>
+                            <span className={`rounded-full border px-2 py-1 text-xs font-semibold ${getOrderStatusClasses(order.status)}`}>
+                              {getOrderStatusLabel(order.status)}
+                            </span>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
+                            <span>{formatOrderDate(order.created_at)}</span>
+                            <span>{getOrderServiceLabel(resolveOrderService(order))}</span>
+                            {order.quantity && (
+                              <span>
+                                {order.quantity} {order.quantity_unit || ""}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+                <h3 className="text-lg font-semibold text-dark">Sledeći nivo sistema</h3>
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  {[
+                    {
+                      title: "Ponude iz porudžbine",
+                      text: "Iz lead-a napraviti ponudu sa stavkama, cenom, rokom, popustom i statusom slanja.",
+                    },
+                    {
+                      title: "PDF u Prevoz Kop dizajnu",
+                      text: "Jedan brandirani template za beton, behaton i kombinovane ponude, spreman za slanje kupcu.",
+                    },
+                    {
+                      title: "Naplata i avansi",
+                      text: "Praćenje prihvaćeno, avans, plaćeno, isporučeno i izgubljeno za realan prodajni levak.",
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="rounded-xl border border-black/5 bg-gray-50 p-4">
+                      <p className="font-semibold text-dark">{item.title}</p>
+                      <p className="mt-2 text-sm text-gray-600">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
           {section === "projects" && (
             <>
               {isAuthenticated ? (
