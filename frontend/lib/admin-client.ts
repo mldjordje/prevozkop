@@ -288,4 +288,8 @@ export function adminOfferPrintUrl(id: number) {
   return `${API_BASE}/admin/offers/${id}/print`;
 }
 
+export function adminOfferPdfUrl(id: number) {
+  return `${API_BASE}/admin/offers/${id}/pdf`;
+}
+
 export { ApiError };

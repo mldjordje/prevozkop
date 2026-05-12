@@ -368,6 +368,10 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
         render_order_offer_print($pdo, (int) $m[1]);
     }
 
+    if (preg_match('#^offers/(\d+)/pdf$#', $sub, $m) && $method === 'GET') {
+        download_order_offer_pdf($pdo, (int) $m[1]);
+    }
+
     if ($sub === 'projects' && $method === 'POST') {
         create_project($pdo, $config);
     }
@@ -1197,26 +1201,7 @@ function update_order_offer(PDO $pdo, int $offerId): void
 
 function render_order_offer_print(PDO $pdo, int $offerId): void
 {
-    $stmt = $pdo->prepare(
-        'SELECT
-            offers.*,
-            orders.name AS customer_name,
-            orders.email AS customer_email,
-            orders.phone AS customer_phone,
-            orders.subject AS order_subject,
-            orders.city_slug AS order_city,
-            orders.service_type AS order_service
-         FROM order_offers offers
-         INNER JOIN orders ON orders.id = offers.order_id
-         WHERE offers.id = :id
-         LIMIT 1'
-    );
-    $stmt->execute([':id' => $offerId]);
-    $row = $stmt->fetch();
-    if (!$row) {
-        error_json(404, 'Offer not found');
-    }
-
+    $row = fetch_order_offer_with_order($pdo, $offerId);
     $offer = map_order_offer($row);
     $itemsHtml = '';
     foreach ($offer['items'] as $index => $item) {
@@ -1272,6 +1257,21 @@ function render_order_offer_print(PDO $pdo, int $offerId): void
         . '</main></body></html>';
 
     send_html($html);
+}
+
+function download_order_offer_pdf(PDO $pdo, int $offerId): void
+{
+    $row = fetch_order_offer_with_order($pdo, $offerId);
+    $offer = map_order_offer($row);
+    $pdf = build_order_offer_pdf($row, $offer);
+    $fileName = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) $offer['offer_number']) ?: 'ponuda';
+
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="' . $fileName . '.pdf"');
+    header('Content-Length: ' . strlen($pdf));
+    header('Cache-Control: private, no-store, max-age=0');
+    echo $pdf;
+    exit;
 }
 
 function delete_order(PDO $pdo, int $id): void
@@ -1349,6 +1349,31 @@ function ensure_order_exists(PDO $pdo, int $orderId): void
     }
 }
 
+function fetch_order_offer_with_order(PDO $pdo, int $offerId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT
+            offers.*,
+            orders.name AS customer_name,
+            orders.email AS customer_email,
+            orders.phone AS customer_phone,
+            orders.subject AS order_subject,
+            orders.city_slug AS order_city,
+            orders.service_type AS order_service
+         FROM order_offers offers
+         INNER JOIN orders ON orders.id = offers.order_id
+         WHERE offers.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute([':id' => $offerId]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Offer not found');
+    }
+
+    return $row;
+}
+
 function normalize_offer_items(mixed $items): array
 {
     if (!is_array($items)) {
@@ -1420,6 +1445,199 @@ function offer_number(float $value): string
 function offer_money(float $value): string
 {
     return number_format($value, 2, ',', '.');
+}
+
+function build_order_offer_pdf(array $row, array $offer): string
+{
+    $ops = [];
+    $ops[] = pdf_fill_rect(0, 0, 595, 842, [0.98, 0.99, 1]);
+    $ops[] = pdf_fill_rect(36, 734, 523, 72, [0.07, 0.1, 0.16]);
+    $ops[] = pdf_fill_rect(36, 726, 523, 8, [0.96, 0.63, 0.0]);
+    $ops[] = pdf_text(52, 775, 22, 'Prevoz Kop', [1, 1, 1], true);
+    $ops[] = pdf_text(52, 754, 9, 'Betonska baza i gradjevinske usluge', [1, 0.87, 0.58], false);
+    $ops[] = pdf_text(396, 776, 10, 'Ponuda ' . (string) $offer['offer_number'], [1, 1, 1], true);
+    $ops[] = pdf_text(396, 760, 9, 'Datum: ' . substr((string) $offer['created_at'], 0, 10), [1, 1, 1], false);
+    $ops[] = pdf_text(396, 746, 9, 'Vazi do: ' . ((string) ($offer['valid_until'] ?: 'Po dogovoru')), [1, 1, 1], false);
+
+    $ops[] = pdf_panel(36, 612, 252, 92);
+    $ops[] = pdf_panel(307, 612, 252, 92);
+    $ops[] = pdf_text(52, 680, 10, 'Kupac', [0.42, 0.45, 0.52], true);
+    $ops[] = pdf_text(52, 658, 12, (string) ($row['customer_name'] ?? ''), [0.07, 0.1, 0.16], true);
+    $ops[] = pdf_text(52, 642, 9, (string) ($row['customer_email'] ?? ''), [0.16, 0.2, 0.28], false);
+    $ops[] = pdf_text(52, 628, 9, (string) ($row['customer_phone'] ?? ''), [0.16, 0.2, 0.28], false);
+
+    $ops[] = pdf_text(323, 680, 10, 'Osnov ponude', [0.42, 0.45, 0.52], true);
+    foreach (pdf_wrap((string) ($row['order_subject'] ?? 'Ponuda'), 34, 2) as $lineIndex => $line) {
+        $ops[] = pdf_text(323, 658 - ($lineIndex * 13), 10, $line, [0.07, 0.1, 0.16], $lineIndex === 0);
+    }
+    $ops[] = pdf_text(323, 628, 9, 'Usluga: ' . (string) ($row['order_service'] ?? ''), [0.16, 0.2, 0.28], false);
+    $ops[] = pdf_text(323, 614, 9, 'Grad: ' . (string) ($row['order_city'] ?? ''), [0.16, 0.2, 0.28], false);
+
+    $ops[] = pdf_text(36, 578, 18, 'Komercijalna ponuda', [0.07, 0.1, 0.16], true);
+    $ops[] = pdf_fill_rect(36, 542, 523, 24, [0.07, 0.1, 0.16]);
+    $headers = [
+        [50, '#'],
+        [78, 'Opis'],
+        [338, 'Kol.'],
+        [386, 'JM'],
+        [430, 'Cena'],
+        [498, 'Iznos'],
+    ];
+    foreach ($headers as [$x, $label]) {
+        $ops[] = pdf_text($x, 550, 9, $label, [1, 1, 1], true);
+    }
+
+    $rowY = 520;
+    $visibleItems = array_slice($offer['items'], 0, 8);
+    foreach ($visibleItems as $index => $item) {
+        $ops[] = pdf_line(36, $rowY - 10, 559, $rowY - 10, [0.89, 0.91, 0.94]);
+        $ops[] = pdf_text(50, $rowY, 9, (string) ($index + 1), [0.16, 0.2, 0.28], false);
+        foreach (pdf_wrap((string) ($item['description'] ?? ''), 34, 2) as $lineIndex => $line) {
+            $ops[] = pdf_text(78, $rowY - ($lineIndex * 11), 9, $line, [0.07, 0.1, 0.16], $lineIndex === 0);
+        }
+        $ops[] = pdf_text(338, $rowY, 9, offer_number((float) ($item['quantity'] ?? 0)), [0.16, 0.2, 0.28], false);
+        $ops[] = pdf_text(386, $rowY, 9, (string) ($item['unit'] ?? ''), [0.16, 0.2, 0.28], false);
+        $ops[] = pdf_text(430, $rowY, 9, offer_money((float) ($item['unit_price'] ?? 0)), [0.16, 0.2, 0.28], false);
+        $ops[] = pdf_text(498, $rowY, 9, offer_money((float) ($item['line_total'] ?? 0)), [0.16, 0.2, 0.28], true);
+        $rowY -= 34;
+    }
+    if (count($offer['items']) > count($visibleItems)) {
+        $ops[] = pdf_text(78, $rowY + 8, 9, '+ jos stavki u admin ponudi', [0.42, 0.45, 0.52], false);
+    }
+
+    $totalsY = max(240, $rowY - 16);
+    $ops[] = pdf_panel(330, $totalsY, 229, 96);
+    $ops[] = pdf_text(346, $totalsY + 70, 10, 'Osnovica', [0.42, 0.45, 0.52], false);
+    $ops[] = pdf_text(474, $totalsY + 70, 10, offer_money((float) $offer['subtotal']) . ' ' . (string) $offer['currency'], [0.07, 0.1, 0.16], true);
+    $ops[] = pdf_text(346, $totalsY + 48, 10, 'PDV ' . offer_number((float) $offer['tax_rate']) . '%', [0.42, 0.45, 0.52], false);
+    $ops[] = pdf_text(474, $totalsY + 48, 10, offer_money((float) $offer['tax_amount']) . ' ' . (string) $offer['currency'], [0.07, 0.1, 0.16], true);
+    $ops[] = pdf_fill_rect(342, $totalsY + 10, 201, 24, [1, 0.97, 0.91]);
+    $ops[] = pdf_text(346, $totalsY + 18, 11, 'Ukupno', [0.07, 0.1, 0.16], true);
+    $ops[] = pdf_text(474, $totalsY + 18, 11, offer_money((float) $offer['total']) . ' ' . (string) $offer['currency'], [0.07, 0.1, 0.16], true);
+
+    $termsY = max(128, $totalsY - 112);
+    $ops[] = pdf_panel(36, $termsY, 252, 84);
+    $ops[] = pdf_panel(307, $termsY, 252, 84);
+    $ops[] = pdf_text(52, $termsY + 58, 10, 'Placanje', [0.42, 0.45, 0.52], true);
+    foreach (pdf_wrap((string) ($offer['payment_terms'] ?? 'Po dogovoru'), 34, 3) as $lineIndex => $line) {
+        $ops[] = pdf_text(52, $termsY + 38 - ($lineIndex * 11), 9, $line, [0.07, 0.1, 0.16], $lineIndex === 0);
+    }
+    $ops[] = pdf_text(323, $termsY + 58, 10, 'Isporuka', [0.42, 0.45, 0.52], true);
+    foreach (pdf_wrap((string) ($offer['delivery_terms'] ?? 'Po dogovoru'), 34, 3) as $lineIndex => $line) {
+        $ops[] = pdf_text(323, $termsY + 38 - ($lineIndex * 11), 9, $line, [0.07, 0.1, 0.16], $lineIndex === 0);
+    }
+
+    $note = trim((string) ($offer['note'] ?? ''));
+    if ($note !== '') {
+        $ops[] = pdf_fill_rect(36, 74, 523, 36, [1, 0.98, 0.92]);
+        $ops[] = pdf_text(52, 94, 9, 'Napomena: ' . implode(' ', pdf_wrap($note, 92, 1)), [0.36, 0.25, 0.07], false);
+    }
+
+    $ops[] = pdf_line(36, 54, 559, 54, [0.86, 0.88, 0.91]);
+    $ops[] = pdf_text(36, 34, 9, 'Prevoz Kop', [0.42, 0.45, 0.52], true);
+    $ops[] = pdf_text(396, 34, 9, 'prevozkopbb@gmail.com | +381 60 588 7471', [0.42, 0.45, 0.52], false);
+
+    return pdf_document(implode("\n", $ops));
+}
+
+function pdf_document(string $stream): string
+{
+    $objects = [];
+    $objects[] = '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj';
+    $objects[] = '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj';
+    $objects[] = '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >> endobj';
+    $objects[] = '4 0 obj << /Length ' . strlen($stream) . " >> stream\n" . $stream . "\nendstream endobj";
+    $objects[] = '5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj';
+    $objects[] = '6 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> endobj';
+
+    $pdf = "%PDF-1.4\n";
+    $offsets = [0];
+    foreach ($objects as $object) {
+        $offsets[] = strlen($pdf);
+        $pdf .= $object . "\n";
+    }
+    $xrefOffset = strlen($pdf);
+    $pdf .= "xref\n0 " . (count($objects) + 1) . "\n";
+    $pdf .= "0000000000 65535 f \n";
+    foreach (array_slice($offsets, 1) as $offset) {
+        $pdf .= str_pad((string) $offset, 10, '0', STR_PAD_LEFT) . " 00000 n \n";
+    }
+    $pdf .= 'trailer << /Size ' . (count($objects) + 1) . " /Root 1 0 R >>\nstartxref\n" . $xrefOffset . "\n%%EOF";
+    return $pdf;
+}
+
+function pdf_text(float $x, float $y, int $size, string $text, array $rgb, bool $bold): string
+{
+    $safe = pdf_escape_text(pdf_to_latin($text));
+    return 'BT /' . ($bold ? 'F2' : 'F1') . ' ' . $size . ' Tf '
+        . implode(' ', array_map('pdf_decimal', $rgb)) . ' rg '
+        . pdf_decimal($x) . ' ' . pdf_decimal($y) . ' Td (' . $safe . ') Tj ET';
+}
+
+function pdf_panel(float $x, float $y, float $width, float $height): string
+{
+    return pdf_fill_rect($x, $y, $width, $height, [1, 1, 1])
+        . "\n"
+        . implode(' ', array_map('pdf_decimal', [0.88, 0.9, 0.93])) . ' RG 1 w '
+        . pdf_decimal($x) . ' ' . pdf_decimal($y) . ' ' . pdf_decimal($width) . ' ' . pdf_decimal($height) . ' re S';
+}
+
+function pdf_fill_rect(float $x, float $y, float $width, float $height, array $rgb): string
+{
+    return implode(' ', array_map('pdf_decimal', $rgb)) . ' rg '
+        . pdf_decimal($x) . ' ' . pdf_decimal($y) . ' ' . pdf_decimal($width) . ' ' . pdf_decimal($height) . ' re f';
+}
+
+function pdf_line(float $x1, float $y1, float $x2, float $y2, array $rgb): string
+{
+    return implode(' ', array_map('pdf_decimal', $rgb)) . ' RG 1 w '
+        . pdf_decimal($x1) . ' ' . pdf_decimal($y1) . ' m '
+        . pdf_decimal($x2) . ' ' . pdf_decimal($y2) . ' l S';
+}
+
+function pdf_wrap(string $text, int $limit, int $maxLines): array
+{
+    $words = preg_split('/\s+/', trim(pdf_to_latin($text))) ?: [];
+    $lines = [];
+    $line = '';
+    foreach ($words as $word) {
+        $candidate = trim($line . ' ' . $word);
+        if (strlen($candidate) <= $limit) {
+            $line = $candidate;
+            continue;
+        }
+        if ($line !== '') {
+            $lines[] = $line;
+        }
+        $line = strlen($word) > $limit ? substr($word, 0, $limit - 3) . '...' : $word;
+        if (count($lines) >= $maxLines) {
+            break;
+        }
+    }
+    if ($line !== '' && count($lines) < $maxLines) {
+        $lines[] = $line;
+    }
+    return $lines ?: [''];
+}
+
+function pdf_to_latin(string $text): string
+{
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text);
+    if (is_string($ascii) && $ascii !== '') {
+        return $ascii;
+    }
+
+    return preg_replace('/[^\x20-\x7E]/', '', $text) ?? '';
+}
+
+function pdf_escape_text(string $text): string
+{
+    return str_replace(['\\', '(', ')'], ['\\\\', '\(', '\)'], $text);
+}
+
+function pdf_decimal(float $value): string
+{
+    return rtrim(rtrim(number_format($value, 3, '.', ''), '0'), '.');
 }
 
 function fetch_project(PDO $pdo, int $id): ?array

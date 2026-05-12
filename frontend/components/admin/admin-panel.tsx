@@ -33,6 +33,7 @@ import {
   adminCreateOrderOffer,
   adminListOrderNotes,
   adminListOrderOffers,
+  adminOfferPdfUrl,
   adminOfferPrintUrl,
   adminUpdateOrderOffer,
   adminUpdateProject,
@@ -2638,7 +2639,7 @@ export default function AdminPanel({
                                   }
                                   minRows={2}
                                 />
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid gap-2 sm:grid-cols-3">
                                   <Button
                                     size="sm"
                                     variant="flat"
@@ -2775,6 +2776,15 @@ export default function AdminPanel({
                                   >
                                     Otvori PDF prikaz
                                   </Button>
+                                  <Button
+                                    as="a"
+                                    href={offers[0] ? adminOfferPdfUrl(offers[0].id) : undefined}
+                                    size="sm"
+                                    variant="flat"
+                                    isDisabled={!offers[0]}
+                                  >
+                                    Preuzmi PDF
+                                  </Button>
                                 </div>
 
                                 {offers.length > 0 && (
@@ -2806,17 +2816,28 @@ export default function AdminPanel({
                                             <SelectItem key={item.key}>{item.label}</SelectItem>
                                           ))}
                                         </Select>
-                                        <Button
-                                          as="a"
-                                          href={adminOfferPrintUrl(offer.id)}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          size="sm"
-                                          variant="flat"
-                                          className="mt-2 w-full"
-                                        >
-                                          Otvori PDF prikaz
-                                        </Button>
+                                        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                                          <Button
+                                            as="a"
+                                            href={adminOfferPrintUrl(offer.id)}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            size="sm"
+                                            variant="flat"
+                                            className="w-full"
+                                          >
+                                            Otvori PDF prikaz
+                                          </Button>
+                                          <Button
+                                            as="a"
+                                            href={adminOfferPdfUrl(offer.id)}
+                                            size="sm"
+                                            variant="flat"
+                                            className="w-full"
+                                          >
+                                            Preuzmi PDF
+                                          </Button>
+                                        </div>
                                       </div>
                                     ))}
                                   </div>

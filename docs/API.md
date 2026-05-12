@@ -39,6 +39,7 @@
 - `POST /api/admin/orders/{id}/offers`
 - `PUT /api/admin/offers/{id}`
 - `GET /api/admin/offers/{id}/print` - print-ready HTML view for Save as PDF / printing
+- `GET /api/admin/offers/{id}/pdf` - direct branded PDF download
 
 ## Napomene
 - JSON response koristi `utf-8`.
