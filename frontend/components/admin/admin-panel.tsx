@@ -1503,20 +1503,20 @@ export default function AdminPanel({
               </div>
 
               <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
-                <h3 className="text-lg font-semibold text-dark">Sledeći nivo sistema</h3>
+                <h3 className="text-lg font-semibold text-dark">Prodajni sistem</h3>
                 <div className="mt-4 grid gap-3 md:grid-cols-3">
                   {[
                     {
                       title: "Ponude iz porudžbine",
-                      text: "Iz lead-a napraviti ponudu sa stavkama, cenom, rokom, popustom i statusom slanja.",
+                      text: "Iz svakog lead-a napravite ponudu sa stavkama, cenom, rokom i statusom slanja.",
                     },
                     {
-                      title: "PDF u Prevoz Kop dizajnu",
-                      text: "Jedan brandirani template za beton, behaton i kombinovane ponude, spreman za slanje kupcu.",
+                      title: "PDF za slanje kupcu",
+                      text: "Ponuda ima i pregled za štampu i direktan PDF download iz admin panela.",
                     },
                     {
-                      title: "Naplata i avansi",
-                      text: "Praćenje prihvaćeno, avans, plaćeno, isporučeno i izgubljeno za realan prodajni levak.",
+                      title: "Naplata i zatvaranje",
+                      text: "Statusi ponude, prihvaćeno i plaćeno čuvaju realan prodajni tok na jednom mestu.",
                     },
                   ].map((item) => (
                     <div key={item.title} className="rounded-xl border border-black/5 bg-gray-50 p-4">
@@ -2368,7 +2368,7 @@ export default function AdminPanel({
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-black/5 bg-gray-50 p-4 shadow-sm">
+              <div className="rounded-2xl border border-black/5 bg-gray-50 p-4 shadow-sm sm:p-5">
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_1fr_0.8fr_0.8fr_1.3fr]">
                   <Select
                     label="Usluga"
@@ -2456,7 +2456,7 @@ export default function AdminPanel({
                       return (
                         <article
                           key={order.id}
-                          className="grid gap-4 px-4 py-5 transition hover:bg-gray-50/80 sm:px-5 xl:grid-cols-[1.1fr_1fr_0.9fr_1fr_1.2fr]"
+                          className="grid gap-5 px-4 py-5 transition hover:bg-gray-50/80 sm:px-5 xl:grid-cols-[1.1fr_1fr_0.9fr_1fr_1.2fr] xl:gap-4"
                         >
                           <div className="min-w-0">
                             <div className="flex items-start justify-between gap-3">
@@ -2596,7 +2596,7 @@ export default function AdminPanel({
                           </div>
 
                           <div className="min-w-0 space-y-3">
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-2 sm:grid-cols-2">
                               <Button
                                 as="a"
                                 href={`mailto:${order.email}`}
@@ -2756,7 +2756,7 @@ export default function AdminPanel({
                                   </Button>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid gap-2 sm:grid-cols-3">
                                   <Button
                                     size="sm"
                                     variant="flat"
