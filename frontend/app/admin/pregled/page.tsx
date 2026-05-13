@@ -7,7 +7,7 @@ export default function AdminOverviewPage() {
       <Link href="/admin" className="text-sm font-semibold text-primary">
         Nazad na admin meni
       </Link>
-      <AdminPanel defaultSection="overview" showSectionSwitcher={false} />
+      <AdminPanel defaultSection="overview" showSectionSwitcher={false} unauthenticatedMode="redirect" />
     </div>
   );
 }

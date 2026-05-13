@@ -107,11 +107,13 @@ type AdminSection = "overview" | "projects" | "orders" | "products";
 type AdminPanelProps = {
   defaultSection?: AdminSection;
   showSectionSwitcher?: boolean;
+  unauthenticatedMode?: "login" | "redirect";
 };
 
 export default function AdminPanel({
   defaultSection = "overview",
   showSectionSwitcher = true,
+  unauthenticatedMode = "login",
 }: AdminPanelProps) {
   const [view, setView] = useState<ViewState>("loading");
   const [section, setSection] = useState<AdminSection>(defaultSection);
@@ -344,6 +346,10 @@ export default function AdminPanel({
       setIsAuthenticated(false);
       if (error instanceof ApiError && error.status === 401) {
         localStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
+        if (unauthenticatedMode === "redirect") {
+          window.location.href = "/admin";
+          return;
+        }
         try {
           const published = await getProjects(50, 0);
           setProjects(published.data);

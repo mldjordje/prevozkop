@@ -7,7 +7,7 @@ export default function AdminProductsPage() {
       <Link href="/admin" className="text-sm font-semibold text-primary">
         Nazad na admin meni
       </Link>
-      <AdminPanel defaultSection="products" showSectionSwitcher={false} />
+      <AdminPanel defaultSection="products" showSectionSwitcher={false} unauthenticatedMode="redirect" />
     </div>
   );
 }

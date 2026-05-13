@@ -7,7 +7,7 @@ export default function AdminProjectsPage() {
       <Link href="/admin" className="text-sm font-semibold text-primary">
         Nazad na admin meni
       </Link>
-      <AdminPanel defaultSection="projects" showSectionSwitcher={false} />
+      <AdminPanel defaultSection="projects" showSectionSwitcher={false} unauthenticatedMode="redirect" />
     </div>
   );
 }

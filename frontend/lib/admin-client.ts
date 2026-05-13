@@ -277,6 +277,34 @@ export async function adminCreateOrderOffer(orderId: number, payload: {
   });
 }
 
+export async function adminCreateManualOffer(payload: {
+  customer: {
+    name: string;
+    email: string;
+    phone?: string | null;
+  };
+  order: {
+    subject?: string | null;
+    service_type?: Order["service_type"];
+    city_slug?: string | null;
+    message?: string | null;
+  };
+  offer: {
+    items: Array<Pick<OrderOfferItem, "description" | "quantity" | "unit" | "unit_price">>;
+    tax_rate?: number;
+    currency?: string;
+    valid_until?: string | null;
+    payment_terms?: string | null;
+    delivery_terms?: string | null;
+    note?: string | null;
+  };
+}) {
+  return adminFetch<{ order: Order; offer: OrderOffer }>("/admin/manual-offers", {
+    method: "POST",
+    json: payload,
+  });
+}
+
 export async function adminUpdateOrderOffer(id: number, payload: Pick<OrderOffer, "status">) {
   return adminFetch<OrderOffer>(`/admin/offers/${id}`, {
     method: "PUT",

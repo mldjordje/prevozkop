@@ -336,6 +336,10 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
         list_orders($pdo);
     }
 
+    if ($sub === 'manual-offers' && $method === 'POST') {
+        create_manual_offer($pdo, (int) ($_SESSION['admin_id'] ?? 0));
+    }
+
     if (preg_match('#^orders/(\d+)$#', $sub, $m) && $method === 'PUT') {
         update_order($pdo, (int) $m[1]);
     }
@@ -1125,6 +1129,78 @@ function create_order_offer(PDO $pdo, int $orderId, int $adminId): void
     ensure_order_exists($pdo, $orderId);
 
     $data = read_json_body();
+    $offer = insert_order_offer($pdo, $orderId, $adminId, $data);
+    send_json($offer, 201);
+}
+
+function create_manual_offer(PDO $pdo, int $adminId): void
+{
+    $data = read_json_body();
+    $customer = is_array($data['customer'] ?? null) ? $data['customer'] : [];
+    $order = is_array($data['order'] ?? null) ? $data['order'] : [];
+    $offerData = is_array($data['offer'] ?? null) ? $data['offer'] : [];
+
+    $name = trim((string) ($customer['name'] ?? ''));
+    $email = trim((string) ($customer['email'] ?? 'ponuda@prevozkop.rs')) ?: 'ponuda@prevozkop.rs';
+    $phone = trim((string) ($customer['phone'] ?? ''));
+    $subject = trim((string) ($order['subject'] ?? 'Rucna komercijalna ponuda')) ?: 'Rucna komercijalna ponuda';
+    $serviceType = trim((string) ($order['service_type'] ?? 'other'));
+    $citySlug = trim((string) ($order['city_slug'] ?? ''));
+    $message = trim((string) ($order['message'] ?? 'Ponuda kreirana rucno u admin panelu.')) ?: 'Ponuda kreirana rucno u admin panelu.';
+
+    if ($name === '') {
+        error_json(400, 'Customer name is required');
+    }
+    if (!in_array($serviceType, ['beton', 'behaton', 'other'], true)) {
+        $serviceType = 'other';
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO orders (
+                name, email, phone, subject, message, status, service_type, city_slug,
+                pipeline_stage, source_page
+            ) VALUES (
+                :name, :email, :phone, :subject, :message, :status, :service_type, :city_slug,
+                :pipeline_stage, :source_page
+            )'
+        );
+        $stmt->execute([
+            ':name' => $name,
+            ':email' => $email,
+            ':phone' => $phone !== '' ? $phone : null,
+            ':subject' => $subject,
+            ':message' => $message,
+            ':status' => 'in_progress',
+            ':service_type' => $serviceType,
+            ':city_slug' => $citySlug !== '' ? $citySlug : null,
+            ':pipeline_stage' => 'offered',
+            ':source_page' => 'admin-manual-offer',
+        ]);
+        $orderId = (int) $pdo->lastInsertId();
+        $offer = insert_order_offer($pdo, $orderId, $adminId, $offerData);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT
+            id, name, email, phone, subject, concrete_type, message, status, created_at,
+            service_type, quantity, quantity_unit, city_slug, pipeline_stage, lead_score,
+            next_follow_up_at, lost_reason, source_page, utm_source, utm_medium, utm_campaign
+         FROM orders WHERE id = :id'
+    );
+    $stmt->execute([':id' => $orderId]);
+    send_json(['order' => map_order($stmt->fetch()), 'offer' => $offer], 201);
+}
+
+function insert_order_offer(PDO $pdo, int $orderId, int $adminId, array $data): array
+{
     $items = normalize_offer_items($data['items'] ?? []);
     if (!$items) {
         error_json(400, 'At least one offer item is required');
@@ -1165,7 +1241,7 @@ function create_order_offer(PDO $pdo, int $orderId, int $adminId): void
     $id = (int) $pdo->lastInsertId();
     $stmt = $pdo->prepare('SELECT * FROM order_offers WHERE id = :id LIMIT 1');
     $stmt->execute([':id' => $id]);
-    send_json(map_order_offer($stmt->fetch()), 201);
+    return map_order_offer($stmt->fetch());
 }
 
 function update_order_offer(PDO $pdo, int $offerId): void
@@ -1222,18 +1298,23 @@ function render_order_offer_print(PDO $pdo, int $offerId): void
     $noteHtml = $note !== ''
         ? '<div class="note"><strong>Napomena:</strong><br>' . nl2br(html_escape($note)) . '</div>'
         : '';
+    $companyLegal = 'Dragoslav Marjanovic PR PREVOZ KOP-BETONSKA BAZA<br>Lipa 014/A, 18000, Donja Vrezina, Srbija';
+    $logoDataUri = offer_logo_data_uri();
+    $logoHtml = $logoDataUri !== ''
+        ? '<img class="logo" src="' . $logoDataUri . '" alt="Prevoz Kop logo">'
+        : '<div class="brand">Prevoz Kop</div>';
 
     $html = '<!doctype html><html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
         . '<title>Ponuda ' . html_escape((string) $offer['offer_number']) . '</title>'
         . '<style>'
-        . '@page{size:A4;margin:14mm}*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#111827;font-family:Arial,sans-serif}.sheet{max-width:210mm;margin:0 auto;background:#fff;padding:18mm 16mm;border:1px solid #e5e7eb}.header{display:flex;justify-content:space-between;gap:24px;border-bottom:4px solid #f4a100;padding-bottom:18px}.brand{font-size:28px;font-weight:700}.tag{margin-top:6px;color:#b45309;font-size:12px;text-transform:uppercase;letter-spacing:.12em}.meta{text-align:right;font-size:13px;line-height:1.6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}.panel{border:1px solid #e5e7eb;border-radius:10px;padding:14px}.panel h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;color:#6b7280}.panel p{margin:4px 0;font-size:14px}.title{margin:26px 0 12px;font-size:24px;font-weight:700}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}th,td{padding:10px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}th{background:#111827;color:#fff;text-align:left}.num{text-align:right;white-space:nowrap}.totals{margin-left:auto;margin-top:16px;width:320px;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}.totals div{display:flex;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #e5e7eb}.totals div:last-child{border-bottom:0;background:#fff7ed;font-size:18px;font-weight:700}.terms{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}.note{margin-top:18px;border-left:4px solid #f4a100;background:#fffbeb;padding:12px 14px;font-size:14px;line-height:1.5}.footer{margin-top:28px;padding-top:14px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px;display:flex;justify-content:space-between;gap:16px}.actions{max-width:210mm;margin:14px auto;display:flex;justify-content:flex-end}.actions button{border:0;border-radius:999px;background:#f4a100;color:#111827;font-weight:700;padding:12px 18px;cursor:pointer}@media print{body{background:#fff}.sheet{border:0;padding:0}.actions{display:none}}@media(max-width:760px){.sheet{padding:24px}.header,.footer{display:block}.meta{text-align:left;margin-top:12px}.grid,.terms{grid-template-columns:1fr}.totals{width:100%}}'
+        . '@page{size:A4;margin:14mm}*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#111827;font-family:Arial,sans-serif}.sheet{max-width:210mm;margin:0 auto;background:#fff;padding:18mm 16mm;border:1px solid #e5e7eb}.header{display:flex;justify-content:space-between;gap:24px;border-bottom:4px solid #f4a100;padding-bottom:18px}.logo{width:118px;height:auto;display:block}.brand{font-size:28px;font-weight:700}.legal{margin-top:10px;font-size:12px;line-height:1.45;color:#374151}.meta{text-align:right;font-size:13px;line-height:1.6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}.panel{border:1px solid #e5e7eb;border-radius:10px;padding:14px}.panel h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;color:#6b7280}.panel p{margin:4px 0;font-size:14px}.title{margin:26px 0 12px;font-size:24px;font-weight:700}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}th,td{padding:10px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}th{background:#111827;color:#fff;text-align:left}.num{text-align:right;white-space:nowrap}.totals{margin-left:auto;margin-top:16px;width:320px;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}.totals div{display:flex;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #e5e7eb}.totals div:last-child{border-bottom:0;background:#fff7ed;font-size:18px;font-weight:700}.terms{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}.note{margin-top:18px;border-left:4px solid #f4a100;background:#fffbeb;padding:12px 14px;font-size:14px;line-height:1.5}.footer{margin-top:28px;padding-top:14px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px;display:flex;justify-content:space-between;gap:16px}.actions{max-width:210mm;margin:14px auto;display:flex;justify-content:flex-end}.actions button{border:0;border-radius:999px;background:#f4a100;color:#111827;font-weight:700;padding:12px 18px;cursor:pointer}@media print{body{background:#fff}.sheet{border:0;padding:0}.actions{display:none}}@media(max-width:760px){.sheet{padding:24px}.header,.footer{display:block}.meta{text-align:left;margin-top:12px}.grid,.terms{grid-template-columns:1fr}.totals{width:100%}}'
         . '</style></head><body>'
-        . '<div class="actions"><button onclick="window.print()">Sačuvaj kao PDF / štampaj</button></div>'
+        . '<div class="actions"><button onclick="window.print()">Sacuvaj kao PDF / stampaj</button></div>'
         . '<main class="sheet">'
-        . '<section class="header"><div><div class="brand">Prevoz Kop</div><div class="tag">Betonska baza i građevinske usluge</div></div>'
+        . '<section class="header"><div>' . $logoHtml . '<div class="legal">' . $companyLegal . '</div></div>'
         . '<div class="meta"><strong>Ponuda ' . html_escape((string) $offer['offer_number']) . '</strong><br>'
         . 'Datum: ' . html_escape(substr((string) $offer['created_at'], 0, 10)) . '<br>'
-        . 'Važi do: ' . $validUntil . '<br>'
+        . 'Vazi do: ' . $validUntil . '<br>'
         . 'Status: ' . html_escape((string) $offer['status']) . '</div></section>'
         . '<div class="grid"><section class="panel"><h2>Kupac</h2>'
         . '<p><strong>' . html_escape((string) ($row['customer_name'] ?? '')) . '</strong></p>'
@@ -1244,16 +1325,16 @@ function render_order_offer_print(PDO $pdo, int $offerId): void
         . '<p>Usluga: ' . html_escape((string) ($row['order_service'] ?? '')) . '</p>'
         . '<p>Grad: ' . html_escape((string) ($row['order_city'] ?? '')) . '</p></section></div>'
         . '<div class="title">Komercijalna ponuda</div>'
-        . '<table><thead><tr><th>#</th><th>Opis</th><th class="num">Količina</th><th>JM</th><th class="num">Cena</th><th class="num">Iznos</th></tr></thead><tbody>' . $itemsHtml . '</tbody></table>'
+        . '<table><thead><tr><th>#</th><th>Opis</th><th class="num">Kolicina</th><th>JM</th><th class="num">Cena</th><th class="num">Iznos</th></tr></thead><tbody>' . $itemsHtml . '</tbody></table>'
         . '<div class="totals">'
         . '<div><span>Osnovica</span><strong>' . offer_money((float) $offer['subtotal']) . ' ' . html_escape((string) $offer['currency']) . '</strong></div>'
         . '<div><span>PDV ' . offer_number((float) $offer['tax_rate']) . '%</span><strong>' . offer_money((float) $offer['tax_amount']) . ' ' . html_escape((string) $offer['currency']) . '</strong></div>'
         . '<div><span>Ukupno</span><strong>' . offer_money((float) $offer['total']) . ' ' . html_escape((string) $offer['currency']) . '</strong></div>'
         . '</div>'
-        . '<div class="terms"><section class="panel"><h2>Plaćanje</h2><p>' . $paymentTerms . '</p></section>'
+        . '<div class="terms"><section class="panel"><h2>Placanje</h2><p>' . $paymentTerms . '</p></section>'
         . '<section class="panel"><h2>Isporuka</h2><p>' . $deliveryTerms . '</p></section></div>'
         . $noteHtml
-        . '<footer class="footer"><span>Prevoz Kop</span><span>prevozkopbb@gmail.com | +381 60 588 7471</span></footer>'
+        . '<footer class="footer"><span>' . $companyLegal . '</span><span>prevozkopbb@gmail.com | +381 60 588 7471</span></footer>'
         . '</main></body></html>';
 
     send_html($html);
@@ -1447,17 +1528,42 @@ function offer_money(float $value): string
     return number_format($value, 2, ',', '.');
 }
 
+function offer_logo_path(): string
+{
+    return __DIR__ . '/assets/prevozkop-logo.jpg';
+}
+
+function offer_logo_data_uri(): string
+{
+    $path = offer_logo_path();
+    if (!is_file($path)) {
+        return '';
+    }
+    $data = file_get_contents($path);
+    return $data === false ? '' : 'data:image/jpeg;base64,' . base64_encode($data);
+}
+
 function build_order_offer_pdf(array $row, array $offer): string
 {
     $ops = [];
+    $images = [];
+    $logoPath = offer_logo_path();
+    if (is_file($logoPath)) {
+        $images['Im1'] = $logoPath;
+    }
     $ops[] = pdf_fill_rect(0, 0, 595, 842, [0.98, 0.99, 1]);
-    $ops[] = pdf_fill_rect(36, 734, 523, 72, [0.07, 0.1, 0.16]);
-    $ops[] = pdf_fill_rect(36, 726, 523, 8, [0.96, 0.63, 0.0]);
-    $ops[] = pdf_text(52, 775, 22, 'Prevoz Kop', [1, 1, 1], true);
-    $ops[] = pdf_text(52, 754, 9, 'Betonska baza i gradjevinske usluge', [1, 0.87, 0.58], false);
-    $ops[] = pdf_text(396, 776, 10, 'Ponuda ' . (string) $offer['offer_number'], [1, 1, 1], true);
-    $ops[] = pdf_text(396, 760, 9, 'Datum: ' . substr((string) $offer['created_at'], 0, 10), [1, 1, 1], false);
-    $ops[] = pdf_text(396, 746, 9, 'Vazi do: ' . ((string) ($offer['valid_until'] ?: 'Po dogovoru')), [1, 1, 1], false);
+    $ops[] = pdf_fill_rect(36, 714, 523, 92, [1, 1, 1]);
+    if (isset($images['Im1'])) {
+        $ops[] = pdf_image('Im1', 50, 728, 96, 96);
+    } else {
+        $ops[] = pdf_text(52, 775, 22, 'Prevoz Kop', [0.07, 0.1, 0.16], true);
+    }
+    $ops[] = pdf_text(164, 786, 9, 'Dragoslav Marjanovic PR PREVOZ KOP-BETONSKA BAZA', [0.07, 0.1, 0.16], true);
+    $ops[] = pdf_text(164, 770, 9, 'Lipa 014/A, 18000, Donja Vrezina, Srbija', [0.16, 0.2, 0.28], false);
+    $ops[] = pdf_fill_rect(36, 706, 523, 8, [0.96, 0.63, 0.0]);
+    $ops[] = pdf_text(396, 786, 10, 'Ponuda ' . (string) $offer['offer_number'], [0.07, 0.1, 0.16], true);
+    $ops[] = pdf_text(396, 770, 9, 'Datum: ' . substr((string) $offer['created_at'], 0, 10), [0.16, 0.2, 0.28], false);
+    $ops[] = pdf_text(396, 756, 9, 'Vazi do: ' . ((string) ($offer['valid_until'] ?: 'Po dogovoru')), [0.16, 0.2, 0.28], false);
 
     $ops[] = pdf_panel(36, 612, 252, 92);
     $ops[] = pdf_panel(307, 612, 252, 92);
@@ -1534,21 +1640,41 @@ function build_order_offer_pdf(array $row, array $offer): string
     }
 
     $ops[] = pdf_line(36, 54, 559, 54, [0.86, 0.88, 0.91]);
-    $ops[] = pdf_text(36, 34, 9, 'Prevoz Kop', [0.42, 0.45, 0.52], true);
+    $ops[] = pdf_text(36, 34, 8, 'Dragoslav Marjanovic PR PREVOZ KOP-BETONSKA BAZA, Lipa 014/A, 18000, Donja Vrezina, Srbija', [0.42, 0.45, 0.52], true);
     $ops[] = pdf_text(396, 34, 9, 'prevozkopbb@gmail.com | +381 60 588 7471', [0.42, 0.45, 0.52], false);
 
-    return pdf_document(implode("\n", $ops));
+    return pdf_document(implode("\n", $ops), $images);
 }
 
-function pdf_document(string $stream): string
+function pdf_document(string $stream, array $images = []): string
 {
     $objects = [];
     $objects[] = '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj';
     $objects[] = '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj';
-    $objects[] = '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >> endobj';
+    $xObjects = [];
+    $nextObject = 7;
+    foreach ($images as $name => $path) {
+        $xObjects[] = '/' . $name . ' ' . $nextObject . ' 0 R';
+        $nextObject++;
+    }
+    $resourceImages = $xObjects ? ' /XObject << ' . implode(' ', $xObjects) . ' >>' : '';
+    $objects[] = '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >>' . $resourceImages . ' >> /Contents 4 0 R >> endobj';
     $objects[] = '4 0 obj << /Length ' . strlen($stream) . " >> stream\n" . $stream . "\nendstream endobj";
     $objects[] = '5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj';
     $objects[] = '6 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> endobj';
+    $imageObjectId = 7;
+    foreach ($images as $path) {
+        $info = @getimagesize($path);
+        $bytes = file_get_contents($path);
+        if (!$info || $bytes === false) {
+            continue;
+        }
+        $objects[] = $imageObjectId . ' 0 obj << /Type /XObject /Subtype /Image /Width ' . (int) $info[0]
+            . ' /Height ' . (int) $info[1]
+            . ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' . strlen($bytes)
+            . " >> stream\n" . $bytes . "\nendstream endobj";
+        $imageObjectId++;
+    }
 
     $pdf = "%PDF-1.4\n";
     $offsets = [0];
@@ -1593,6 +1719,12 @@ function pdf_line(float $x1, float $y1, float $x2, float $y2, array $rgb): strin
     return implode(' ', array_map('pdf_decimal', $rgb)) . ' RG 1 w '
         . pdf_decimal($x1) . ' ' . pdf_decimal($y1) . ' m '
         . pdf_decimal($x2) . ' ' . pdf_decimal($y2) . ' l S';
+}
+
+function pdf_image(string $name, float $x, float $y, float $width, float $height): string
+{
+    return 'q ' . pdf_decimal($width) . ' 0 0 ' . pdf_decimal($height) . ' '
+        . pdf_decimal($x) . ' ' . pdf_decimal($y) . ' cm /' . $name . ' Do Q';
 }
 
 function pdf_wrap(string $text, int $limit, int $maxLines): array
