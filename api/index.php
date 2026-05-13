@@ -1298,7 +1298,7 @@ function render_order_offer_print(PDO $pdo, int $offerId): void
     $noteHtml = $note !== ''
         ? '<div class="note"><strong>Napomena:</strong><br>' . nl2br(html_escape($note)) . '</div>'
         : '';
-    $companyLegal = 'Dragoslav Marjanovic PR PREVOZ KOP-BETONSKA BAZA<br>Lipa 014/A, 18000, Donja Vrezina, Srbija';
+    $companyLegal = 'Dragoslav Marjanovic PR PREVOZ KOP-BETONSKA BAZA<br>Lipa 014/A, 18000, Donja Vrezina, Srbija<br>PIB 112152599 | MB 65910756';
     $logoDataUri = offer_logo_data_uri();
     $logoHtml = $logoDataUri !== ''
         ? '<img class="logo" src="' . $logoDataUri . '" alt="Prevoz Kop logo">'
@@ -1560,6 +1560,7 @@ function build_order_offer_pdf(array $row, array $offer): string
     }
     $ops[] = pdf_text(164, 786, 9, 'Dragoslav Marjanovic PR PREVOZ KOP-BETONSKA BAZA', [0.07, 0.1, 0.16], true);
     $ops[] = pdf_text(164, 770, 9, 'Lipa 014/A, 18000, Donja Vrezina, Srbija', [0.16, 0.2, 0.28], false);
+    $ops[] = pdf_text(164, 754, 9, 'PIB 112152599 | MB 65910756', [0.16, 0.2, 0.28], false);
     $ops[] = pdf_fill_rect(36, 706, 523, 8, [0.96, 0.63, 0.0]);
     $ops[] = pdf_text(396, 786, 10, 'Ponuda ' . (string) $offer['offer_number'], [0.07, 0.1, 0.16], true);
     $ops[] = pdf_text(396, 770, 9, 'Datum: ' . substr((string) $offer['created_at'], 0, 10), [0.16, 0.2, 0.28], false);
@@ -1640,7 +1641,7 @@ function build_order_offer_pdf(array $row, array $offer): string
     }
 
     $ops[] = pdf_line(36, 54, 559, 54, [0.86, 0.88, 0.91]);
-    $ops[] = pdf_text(36, 34, 8, 'Dragoslav Marjanovic PR PREVOZ KOP-BETONSKA BAZA, Lipa 014/A, 18000, Donja Vrezina, Srbija', [0.42, 0.45, 0.52], true);
+    $ops[] = pdf_text(36, 34, 8, 'Dragoslav Marjanovic PR PREVOZ KOP-BETONSKA BAZA, Lipa 014/A, 18000, Donja Vrezina, Srbija, PIB 112152599, MB 65910756', [0.42, 0.45, 0.52], true);
     $ops[] = pdf_text(396, 34, 9, 'prevozkopbb@gmail.com | +381 60 588 7471', [0.42, 0.45, 0.52], false);
 
     return pdf_document(implode("\n", $ops), $images);
