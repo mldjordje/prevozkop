@@ -336,6 +336,10 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
         list_orders($pdo);
     }
 
+    if ($sub === 'offers' && $method === 'GET') {
+        list_all_order_offers($pdo);
+    }
+
     if ($sub === 'manual-offers' && $method === 'POST') {
         create_manual_offer($pdo, (int) ($_SESSION['admin_id'] ?? 0));
     }
@@ -1124,6 +1128,30 @@ function list_order_offers(PDO $pdo, int $orderId): void
     send_json(['data' => array_map('map_order_offer', $rows)]);
 }
 
+function list_all_order_offers(PDO $pdo): void
+{
+    $limit = max(1, min(500, (int) ($_GET['limit'] ?? 200)));
+    $offset = max(0, (int) ($_GET['offset'] ?? 0));
+    $stmt = $pdo->prepare(
+        'SELECT
+            offers.*,
+            orders.name AS customer_name,
+            orders.email AS customer_email,
+            orders.phone AS customer_phone,
+            orders.subject AS order_subject,
+            orders.city_slug AS order_city,
+            orders.service_type AS order_service
+         FROM order_offers offers
+         INNER JOIN orders ON orders.id = offers.order_id
+         ORDER BY offers.created_at DESC, offers.id DESC
+         LIMIT :limit OFFSET :offset'
+    );
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    send_json(['data' => array_map('map_order_offer', $stmt->fetchAll())]);
+}
+
 function create_order_offer(PDO $pdo, int $orderId, int $adminId): void
 {
     ensure_order_exists($pdo, $orderId);
@@ -1211,17 +1239,18 @@ function insert_order_offer(PDO $pdo, int $orderId, int $adminId, array $data): 
     $taxAmount = round($subtotal * ($taxRate / 100), 2);
     $total = round($subtotal + $taxAmount, 2);
     $offerNumber = generate_offer_number($pdo);
+    $title = normalize_offer_title($data['title'] ?? null);
+    $hasTitle = order_offers_has_title_column($pdo);
 
-    $stmt = $pdo->prepare(
-        'INSERT INTO order_offers (
-            order_id, offer_number, status, items, subtotal, tax_rate, tax_amount, total,
-            currency, valid_until, payment_terms, delivery_terms, note, created_by
-         ) VALUES (
-            :order_id, :offer_number, :status, :items, :subtotal, :tax_rate, :tax_amount, :total,
-            :currency, :valid_until, :payment_terms, :delivery_terms, :note, :created_by
-         )'
-    );
-    $stmt->execute([
+    $columns = [
+        'order_id', 'offer_number', 'status', 'items', 'subtotal', 'tax_rate', 'tax_amount', 'total',
+        'currency', 'valid_until', 'payment_terms', 'delivery_terms', 'note', 'created_by',
+    ];
+    $placeholders = [
+        ':order_id', ':offer_number', ':status', ':items', ':subtotal', ':tax_rate', ':tax_amount', ':total',
+        ':currency', ':valid_until', ':payment_terms', ':delivery_terms', ':note', ':created_by',
+    ];
+    $params = [
         ':order_id' => $orderId,
         ':offer_number' => $offerNumber,
         ':status' => 'draft',
@@ -1236,7 +1265,17 @@ function insert_order_offer(PDO $pdo, int $orderId, int $adminId, array $data): 
         ':delivery_terms' => trim((string) ($data['delivery_terms'] ?? '')) ?: null,
         ':note' => trim((string) ($data['note'] ?? '')) ?: null,
         ':created_by' => $adminId > 0 ? $adminId : null,
-    ]);
+    ];
+    if ($hasTitle) {
+        array_splice($columns, 2, 0, 'title');
+        array_splice($placeholders, 2, 0, ':title');
+        $params[':title'] = $title;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO order_offers (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')'
+    );
+    $stmt->execute($params);
 
     $id = (int) $pdo->lastInsertId();
     $stmt = $pdo->prepare('SELECT * FROM order_offers WHERE id = :id LIMIT 1');
@@ -1259,6 +1298,59 @@ function update_order_offer(PDO $pdo, int $offerId): void
         $params[':status'] = $status;
     }
 
+    if (array_key_exists('title', $data) && order_offers_has_title_column($pdo)) {
+        $fields[] = 'title = :title';
+        $params[':title'] = normalize_offer_title($data['title']);
+    }
+
+    if (array_key_exists('items', $data)) {
+        $items = normalize_offer_items($data['items']);
+        if (!$items) {
+            error_json(400, 'At least one offer item is required');
+        }
+        $taxRate = array_key_exists('tax_rate', $data)
+            ? max(0, min(100, (float) ($data['tax_rate'] ?? 0)))
+            : fetch_offer_tax_rate($pdo, $offerId);
+        $subtotal = calculate_offer_subtotal($items);
+        $taxAmount = round($subtotal * ($taxRate / 100), 2);
+        $total = round($subtotal + $taxAmount, 2);
+        $fields[] = 'items = :items';
+        $fields[] = 'subtotal = :subtotal';
+        $fields[] = 'tax_rate = :tax_rate';
+        $fields[] = 'tax_amount = :tax_amount';
+        $fields[] = 'total = :total';
+        $params[':items'] = json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $params[':subtotal'] = $subtotal;
+        $params[':tax_rate'] = $taxRate;
+        $params[':tax_amount'] = $taxAmount;
+        $params[':total'] = $total;
+    } elseif (array_key_exists('tax_rate', $data)) {
+        $current = fetch_offer_for_update($pdo, $offerId);
+        $items = normalize_offer_items(json_decode((string) ($current['items'] ?? '[]'), true) ?: []);
+        $taxRate = max(0, min(100, (float) ($data['tax_rate'] ?? 0)));
+        $subtotal = calculate_offer_subtotal($items);
+        $taxAmount = round($subtotal * ($taxRate / 100), 2);
+        $total = round($subtotal + $taxAmount, 2);
+        $fields[] = 'tax_rate = :tax_rate';
+        $fields[] = 'tax_amount = :tax_amount';
+        $fields[] = 'total = :total';
+        $params[':tax_rate'] = $taxRate;
+        $params[':tax_amount'] = $taxAmount;
+        $params[':total'] = $total;
+    }
+
+    foreach (['currency', 'payment_terms', 'delivery_terms', 'note'] as $field) {
+        if (array_key_exists($field, $data)) {
+            $fields[] = $field . ' = :' . $field;
+            $params[':' . $field] = trim((string) ($data[$field] ?? '')) ?: null;
+        }
+    }
+
+    if (array_key_exists('valid_until', $data)) {
+        $fields[] = 'valid_until = :valid_until';
+        $params[':valid_until'] = normalize_date_or_null($data['valid_until'] ?? null);
+    }
+
     if (!$fields) {
         error_json(400, 'No fields to update');
     }
@@ -1266,12 +1358,7 @@ function update_order_offer(PDO $pdo, int $offerId): void
     $stmt = $pdo->prepare('UPDATE order_offers SET ' . implode(', ', $fields) . ' WHERE id = :id');
     $stmt->execute($params);
 
-    $stmt = $pdo->prepare('SELECT * FROM order_offers WHERE id = :id LIMIT 1');
-    $stmt->execute([':id' => $offerId]);
-    $row = $stmt->fetch();
-    if (!$row) {
-        error_json(404, 'Offer not found');
-    }
+    $row = fetch_order_offer_with_order($pdo, $offerId);
     send_json(map_order_offer($row));
 }
 
@@ -1345,7 +1432,8 @@ function download_order_offer_pdf(PDO $pdo, int $offerId): void
     $row = fetch_order_offer_with_order($pdo, $offerId);
     $offer = map_order_offer($row);
     $pdf = build_order_offer_pdf($row, $offer);
-    $fileName = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) $offer['offer_number']) ?: 'ponuda';
+    $fileNameSource = trim((string) ($offer['title'] ?? '')) ?: (string) $offer['offer_number'];
+    $fileName = preg_replace('/[^A-Za-z0-9._-]+/', '-', pdf_to_latin($fileNameSource)) ?: 'ponuda';
 
     header('Content-Type: application/pdf');
     header('Content-Disposition: attachment; filename="' . $fileName . '.pdf"');
@@ -1511,6 +1599,47 @@ function generate_offer_number(PDO $pdo): string
     $stmt->execute([':prefix' => $prefix . '%']);
     $next = ((int) $stmt->fetchColumn()) + 1;
     return $prefix . str_pad((string) $next, 3, '0', STR_PAD_LEFT);
+}
+
+function normalize_offer_title(mixed $value): ?string
+{
+    $title = trim((string) ($value ?? ''));
+    if ($title === '') {
+        return null;
+    }
+    return substr($title, 0, 190);
+}
+
+function order_offers_has_title_column(PDO $pdo): bool
+{
+    static $hasColumn = null;
+    if ($hasColumn !== null) {
+        return $hasColumn;
+    }
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM order_offers LIKE 'title'");
+        $hasColumn = (bool) ($stmt && $stmt->fetch());
+    } catch (Throwable) {
+        $hasColumn = false;
+    }
+    return $hasColumn;
+}
+
+function fetch_offer_for_update(PDO $pdo, int $offerId): array
+{
+    $stmt = $pdo->prepare('SELECT * FROM order_offers WHERE id = :id LIMIT 1');
+    $stmt->execute([':id' => $offerId]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Offer not found');
+    }
+    return $row;
+}
+
+function fetch_offer_tax_rate(PDO $pdo, int $offerId): float
+{
+    $row = fetch_offer_for_update($pdo, $offerId);
+    return (float) ($row['tax_rate'] ?? 0);
 }
 
 function html_escape(string $value): string
@@ -1957,6 +2086,7 @@ function map_order_offer(array $row): array
         'id' => (int) $row['id'],
         'order_id' => (int) $row['order_id'],
         'offer_number' => $row['offer_number'],
+        'title' => $row['title'] ?? null,
         'status' => $row['status'],
         'items' => $items,
         'subtotal' => (float) $row['subtotal'],
@@ -1971,5 +2101,11 @@ function map_order_offer(array $row): array
         'created_by' => isset($row['created_by']) ? (int) $row['created_by'] : null,
         'created_at' => $row['created_at'],
         'updated_at' => $row['updated_at'] ?? null,
+        'customer_name' => $row['customer_name'] ?? null,
+        'customer_email' => $row['customer_email'] ?? null,
+        'customer_phone' => $row['customer_phone'] ?? null,
+        'order_subject' => $row['order_subject'] ?? null,
+        'order_city' => $row['order_city'] ?? null,
+        'order_service' => $row['order_service'] ?? null,
     ];
 }

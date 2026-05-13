@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS order_offers (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   order_id INT UNSIGNED NOT NULL,
   offer_number VARCHAR(60) NOT NULL UNIQUE,
+  title VARCHAR(190) DEFAULT NULL,
   status ENUM('draft','sent','accepted','paid','rejected') DEFAULT 'draft',
   items JSON NOT NULL,
   subtotal DECIMAL(12,2) NOT NULL DEFAULT 0.00,

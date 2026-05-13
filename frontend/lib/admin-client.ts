@@ -262,7 +262,18 @@ export async function adminListOrderOffers(orderId: number) {
   });
 }
 
+export async function adminListOffers(params: { limit?: number; offset?: number } = {}) {
+  const search = new URLSearchParams();
+  if (params.limit) search.set("limit", String(params.limit));
+  if (params.offset) search.set("offset", String(params.offset));
+  const qs = search.toString();
+  return adminFetch<{ data: OrderOffer[] }>(qs ? `/admin/offers?${qs}` : "/admin/offers", {
+    method: "GET",
+  });
+}
+
 export async function adminCreateOrderOffer(orderId: number, payload: {
+  title?: string | null;
   items: Array<Pick<OrderOfferItem, "description" | "quantity" | "unit" | "unit_price">>;
   tax_rate?: number;
   currency?: string;
@@ -290,6 +301,7 @@ export async function adminCreateManualOffer(payload: {
     message?: string | null;
   };
   offer: {
+    title?: string | null;
     items: Array<Pick<OrderOfferItem, "description" | "quantity" | "unit" | "unit_price">>;
     tax_rate?: number;
     currency?: string;
@@ -305,7 +317,10 @@ export async function adminCreateManualOffer(payload: {
   });
 }
 
-export async function adminUpdateOrderOffer(id: number, payload: Pick<OrderOffer, "status">) {
+export async function adminUpdateOrderOffer(id: number, payload: Partial<Pick<
+  OrderOffer,
+  "title" | "status" | "items" | "tax_rate" | "currency" | "valid_until" | "payment_terms" | "delivery_terms" | "note"
+>>) {
   return adminFetch<OrderOffer>(`/admin/offers/${id}`, {
     method: "PUT",
     json: payload,

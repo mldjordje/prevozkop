@@ -77,6 +77,7 @@ export type OrderOffer = {
   id: number;
   order_id: number;
   offer_number: string;
+  title?: string | null;
   status: "draft" | "sent" | "accepted" | "paid" | "rejected";
   items: OrderOfferItem[];
   subtotal: number;
@@ -91,6 +92,12 @@ export type OrderOffer = {
   created_by?: number | null;
   created_at: string;
   updated_at?: string | null;
+  customer_name?: string | null;
+  customer_email?: string | null;
+  customer_phone?: string | null;
+  order_subject?: string | null;
+  order_city?: string | null;
+  order_service?: string | null;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";

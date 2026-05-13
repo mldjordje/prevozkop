@@ -146,6 +146,7 @@ export default function AdminPanel({
     Record<
       number,
       {
+        title: string;
         description: string;
         quantity: string;
         unit: string;
@@ -1059,6 +1060,7 @@ export default function AdminPanel({
     const service = resolveOrderService(order);
     return (
       orderOfferDrafts[order.id] || {
+        title: order.subject || (service === "beton" ? "Ponuda za beton" : service === "behaton" ? "Ponuda za behaton" : "Komercijalna ponuda"),
         description: order.subject || (service === "beton" ? "Isporuka betona" : service === "behaton" ? "Isporuka behatona" : "Građevinska usluga"),
         quantity: order.quantity || "1",
         unit: order.quantity_unit || (service === "beton" ? "m3" : service === "behaton" ? "m2" : "kom"),
@@ -1113,6 +1115,7 @@ export default function AdminPanel({
     setMessage(null);
     try {
       await adminCreateOrderOffer(order.id, {
+        title: draft.title.trim() || null,
         items: [
           {
             description,
@@ -2684,6 +2687,12 @@ export default function AdminPanel({
                               </summary>
                               <div className="mt-3 space-y-3">
                                 <div className="grid gap-2">
+                                  <Input
+                                    label="Naziv ponude / PDF fajla"
+                                    size="sm"
+                                    value={offerDraft.title}
+                                    onChange={(e) => updateOfferDraft(order, "title", e.target.value)}
+                                  />
                                   <Input
                                     label="Opis stavke"
                                     size="sm"

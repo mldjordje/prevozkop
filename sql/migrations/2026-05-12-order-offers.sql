@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS order_offers (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   order_id INT UNSIGNED NOT NULL,
   offer_number VARCHAR(60) NOT NULL UNIQUE,
+  title VARCHAR(190) DEFAULT NULL,
   status ENUM('draft','sent','accepted','paid','rejected') DEFAULT 'draft',
   items JSON NOT NULL,
   subtotal DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -24,3 +25,16 @@ CREATE TABLE IF NOT EXISTS order_offers (
   CONSTRAINT fk_order_offers_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
   CONSTRAINT fk_order_offers_admin FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET @add_order_offer_title = IF(
+  (SELECT COUNT(*)
+   FROM information_schema.COLUMNS
+   WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'order_offers'
+     AND COLUMN_NAME = 'title') = 0,
+  'ALTER TABLE order_offers ADD COLUMN title VARCHAR(190) DEFAULT NULL AFTER offer_number',
+  'SELECT 1'
+);
+PREPARE add_order_offer_title_stmt FROM @add_order_offer_title;
+EXECUTE add_order_offer_title_stmt;
+DEALLOCATE PREPARE add_order_offer_title_stmt;
