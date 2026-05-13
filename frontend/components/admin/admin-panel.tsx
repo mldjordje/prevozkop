@@ -103,6 +103,12 @@ type OrderServiceFilter = (typeof orderServiceFilters)[number]["key"];
 
 type ViewState = "loading" | "login" | "ready";
 type AdminSection = "overview" | "projects" | "orders" | "products";
+type OfferLineDraft = {
+  description: string;
+  quantity: string;
+  unit: string;
+  unitPrice: string;
+};
 
 type AdminPanelProps = {
   defaultSection?: AdminSection;
@@ -147,10 +153,7 @@ export default function AdminPanel({
       number,
       {
         title: string;
-        description: string;
-        quantity: string;
-        unit: string;
-        unitPrice: string;
+        items: OfferLineDraft[];
         taxRate: string;
         validUntil: string;
         paymentTerms: string;
@@ -1061,10 +1064,14 @@ export default function AdminPanel({
     return (
       orderOfferDrafts[order.id] || {
         title: order.subject || (service === "beton" ? "Ponuda za beton" : service === "behaton" ? "Ponuda za behaton" : "Komercijalna ponuda"),
-        description: order.subject || (service === "beton" ? "Isporuka betona" : service === "behaton" ? "Isporuka behatona" : "Građevinska usluga"),
-        quantity: order.quantity || "1",
-        unit: order.quantity_unit || (service === "beton" ? "m3" : service === "behaton" ? "m2" : "kom"),
-        unitPrice: "",
+        items: [
+          {
+            description: order.subject || (service === "beton" ? "Isporuka betona" : service === "behaton" ? "Isporuka behatona" : "Građevinska usluga"),
+            quantity: order.quantity || "1",
+            unit: order.quantity_unit || (service === "beton" ? "m3" : service === "behaton" ? "m2" : "kom"),
+            unitPrice: "",
+          },
+        ],
         taxRate: "0",
         validUntil: "",
         paymentTerms: "Avans / plaćanje po dogovoru",
@@ -1074,7 +1081,7 @@ export default function AdminPanel({
     );
   }
 
-  function updateOfferDraft(order: Order, field: keyof ReturnType<typeof getOfferDraft>, value: string) {
+  function updateOfferDraft(order: Order, field: Exclude<keyof ReturnType<typeof getOfferDraft>, "items">, value: string) {
     setOrderOfferDrafts((prev) => ({
       ...prev,
       [order.id]: {
@@ -1083,6 +1090,37 @@ export default function AdminPanel({
         [field]: value,
       },
     }));
+  }
+
+  function updateOfferLineDraft(order: Order, index: number, field: keyof OfferLineDraft, value: string) {
+    setOrderOfferDrafts((prev) => {
+      const draft = { ...getOfferDraft(order), ...prev[order.id] };
+      const items = draft.items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item
+      );
+      return { ...prev, [order.id]: { ...draft, items } };
+    });
+  }
+
+  function addOfferLineDraft(order: Order) {
+    setOrderOfferDrafts((prev) => {
+      const draft = { ...getOfferDraft(order), ...prev[order.id] };
+      return {
+        ...prev,
+        [order.id]: {
+          ...draft,
+          items: [...draft.items, { description: "", quantity: "1", unit: "kom", unitPrice: "" }],
+        },
+      };
+    });
+  }
+
+  function removeOfferLineDraft(order: Order, index: number) {
+    setOrderOfferDrafts((prev) => {
+      const draft = { ...getOfferDraft(order), ...prev[order.id] };
+      const items = draft.items.filter((_, itemIndex) => itemIndex !== index);
+      return { ...prev, [order.id]: { ...draft, items: items.length ? items : draft.items } };
+    });
   }
 
   async function loadOrderOffers(orderId: number) {
@@ -1101,13 +1139,18 @@ export default function AdminPanel({
   async function handleCreateOrderOffer(order: Order) {
     if (!isAuthenticated) return;
     const draft = getOfferDraft(order);
-    const description = draft.description.trim();
-    const quantity = Number(draft.quantity.replace(",", "."));
-    const unitPrice = Number(draft.unitPrice.replace(",", "."));
     const taxRate = Number(draft.taxRate.replace(",", "."));
+    const items = draft.items
+      .map((item) => ({
+        description: item.description.trim(),
+        quantity: Number(item.quantity.replace(",", ".")),
+        unit: item.unit.trim() || "kom",
+        unit_price: Number(item.unitPrice.replace(",", ".")),
+      }))
+      .filter((item) => item.description && item.quantity > 0 && item.unit_price > 0);
 
-    if (!description || !quantity || !unitPrice) {
-      setMessage("Unesite opis, količinu i cenu za ponudu.");
+    if (!items.length) {
+      setMessage("Unesite bar jednu stavku sa opisom, količinom i cenom.");
       return;
     }
 
@@ -1116,14 +1159,7 @@ export default function AdminPanel({
     try {
       await adminCreateOrderOffer(order.id, {
         title: draft.title.trim() || null,
-        items: [
-          {
-            description,
-            quantity,
-            unit: draft.unit.trim() || "kom",
-            unit_price: unitPrice,
-          },
-        ],
+        items,
         tax_rate: Number.isFinite(taxRate) ? taxRate : 0,
         valid_until: draft.validUntil || null,
         payment_terms: draft.paymentTerms || null,
@@ -2456,10 +2492,12 @@ export default function AdminPanel({
                       const notes = orderNotes[order.id] || [];
                       const offers = orderOffers[order.id] || [];
                       const offerDraft = getOfferDraft(order);
-                      const draftQuantity = Number(offerDraft.quantity.replace(",", ".")) || 0;
-                      const draftUnitPrice = Number(offerDraft.unitPrice.replace(",", ".")) || 0;
                       const draftTaxRate = Number(offerDraft.taxRate.replace(",", ".")) || 0;
-                      const draftSubtotal = draftQuantity * draftUnitPrice;
+                      const draftSubtotal = offerDraft.items.reduce((sum, item) => {
+                        const quantity = Number(item.quantity.replace(",", ".")) || 0;
+                        const unitPrice = Number(item.unitPrice.replace(",", ".")) || 0;
+                        return sum + quantity * unitPrice;
+                      }, 0);
                       const draftTotal = draftSubtotal + draftSubtotal * (draftTaxRate / 100);
 
                       return (
@@ -2693,31 +2731,52 @@ export default function AdminPanel({
                                     value={offerDraft.title}
                                     onChange={(e) => updateOfferDraft(order, "title", e.target.value)}
                                   />
-                                  <Input
-                                    label="Opis stavke"
-                                    size="sm"
-                                    value={offerDraft.description}
-                                    onChange={(e) => updateOfferDraft(order, "description", e.target.value)}
-                                  />
-                                  <div className="grid gap-2">
-                                    <Input
-                                      label="Količina"
-                                      size="sm"
-                                      value={offerDraft.quantity}
-                                      onChange={(e) => updateOfferDraft(order, "quantity", e.target.value)}
-                                    />
-                                    <Input
-                                      label="Jedinica"
-                                      size="sm"
-                                      value={offerDraft.unit}
-                                      onChange={(e) => updateOfferDraft(order, "unit", e.target.value)}
-                                    />
-                                    <Input
-                                      label="Cena"
-                                      size="sm"
-                                      value={offerDraft.unitPrice}
-                                      onChange={(e) => updateOfferDraft(order, "unitPrice", e.target.value)}
-                                    />
+                                  <div className="space-y-2">
+                                    {offerDraft.items.map((item, index) => (
+                                      <div key={index} className="rounded-lg border border-black/10 bg-white p-2">
+                                        <div className="mb-2 flex items-center justify-between gap-2">
+                                          <p className="text-xs font-semibold text-gray-700">Stavka {index + 1}</p>
+                                          <Button
+                                            size="sm"
+                                            variant="light"
+                                            color="danger"
+                                            onPress={() => removeOfferLineDraft(order, index)}
+                                            isDisabled={offerDraft.items.length === 1}
+                                          >
+                                            Ukloni
+                                          </Button>
+                                        </div>
+                                        <Input
+                                          label="Opis stavke"
+                                          size="sm"
+                                          value={item.description}
+                                          onChange={(e) => updateOfferLineDraft(order, index, "description", e.target.value)}
+                                        />
+                                        <div className="mt-2 grid gap-2">
+                                          <Input
+                                            label="Količina"
+                                            size="sm"
+                                            value={item.quantity}
+                                            onChange={(e) => updateOfferLineDraft(order, index, "quantity", e.target.value)}
+                                          />
+                                          <Input
+                                            label="Jedinica"
+                                            size="sm"
+                                            value={item.unit}
+                                            onChange={(e) => updateOfferLineDraft(order, index, "unit", e.target.value)}
+                                          />
+                                          <Input
+                                            label="Cena"
+                                            size="sm"
+                                            value={item.unitPrice}
+                                            onChange={(e) => updateOfferLineDraft(order, index, "unitPrice", e.target.value)}
+                                          />
+                                        </div>
+                                      </div>
+                                    ))}
+                                    <Button size="sm" variant="flat" onPress={() => addOfferLineDraft(order)}>
+                                      Dodaj stavku
+                                    </Button>
                                   </div>
                                   <div className="grid gap-2 sm:grid-cols-2">
                                     <Input

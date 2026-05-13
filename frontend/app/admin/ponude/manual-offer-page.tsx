@@ -14,12 +14,16 @@ import {
 } from "@/lib/admin-client";
 import type { OrderOffer } from "@/lib/api";
 
-type OfferEditDraft = {
-  title: string;
+type OfferLineDraft = {
   description: string;
   quantity: string;
   unit: string;
   unitPrice: string;
+};
+
+type OfferEditDraft = {
+  title: string;
+  items: OfferLineDraft[];
   taxRate: string;
   validUntil: string;
   paymentTerms: string;
@@ -44,10 +48,9 @@ export default function ManualOfferPage() {
   const [subject, setSubject] = useState("Rucna komercijalna ponuda");
   const [serviceType, setServiceType] = useState("beton");
   const [city, setCity] = useState("");
-  const [description, setDescription] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState("m3");
-  const [unitPrice, setUnitPrice] = useState("");
+  const [offerItems, setOfferItems] = useState<OfferLineDraft[]>([
+    { description: "", quantity: "1", unit: "m3", unitPrice: "" },
+  ]);
   const [taxRate, setTaxRate] = useState("20");
   const [validUntil, setValidUntil] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("Po dogovoru");
@@ -89,21 +92,45 @@ export default function ManualOfferPage() {
   }, []);
 
   const total =
-    (Number(quantity.replace(",", ".")) || 0) *
-    (Number(unitPrice.replace(",", ".")) || 0) *
+    offerItems.reduce((sum, item) => {
+      const quantity = Number(item.quantity.replace(",", ".")) || 0;
+      const unitPrice = Number(item.unitPrice.replace(",", ".")) || 0;
+      return sum + quantity * unitPrice;
+    }, 0) *
     (1 + ((Number(taxRate.replace(",", ".")) || 0) / 100));
+
+  function updateOfferItem(index: number, field: keyof OfferLineDraft, value: string) {
+    setOfferItems((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, [field]: value } : item));
+  }
+
+  function addOfferItem() {
+    setOfferItems((prev) => [...prev, { description: "", quantity: "1", unit: "kom", unitPrice: "" }]);
+  }
+
+  function removeOfferItem(index: number) {
+    setOfferItems((prev) => {
+      const next = prev.filter((_, itemIndex) => itemIndex !== index);
+      return next.length ? next : prev;
+    });
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
     setCreatedOffer(null);
 
-    const parsedQuantity = Number(quantity.replace(",", "."));
-    const parsedUnitPrice = Number(unitPrice.replace(",", "."));
     const parsedTaxRate = Number(taxRate.replace(",", "."));
+    const items = offerItems
+      .map((item) => ({
+        description: item.description.trim(),
+        quantity: Number(item.quantity.replace(",", ".")),
+        unit: item.unit.trim() || "kom",
+        unit_price: Number(item.unitPrice.replace(",", ".")),
+      }))
+      .filter((item) => item.description && item.quantity > 0 && item.unit_price > 0);
 
-    if (!customerName.trim() || !description.trim() || !parsedQuantity || !parsedUnitPrice) {
-      setMessage("Unesite kupca, opis stavke, kolicinu i cenu.");
+    if (!customerName.trim() || !items.length) {
+      setMessage("Unesite kupca i bar jednu stavku sa opisom, kolicinom i cenom.");
       return;
     }
 
@@ -123,14 +150,7 @@ export default function ManualOfferPage() {
         },
         offer: {
           title: offerTitle.trim() || subject.trim() || null,
-          items: [
-            {
-              description: description.trim(),
-              quantity: parsedQuantity,
-              unit: unit.trim() || "kom",
-              unit_price: parsedUnitPrice,
-            },
-          ],
+          items,
           tax_rate: Number.isFinite(parsedTaxRate) ? parsedTaxRate : 0,
           valid_until: validUntil || null,
           payment_terms: paymentTerms.trim() || null,
@@ -149,13 +169,16 @@ export default function ManualOfferPage() {
   }
 
   function draftFromOffer(offer: OrderOffer): OfferEditDraft {
-    const item = offer.items[0];
     return {
       title: offer.title || offer.order_subject || offer.offer_number,
-      description: item?.description || "",
-      quantity: item?.quantity ? String(item.quantity) : "1",
-      unit: item?.unit || "kom",
-      unitPrice: item?.unit_price ? String(item.unit_price) : "",
+      items: offer.items.length
+        ? offer.items.map((item) => ({
+            description: item.description || "",
+            quantity: item.quantity ? String(item.quantity) : "1",
+            unit: item.unit || "kom",
+            unitPrice: item.unit_price ? String(item.unit_price) : "",
+          }))
+        : [{ description: "", quantity: "1", unit: "kom", unitPrice: "" }],
       taxRate: String(offer.tax_rate ?? 0),
       validUntil: offer.valid_until || "",
       paymentTerms: offer.payment_terms || "",
@@ -181,6 +204,37 @@ export default function ManualOfferPage() {
     }));
   }
 
+  function updateEditLineDraft(id: number, index: number, field: keyof OfferLineDraft, value: string) {
+    const offer = offers.find((item) => item.id === id);
+    if (!offer) return;
+    setOfferEditDrafts((prev) => {
+      const draft = getEditDraft(offer);
+      const items = draft.items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item
+      );
+      return { ...prev, [id]: { ...draft, items } };
+    });
+  }
+
+  function addEditLineDraft(id: number) {
+    const offer = offers.find((item) => item.id === id);
+    if (!offer) return;
+    setOfferEditDrafts((prev) => {
+      const draft = getEditDraft(offer);
+      return { ...prev, [id]: { ...draft, items: [...draft.items, { description: "", quantity: "1", unit: "kom", unitPrice: "" }] } };
+    });
+  }
+
+  function removeEditLineDraft(id: number, index: number) {
+    const offer = offers.find((item) => item.id === id);
+    if (!offer) return;
+    setOfferEditDrafts((prev) => {
+      const draft = getEditDraft(offer);
+      const items = draft.items.filter((_, itemIndex) => itemIndex !== index);
+      return { ...prev, [id]: { ...draft, items: items.length ? items : draft.items } };
+    });
+  }
+
   async function loadOfferHistory(showLoader: boolean = true) {
     if (showLoader) setOffersLoading(true);
     try {
@@ -202,11 +256,18 @@ export default function ManualOfferPage() {
 
   async function handleUpdateOffer(offer: OrderOffer) {
     const draft = getEditDraft(offer);
-    const quantity = Number(draft.quantity.replace(",", "."));
-    const unitPrice = Number(draft.unitPrice.replace(",", "."));
     const tax = Number(draft.taxRate.replace(",", "."));
-    if (!draft.description.trim() || !quantity || !unitPrice) {
-      setMessage("Za izmenu ponude unesite opis, kolicinu i cenu.");
+    const items = draft.items
+      .map((item) => ({
+        description: item.description.trim(),
+        quantity: Number(item.quantity.replace(",", ".")),
+        unit: item.unit.trim() || "kom",
+        unit_price: Number(item.unitPrice.replace(",", ".")),
+        line_total: (Number(item.quantity.replace(",", ".")) || 0) * (Number(item.unitPrice.replace(",", ".")) || 0),
+      }))
+      .filter((item) => item.description && item.quantity > 0 && item.unit_price > 0);
+    if (!items.length) {
+      setMessage("Za izmenu ponude unesite bar jednu stavku sa opisom, kolicinom i cenom.");
       return;
     }
     setOffersLoading(true);
@@ -215,15 +276,7 @@ export default function ManualOfferPage() {
       const updated = await adminUpdateOrderOffer(offer.id, {
         title: draft.title.trim() || null,
         status: draft.status,
-        items: [
-          {
-            description: draft.description.trim(),
-            quantity,
-            unit: draft.unit.trim() || "kom",
-            unit_price: unitPrice,
-            line_total: quantity * unitPrice,
-          },
-        ],
+        items,
         tax_rate: Number.isFinite(tax) ? tax : 0,
         valid_until: draft.validUntil || null,
         payment_terms: draft.paymentTerms || null,
@@ -292,11 +345,38 @@ export default function ManualOfferPage() {
                 <SelectItem key="behaton">Behaton</SelectItem>
                 <SelectItem key="other">Ostalo</SelectItem>
               </Select>
-              <Textarea label="Opis stavke" value={description} onChange={(e) => setDescription(e.target.value)} minRows={2} isRequired />
-              <div className="grid gap-3 sm:grid-cols-3">
-                <Input label="Kolicina" value={quantity} onChange={(e) => setQuantity(e.target.value)} isRequired />
-                <Input label="Jedinica" value={unit} onChange={(e) => setUnit(e.target.value)} />
-                <Input label="Cena bez PDV-a" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} isRequired />
+              <div className="space-y-3">
+                {offerItems.map((item, index) => (
+                  <div key={index} className="rounded-xl border border-black/10 bg-gray-50 p-3">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-dark">Stavka {index + 1}</p>
+                      <Button
+                        size="sm"
+                        variant="light"
+                        color="danger"
+                        onPress={() => removeOfferItem(index)}
+                        isDisabled={offerItems.length === 1}
+                      >
+                        Ukloni
+                      </Button>
+                    </div>
+                    <Textarea
+                      label="Opis stavke"
+                      value={item.description}
+                      onChange={(e) => updateOfferItem(index, "description", e.target.value)}
+                      minRows={2}
+                      isRequired
+                    />
+                    <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                      <Input label="Kolicina" value={item.quantity} onChange={(e) => updateOfferItem(index, "quantity", e.target.value)} isRequired />
+                      <Input label="Jedinica" value={item.unit} onChange={(e) => updateOfferItem(index, "unit", e.target.value)} />
+                      <Input label="Cena bez PDV-a" value={item.unitPrice} onChange={(e) => updateOfferItem(index, "unitPrice", e.target.value)} isRequired />
+                    </div>
+                  </div>
+                ))}
+                <Button variant="flat" onPress={addOfferItem}>
+                  Dodaj stavku
+                </Button>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Input label="PDV %" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} />
@@ -384,11 +464,38 @@ export default function ManualOfferPage() {
                       <SelectItem key={item.key}>{item.label}</SelectItem>
                     ))}
                   </Select>
-                  <Textarea label="Opis stavke" size="sm" minRows={2} value={draft.description} onChange={(e) => updateEditDraft(offer.id, "description", e.target.value)} />
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <Input label="Kolicina" size="sm" value={draft.quantity} onChange={(e) => updateEditDraft(offer.id, "quantity", e.target.value)} />
-                    <Input label="Jedinica" size="sm" value={draft.unit} onChange={(e) => updateEditDraft(offer.id, "unit", e.target.value)} />
-                    <Input label="Cena" size="sm" value={draft.unitPrice} onChange={(e) => updateEditDraft(offer.id, "unitPrice", e.target.value)} />
+                  <div className="space-y-2 lg:col-span-2">
+                    {draft.items.map((item, index) => (
+                      <div key={index} className="rounded-lg border border-black/10 bg-white p-3">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <p className="text-xs font-semibold text-gray-700">Stavka {index + 1}</p>
+                          <Button
+                            size="sm"
+                            variant="light"
+                            color="danger"
+                            onPress={() => removeEditLineDraft(offer.id, index)}
+                            isDisabled={draft.items.length === 1}
+                          >
+                            Ukloni
+                          </Button>
+                        </div>
+                        <Textarea
+                          label="Opis stavke"
+                          size="sm"
+                          minRows={2}
+                          value={item.description}
+                          onChange={(e) => updateEditLineDraft(offer.id, index, "description", e.target.value)}
+                        />
+                        <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                          <Input label="Kolicina" size="sm" value={item.quantity} onChange={(e) => updateEditLineDraft(offer.id, index, "quantity", e.target.value)} />
+                          <Input label="Jedinica" size="sm" value={item.unit} onChange={(e) => updateEditLineDraft(offer.id, index, "unit", e.target.value)} />
+                          <Input label="Cena" size="sm" value={item.unitPrice} onChange={(e) => updateEditLineDraft(offer.id, index, "unitPrice", e.target.value)} />
+                        </div>
+                      </div>
+                    ))}
+                    <Button size="sm" variant="flat" onPress={() => addEditLineDraft(offer.id)}>
+                      Dodaj stavku
+                    </Button>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Input label="PDV %" size="sm" value={draft.taxRate} onChange={(e) => updateEditDraft(offer.id, "taxRate", e.target.value)} />
