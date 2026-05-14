@@ -23,6 +23,16 @@ const adminLinks = [
     text: "Lead CRM, ponude, PDF i status naplate.",
   },
   {
+    href: "/admin/radnici",
+    title: "Radnici",
+    text: "Radnici, mesecni obracuni plata i status isplate.",
+  },
+  {
+    href: "/admin/troskovi",
+    title: "Troskovi",
+    text: "Mesecna evidencija troskova i zbir po kategorijama.",
+  },
+  {
     href: "/admin/ponude",
     title: "Rucne ponude",
     text: "Kreiranje PDF ponuda za kupce van sajta.",
@@ -40,7 +50,7 @@ export default function AdminLandingPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {adminLinks.map((item) => (
           <Link
             key={item.href}

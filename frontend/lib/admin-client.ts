@@ -1,4 +1,19 @@
-import type { Order, OrderNote, OrderOffer, OrderOfferItem, Project, Product } from "./api";
+import type {
+  CompanyExpense,
+  ExpenseCategory,
+  ExpensePaymentMethod,
+  Order,
+  OrderNote,
+  OrderOffer,
+  OrderOfferItem,
+  PayrollStatus,
+  Project,
+  Product,
+  Worker,
+  WorkerPayroll,
+  WorkerPayrollType,
+  WorkerPosition,
+} from "./api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 
@@ -333,6 +348,135 @@ export function adminOfferPrintUrl(id: number) {
 
 export function adminOfferPdfUrl(id: number) {
   return `${API_BASE}/admin/offers/${id}/pdf`;
+}
+
+export async function adminListWorkers(params: { status?: "all" | "active" | "inactive" } = {}) {
+  const search = new URLSearchParams();
+  if (params.status) search.set("status", params.status);
+  const qs = search.toString();
+  return adminFetch<{ data: Worker[] }>(qs ? `/admin/workers?${qs}` : "/admin/workers", {
+    method: "GET",
+  });
+}
+
+export async function adminCreateWorker(payload: {
+  full_name: string;
+  phone?: string | null;
+  position: WorkerPosition;
+  payroll_type: WorkerPayrollType;
+  default_monthly_salary?: number;
+  default_daily_wage?: number;
+  note?: string | null;
+  is_active?: boolean;
+}) {
+  return adminFetch<Worker>("/admin/workers", {
+    method: "POST",
+    json: payload,
+  });
+}
+
+export async function adminUpdateWorker(id: number, payload: Partial<Worker>) {
+  return adminFetch<Worker>(`/admin/workers/${id}`, {
+    method: "PUT",
+    json: payload,
+  });
+}
+
+export async function adminDeactivateWorker(id: number) {
+  return adminFetch<{ ok: boolean }>(`/admin/workers/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function adminListPayrolls(params: {
+  month: number;
+  year: number;
+  status?: PayrollStatus | "all";
+}) {
+  const search = new URLSearchParams();
+  search.set("month", String(params.month));
+  search.set("year", String(params.year));
+  if (params.status && params.status !== "all") search.set("status", params.status);
+  return adminFetch<{ data: WorkerPayroll[] }>(`/admin/payrolls?${search.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function adminGeneratePayrolls(month: number, year: number) {
+  return adminFetch<{ data: WorkerPayroll[]; created: number }>("/admin/payrolls/generate", {
+    method: "POST",
+    json: { month, year },
+  });
+}
+
+export async function adminUpdatePayroll(id: number, payload: Partial<WorkerPayroll>) {
+  return adminFetch<WorkerPayroll>(`/admin/payrolls/${id}`, {
+    method: "PUT",
+    json: payload,
+  });
+}
+
+export async function adminPayrollSummary(month: number, year: number) {
+  const search = new URLSearchParams({ month: String(month), year: String(year) });
+  return adminFetch<{
+    workers_total: number;
+    active_workers: number;
+    total_due: number;
+    paid: number;
+    remaining: number;
+  }>(`/admin/payrolls/summary?${search.toString()}`, { method: "GET" });
+}
+
+export async function adminListExpenses(params: {
+  month: number;
+  year: number;
+  category?: ExpenseCategory | "all";
+}) {
+  const search = new URLSearchParams();
+  search.set("month", String(params.month));
+  search.set("year", String(params.year));
+  if (params.category && params.category !== "all") search.set("category", params.category);
+  return adminFetch<{ data: CompanyExpense[] }>(`/admin/expenses?${search.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function adminCreateExpense(payload: {
+  expense_date: string;
+  category: ExpenseCategory;
+  description: string;
+  amount: number;
+  payment_method: ExpensePaymentMethod;
+  vendor?: string | null;
+  vehicle_id?: number | null;
+  worker_id?: number | null;
+  note?: string | null;
+}) {
+  return adminFetch<CompanyExpense>("/admin/expenses", {
+    method: "POST",
+    json: payload,
+  });
+}
+
+export async function adminUpdateExpense(id: number, payload: Partial<CompanyExpense>) {
+  return adminFetch<CompanyExpense>(`/admin/expenses/${id}`, {
+    method: "PUT",
+    json: payload,
+  });
+}
+
+export async function adminDeleteExpense(id: number) {
+  return adminFetch<{ ok: boolean }>(`/admin/expenses/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function adminExpenseSummary(month: number, year: number) {
+  const search = new URLSearchParams({ month: String(month), year: String(year) });
+  return adminFetch<{
+    total: number;
+    by_category: Record<ExpenseCategory, number>;
+  }>(`/admin/expenses/summary?${search.toString()}`, { method: "GET" });
 }
 
 export { ApiError };

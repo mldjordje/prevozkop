@@ -14,6 +14,7 @@ import {
 } from "@heroui/react";
 import type { Order, OrderNote, OrderOffer, Product, Project } from "@/lib/api";
 import { getProjects } from "@/lib/api";
+import BusinessModules from "@/components/admin/business-modules";
 import {
   ApiError,
   adminCreateProject,
@@ -102,7 +103,7 @@ const ADMIN_AUTH_STORAGE_KEY = "prevozkop-admin-authenticated";
 type OrderServiceFilter = (typeof orderServiceFilters)[number]["key"];
 
 type ViewState = "loading" | "login" | "ready";
-type AdminSection = "overview" | "projects" | "orders" | "products";
+type AdminSection = "overview" | "projects" | "orders" | "products" | "workers" | "expenses";
 type OfferLineDraft = {
   description: string;
   quantity: string;
@@ -1349,6 +1350,20 @@ export default function AdminPanel({
             onPress={() => setSection("orders")}
           >
             Porudžbine
+          </Button>
+          <Button
+            variant={section === "workers" ? "solid" : "flat"}
+            color="primary"
+            onPress={() => setSection("workers")}
+          >
+            Radnici
+          </Button>
+          <Button
+            variant={section === "expenses" ? "solid" : "flat"}
+            color="primary"
+            onPress={() => setSection("expenses")}
+          >
+            Troškovi
           </Button>
         </div>
       )}
@@ -2827,6 +2842,14 @@ export default function AdminPanel({
                 </div>
               )}
             </section>
+          )}
+
+          {section === "workers" && (
+            <BusinessModules module="workers" isAuthenticated={isAuthenticated} setMessage={setMessage} />
+          )}
+
+          {section === "expenses" && (
+            <BusinessModules module="expenses" isAuthenticated={isAuthenticated} setMessage={setMessage} />
           )}
         </>
       )}

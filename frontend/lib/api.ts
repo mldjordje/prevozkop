@@ -100,6 +100,71 @@ export type OrderOffer = {
   order_service?: string | null;
 };
 
+export type WorkerPosition = "driver" | "craftsman" | "worker" | "administration" | "other";
+export type WorkerPayrollType = "fixed" | "daily";
+export type PayrollStatus = "unpaid" | "partial" | "paid";
+export type ExpenseCategory =
+  | "fuel"
+  | "material"
+  | "service"
+  | "registration"
+  | "payroll"
+  | "rent"
+  | "bills"
+  | "other";
+export type ExpensePaymentMethod = "cash" | "bank" | "card" | "other";
+
+export type Worker = {
+  id: number;
+  full_name: string;
+  phone?: string | null;
+  position: WorkerPosition;
+  payroll_type: WorkerPayrollType;
+  default_monthly_salary: number;
+  default_daily_wage: number;
+  note?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string | null;
+};
+
+export type WorkerPayroll = {
+  id: number;
+  worker_id: number;
+  worker_name?: string | null;
+  month: number;
+  year: number;
+  payroll_type: WorkerPayrollType;
+  work_days: number;
+  daily_wage: number;
+  monthly_salary: number;
+  advances: number;
+  bonus: number;
+  deductions: number;
+  total_due: number;
+  status: PayrollStatus;
+  paid_at?: string | null;
+  note?: string | null;
+  created_at: string;
+  updated_at?: string | null;
+};
+
+export type CompanyExpense = {
+  id: number;
+  expense_date: string;
+  category: ExpenseCategory;
+  description: string;
+  amount: number;
+  payment_method: ExpensePaymentMethod;
+  vendor?: string | null;
+  vehicle_id?: number | null;
+  worker_id?: number | null;
+  worker_name?: string | null;
+  note?: string | null;
+  created_at: string;
+  updated_at?: string | null;
+};
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 export const PUBLIC_REVALIDATE_SECONDS = 300;
 

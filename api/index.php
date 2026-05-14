@@ -340,6 +340,58 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
         list_all_order_offers($pdo);
     }
 
+    if ($sub === 'workers' && $method === 'GET') {
+        list_workers($pdo);
+    }
+
+    if ($sub === 'workers' && $method === 'POST') {
+        create_worker($pdo);
+    }
+
+    if (preg_match('#^workers/(\d+)$#', $sub, $m) && $method === 'PUT') {
+        update_worker($pdo, (int) $m[1]);
+    }
+
+    if (preg_match('#^workers/(\d+)$#', $sub, $m) && $method === 'DELETE') {
+        deactivate_worker($pdo, (int) $m[1]);
+    }
+
+    if ($sub === 'payrolls' && $method === 'GET') {
+        list_worker_payrolls($pdo);
+    }
+
+    if ($sub === 'payrolls/generate' && $method === 'POST') {
+        generate_worker_payrolls($pdo);
+    }
+
+    if ($sub === 'payrolls/summary' && $method === 'GET') {
+        worker_payroll_summary($pdo);
+    }
+
+    if (preg_match('#^payrolls/(\d+)$#', $sub, $m) && $method === 'PUT') {
+        update_worker_payroll($pdo, (int) $m[1]);
+    }
+
+    if ($sub === 'expenses' && $method === 'GET') {
+        list_company_expenses($pdo);
+    }
+
+    if ($sub === 'expenses' && $method === 'POST') {
+        create_company_expense($pdo);
+    }
+
+    if ($sub === 'expenses/summary' && $method === 'GET') {
+        company_expense_summary($pdo);
+    }
+
+    if (preg_match('#^expenses/(\d+)$#', $sub, $m) && $method === 'PUT') {
+        update_company_expense($pdo, (int) $m[1]);
+    }
+
+    if (preg_match('#^expenses/(\d+)$#', $sub, $m) && $method === 'DELETE') {
+        delete_company_expense($pdo, (int) $m[1]);
+    }
+
     if ($sub === 'manual-offers' && $method === 'POST') {
         create_manual_offer($pdo, (int) ($_SESSION['admin_id'] ?? 0));
     }
@@ -462,6 +514,319 @@ function admin_login(PDO $pdo): void
     session_regenerate_id(true);
     $_SESSION['admin_id'] = (int) $admin['id'];
     send_json(['ok' => true]);
+}
+
+function list_workers(PDO $pdo): void
+{
+    $status = $_GET['status'] ?? 'active';
+    $where = '1=1';
+    if ($status === 'active') {
+        $where = 'is_active = 1';
+    } elseif ($status === 'inactive') {
+        $where = 'is_active = 0';
+    }
+
+    $stmt = $pdo->query("SELECT * FROM workers WHERE {$where} ORDER BY is_active DESC, full_name ASC");
+    send_json(['data' => array_map('map_worker', $stmt->fetchAll())]);
+}
+
+function create_worker(PDO $pdo): void
+{
+    $data = read_json_body();
+    $payload = normalize_worker_payload($data, true);
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO workers (full_name, phone, position, payroll_type, default_monthly_salary, default_daily_wage, note, is_active)
+         VALUES (:full_name, :phone, :position, :payroll_type, :default_monthly_salary, :default_daily_wage, :note, :is_active)'
+    );
+    $stmt->execute($payload);
+    fetch_worker_response($pdo, (int) $pdo->lastInsertId(), 201);
+}
+
+function update_worker(PDO $pdo, int $id): void
+{
+    $data = read_json_body();
+    $payload = normalize_worker_payload($data, false);
+    $fields = [];
+    $params = [':id' => $id];
+
+    foreach ($payload as $key => $value) {
+        $fields[] = ltrim($key, ':') . ' = ' . $key;
+        $params[$key] = $value;
+    }
+
+    if (!$fields) {
+        error_json(400, 'No fields to update');
+    }
+
+    $stmt = $pdo->prepare('UPDATE workers SET ' . implode(', ', $fields) . ' WHERE id = :id');
+    $stmt->execute($params);
+    fetch_worker_response($pdo, $id);
+}
+
+function deactivate_worker(PDO $pdo, int $id): void
+{
+    if (($_GET['hard'] ?? '') === '1') {
+        $stmt = $pdo->prepare('DELETE FROM workers WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+        send_json(['ok' => true]);
+    }
+
+    $stmt = $pdo->prepare('UPDATE workers SET is_active = 0 WHERE id = :id');
+    $stmt->execute([':id' => $id]);
+    send_json(['ok' => true]);
+}
+
+function list_worker_payrolls(PDO $pdo): void
+{
+    [$month, $year] = month_year_from_query();
+    $status = trim((string) ($_GET['status'] ?? ''));
+    $where = ['p.month = :month', 'p.year = :year'];
+    $params = [':month' => $month, ':year' => $year];
+
+    if ($status !== '' && $status !== 'all') {
+        if (!in_array($status, ['unpaid', 'partial', 'paid'], true)) {
+            error_json(400, 'Invalid payroll status');
+        }
+        $where[] = 'p.status = :status';
+        $params[':status'] = $status;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT p.*, w.full_name AS worker_name
+         FROM worker_payrolls p
+         LEFT JOIN workers w ON w.id = p.worker_id
+         WHERE ' . implode(' AND ', $where) . '
+         ORDER BY w.full_name ASC, p.id ASC'
+    );
+    $stmt->execute($params);
+    send_json(['data' => array_map('map_worker_payroll', $stmt->fetchAll())]);
+}
+
+function generate_worker_payrolls(PDO $pdo): void
+{
+    $data = read_json_body();
+    $month = normalize_month($data['month'] ?? null);
+    $year = normalize_year($data['year'] ?? null);
+
+    $workers = $pdo->query('SELECT * FROM workers WHERE is_active = 1 ORDER BY full_name ASC')->fetchAll();
+    $exists = $pdo->prepare('SELECT id FROM worker_payrolls WHERE worker_id = :worker_id AND month = :month AND year = :year LIMIT 1');
+    $insert = $pdo->prepare(
+        'INSERT INTO worker_payrolls
+         (worker_id, month, year, payroll_type, work_days, daily_wage, monthly_salary, advances, bonus, deductions, total_due, status)
+         VALUES (:worker_id, :month, :year, :payroll_type, 0, :daily_wage, :monthly_salary, 0, 0, 0, :total_due, "unpaid")'
+    );
+
+    $created = 0;
+    foreach ($workers as $worker) {
+        $exists->execute([':worker_id' => $worker['id'], ':month' => $month, ':year' => $year]);
+        if ($exists->fetch()) {
+            continue;
+        }
+        $total = calculate_payroll_total(
+            (string) $worker['payroll_type'],
+            0,
+            (float) $worker['default_daily_wage'],
+            (float) $worker['default_monthly_salary'],
+            0,
+            0,
+            0
+        );
+        $insert->execute([
+            ':worker_id' => $worker['id'],
+            ':month' => $month,
+            ':year' => $year,
+            ':payroll_type' => $worker['payroll_type'],
+            ':daily_wage' => $worker['default_daily_wage'],
+            ':monthly_salary' => $worker['default_monthly_salary'],
+            ':total_due' => $total,
+        ]);
+        $created++;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT p.*, w.full_name AS worker_name
+         FROM worker_payrolls p
+         LEFT JOIN workers w ON w.id = p.worker_id
+         WHERE p.month = :month AND p.year = :year
+         ORDER BY w.full_name ASC'
+    );
+    $stmt->execute([':month' => $month, ':year' => $year]);
+    send_json(['data' => array_map('map_worker_payroll', $stmt->fetchAll()), 'created' => $created], 201);
+}
+
+function update_worker_payroll(PDO $pdo, int $id): void
+{
+    $data = read_json_body();
+    $current = fetch_worker_payroll($pdo, $id);
+    $allowed = ['payroll_type', 'work_days', 'daily_wage', 'monthly_salary', 'advances', 'bonus', 'deductions', 'status', 'paid_at', 'note'];
+    $fields = [];
+    $params = [':id' => $id];
+
+    foreach ($allowed as $field) {
+        if (!array_key_exists($field, $data)) {
+            continue;
+        }
+        $value = $data[$field];
+        if ($field === 'payroll_type' && !in_array($value, ['fixed', 'daily'], true)) {
+            error_json(400, 'Invalid payroll type');
+        }
+        if ($field === 'status' && !in_array($value, ['unpaid', 'partial', 'paid'], true)) {
+            error_json(400, 'Invalid payroll status');
+        }
+        if (in_array($field, ['work_days', 'daily_wage', 'monthly_salary', 'advances', 'bonus', 'deductions'], true)) {
+            $value = normalize_non_negative_number($value, $field);
+        }
+        if ($field === 'paid_at') {
+            $value = normalize_optional_date($value);
+        }
+        if ($field === 'note') {
+            $value = trim((string) ($value ?? '')) ?: null;
+        }
+        $fields[] = "{$field} = :{$field}";
+        $params[":{$field}"] = $value;
+        $current[$field] = $value;
+    }
+
+    if (!$fields) {
+        error_json(400, 'No fields to update');
+    }
+
+    $total = calculate_payroll_total(
+        (string) $current['payroll_type'],
+        (float) $current['work_days'],
+        (float) $current['daily_wage'],
+        (float) $current['monthly_salary'],
+        (float) $current['advances'],
+        (float) $current['bonus'],
+        (float) $current['deductions']
+    );
+    $fields[] = 'total_due = :total_due';
+    $params[':total_due'] = $total;
+
+    $stmt = $pdo->prepare('UPDATE worker_payrolls SET ' . implode(', ', $fields) . ' WHERE id = :id');
+    $stmt->execute($params);
+    fetch_worker_payroll_response($pdo, $id);
+}
+
+function worker_payroll_summary(PDO $pdo): void
+{
+    [$month, $year] = month_year_from_query();
+    $stmt = $pdo->prepare(
+        'SELECT
+            COALESCE(SUM(total_due), 0) AS total_due,
+            COALESCE(SUM(CASE WHEN status = "paid" THEN total_due WHEN status = "partial" THEN advances ELSE 0 END), 0) AS paid
+         FROM worker_payrolls
+         WHERE month = :month AND year = :year'
+    );
+    $stmt->execute([':month' => $month, ':year' => $year]);
+    $totals = $stmt->fetch() ?: ['total_due' => 0, 'paid' => 0];
+    $workersTotal = (int) $pdo->query('SELECT COUNT(*) FROM workers')->fetchColumn();
+    $activeWorkers = (int) $pdo->query('SELECT COUNT(*) FROM workers WHERE is_active = 1')->fetchColumn();
+    $totalDue = (float) $totals['total_due'];
+    $paid = (float) $totals['paid'];
+
+    send_json([
+        'workers_total' => $workersTotal,
+        'active_workers' => $activeWorkers,
+        'total_due' => $totalDue,
+        'paid' => $paid,
+        'remaining' => max(0, $totalDue - $paid),
+    ]);
+}
+
+function list_company_expenses(PDO $pdo): void
+{
+    [$month, $year] = month_year_from_query();
+    $category = trim((string) ($_GET['category'] ?? ''));
+    $where = ['MONTH(e.expense_date) = :month', 'YEAR(e.expense_date) = :year'];
+    $params = [':month' => $month, ':year' => $year];
+
+    if ($category !== '' && $category !== 'all') {
+        validate_expense_category($category);
+        $where[] = 'e.category = :category';
+        $params[':category'] = $category;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT e.*, w.full_name AS worker_name
+         FROM company_expenses e
+         LEFT JOIN workers w ON w.id = e.worker_id
+         WHERE ' . implode(' AND ', $where) . '
+         ORDER BY e.expense_date DESC, e.id DESC'
+    );
+    $stmt->execute($params);
+    send_json(['data' => array_map('map_company_expense', $stmt->fetchAll())]);
+}
+
+function create_company_expense(PDO $pdo): void
+{
+    $data = read_json_body();
+    $payload = normalize_expense_payload($data, true);
+    $stmt = $pdo->prepare(
+        'INSERT INTO company_expenses
+         (expense_date, category, description, amount, payment_method, vendor, vehicle_id, worker_id, note)
+         VALUES (:expense_date, :category, :description, :amount, :payment_method, :vendor, :vehicle_id, :worker_id, :note)'
+    );
+    $stmt->execute($payload);
+    fetch_company_expense_response($pdo, (int) $pdo->lastInsertId(), 201);
+}
+
+function update_company_expense(PDO $pdo, int $id): void
+{
+    $data = read_json_body();
+    $payload = normalize_expense_payload($data, false);
+    $fields = [];
+    $params = [':id' => $id];
+
+    foreach ($payload as $key => $value) {
+        $fields[] = ltrim($key, ':') . ' = ' . $key;
+        $params[$key] = $value;
+    }
+
+    if (!$fields) {
+        error_json(400, 'No fields to update');
+    }
+
+    $stmt = $pdo->prepare('UPDATE company_expenses SET ' . implode(', ', $fields) . ' WHERE id = :id');
+    $stmt->execute($params);
+    fetch_company_expense_response($pdo, $id);
+}
+
+function delete_company_expense(PDO $pdo, int $id): void
+{
+    $stmt = $pdo->prepare('DELETE FROM company_expenses WHERE id = :id');
+    $stmt->execute([':id' => $id]);
+    send_json(['ok' => true]);
+}
+
+function company_expense_summary(PDO $pdo): void
+{
+    [$month, $year] = month_year_from_query();
+    $stmt = $pdo->prepare(
+        'SELECT category, COALESCE(SUM(amount), 0) AS total
+         FROM company_expenses
+         WHERE MONTH(expense_date) = :month AND YEAR(expense_date) = :year
+         GROUP BY category'
+    );
+    $stmt->execute([':month' => $month, ':year' => $year]);
+    $byCategory = [
+        'fuel' => 0.0,
+        'material' => 0.0,
+        'service' => 0.0,
+        'registration' => 0.0,
+        'payroll' => 0.0,
+        'rent' => 0.0,
+        'bills' => 0.0,
+        'other' => 0.0,
+    ];
+    foreach ($stmt->fetchAll() as $row) {
+        $byCategory[(string) $row['category']] = (float) $row['total'];
+    }
+    send_json([
+        'total' => array_sum($byCategory),
+        'by_category' => $byCategory,
+    ]);
 }
 
 function create_project(PDO $pdo, array $config): void
@@ -1642,6 +2007,217 @@ function fetch_offer_tax_rate(PDO $pdo, int $offerId): float
     return (float) ($row['tax_rate'] ?? 0);
 }
 
+function normalize_month(mixed $value): int
+{
+    $month = (int) $value;
+    if ($month < 1 || $month > 12) {
+        error_json(400, 'Invalid month');
+    }
+    return $month;
+}
+
+function normalize_year(mixed $value): int
+{
+    $year = (int) $value;
+    if ($year < 2020 || $year > 2100) {
+        error_json(400, 'Invalid year');
+    }
+    return $year;
+}
+
+function month_year_from_query(): array
+{
+    return [
+        normalize_month($_GET['month'] ?? (int) date('n')),
+        normalize_year($_GET['year'] ?? (int) date('Y')),
+    ];
+}
+
+function normalize_non_negative_number(mixed $value, string $field): float
+{
+    if ($value === null || $value === '') {
+        return 0.0;
+    }
+    if (!is_numeric($value) || (float) $value < 0) {
+        error_json(400, $field . ' must be non-negative');
+    }
+    return round((float) $value, 2);
+}
+
+function normalize_optional_date(mixed $value): ?string
+{
+    $date = trim((string) ($value ?? ''));
+    if ($date === '') {
+        return null;
+    }
+    $parsed = date_create($date);
+    if (!$parsed) {
+        error_json(400, 'Invalid date');
+    }
+    return $parsed->format('Y-m-d');
+}
+
+function normalize_required_date(mixed $value): string
+{
+    $date = normalize_optional_date($value);
+    if (!$date) {
+        error_json(400, 'Date is required');
+    }
+    return $date;
+}
+
+function normalize_worker_payload(array $data, bool $requireName): array
+{
+    $payload = [];
+    if (array_key_exists('full_name', $data) || $requireName) {
+        $name = trim((string) ($data['full_name'] ?? ''));
+        if ($name === '') {
+            error_json(400, 'Worker name is required');
+        }
+        $payload[':full_name'] = $name;
+    }
+    if (array_key_exists('phone', $data) || $requireName) {
+        $payload[':phone'] = trim((string) ($data['phone'] ?? '')) ?: null;
+    }
+    if (array_key_exists('position', $data) || $requireName) {
+        $position = (string) ($data['position'] ?? 'worker');
+        if (!in_array($position, ['driver', 'craftsman', 'worker', 'administration', 'other'], true)) {
+            error_json(400, 'Invalid worker position');
+        }
+        $payload[':position'] = $position;
+    }
+    if (array_key_exists('payroll_type', $data) || $requireName) {
+        $payrollType = (string) ($data['payroll_type'] ?? 'fixed');
+        if (!in_array($payrollType, ['fixed', 'daily'], true)) {
+            error_json(400, 'Invalid payroll type');
+        }
+        $payload[':payroll_type'] = $payrollType;
+    }
+    if (array_key_exists('default_monthly_salary', $data) || $requireName) {
+        $payload[':default_monthly_salary'] = normalize_non_negative_number($data['default_monthly_salary'] ?? 0, 'default_monthly_salary');
+    }
+    if (array_key_exists('default_daily_wage', $data) || $requireName) {
+        $payload[':default_daily_wage'] = normalize_non_negative_number($data['default_daily_wage'] ?? 0, 'default_daily_wage');
+    }
+    if (array_key_exists('note', $data) || $requireName) {
+        $payload[':note'] = trim((string) ($data['note'] ?? '')) ?: null;
+    }
+    if (array_key_exists('is_active', $data) || $requireName) {
+        $payload[':is_active'] = !empty($data['is_active']) ? 1 : 0;
+    }
+    return $payload;
+}
+
+function calculate_payroll_total(string $type, float $workDays, float $dailyWage, float $monthlySalary, float $advances, float $bonus, float $deductions): float
+{
+    $base = $type === 'daily' ? $workDays * $dailyWage : $monthlySalary;
+    return round($base + $bonus - $advances - $deductions, 2);
+}
+
+function fetch_worker_payroll(PDO $pdo, int $id): array
+{
+    $stmt = $pdo->prepare('SELECT * FROM worker_payrolls WHERE id = :id LIMIT 1');
+    $stmt->execute([':id' => $id]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Payroll not found');
+    }
+    return $row;
+}
+
+function fetch_worker_response(PDO $pdo, int $id, int $status = 200): void
+{
+    $stmt = $pdo->prepare('SELECT * FROM workers WHERE id = :id LIMIT 1');
+    $stmt->execute([':id' => $id]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Worker not found');
+    }
+    send_json(map_worker($row), $status);
+}
+
+function fetch_worker_payroll_response(PDO $pdo, int $id, int $status = 200): void
+{
+    $stmt = $pdo->prepare(
+        'SELECT p.*, w.full_name AS worker_name
+         FROM worker_payrolls p
+         LEFT JOIN workers w ON w.id = p.worker_id
+         WHERE p.id = :id LIMIT 1'
+    );
+    $stmt->execute([':id' => $id]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Payroll not found');
+    }
+    send_json(map_worker_payroll($row), $status);
+}
+
+function validate_expense_category(string $category): void
+{
+    if (!in_array($category, ['fuel', 'material', 'service', 'registration', 'payroll', 'rent', 'bills', 'other'], true)) {
+        error_json(400, 'Invalid expense category');
+    }
+}
+
+function normalize_expense_payload(array $data, bool $requireRequired): array
+{
+    $payload = [];
+    if (array_key_exists('expense_date', $data) || $requireRequired) {
+        $payload[':expense_date'] = normalize_required_date($data['expense_date'] ?? null);
+    }
+    if (array_key_exists('category', $data) || $requireRequired) {
+        $category = (string) ($data['category'] ?? '');
+        validate_expense_category($category);
+        $payload[':category'] = $category;
+    }
+    if (array_key_exists('description', $data) || $requireRequired) {
+        $payload[':description'] = trim((string) ($data['description'] ?? ''));
+    }
+    if (array_key_exists('amount', $data) || $requireRequired) {
+        $amount = normalize_non_negative_number($data['amount'] ?? null, 'amount');
+        if ($amount <= 0) {
+            error_json(400, 'Amount must be greater than zero');
+        }
+        $payload[':amount'] = $amount;
+    }
+    if (array_key_exists('payment_method', $data) || $requireRequired) {
+        $method = (string) ($data['payment_method'] ?? 'cash');
+        if (!in_array($method, ['cash', 'bank', 'card', 'other'], true)) {
+            error_json(400, 'Invalid payment method');
+        }
+        $payload[':payment_method'] = $method;
+    }
+    if (array_key_exists('vendor', $data) || $requireRequired) {
+        $payload[':vendor'] = trim((string) ($data['vendor'] ?? '')) ?: null;
+    }
+    if (array_key_exists('vehicle_id', $data) || $requireRequired) {
+        $payload[':vehicle_id'] = !empty($data['vehicle_id']) ? (int) $data['vehicle_id'] : null;
+    }
+    if (array_key_exists('worker_id', $data) || $requireRequired) {
+        $payload[':worker_id'] = !empty($data['worker_id']) ? (int) $data['worker_id'] : null;
+    }
+    if (array_key_exists('note', $data) || $requireRequired) {
+        $payload[':note'] = trim((string) ($data['note'] ?? '')) ?: null;
+    }
+    return $payload;
+}
+
+function fetch_company_expense_response(PDO $pdo, int $id, int $status = 200): void
+{
+    $stmt = $pdo->prepare(
+        'SELECT e.*, w.full_name AS worker_name
+         FROM company_expenses e
+         LEFT JOIN workers w ON w.id = e.worker_id
+         WHERE e.id = :id LIMIT 1'
+    );
+    $stmt->execute([':id' => $id]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Expense not found');
+    }
+    send_json(map_company_expense($row), $status);
+}
+
 function html_escape(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -2107,5 +2683,65 @@ function map_order_offer(array $row): array
         'order_subject' => $row['order_subject'] ?? null,
         'order_city' => $row['order_city'] ?? null,
         'order_service' => $row['order_service'] ?? null,
+    ];
+}
+
+function map_worker(array $row): array
+{
+    return [
+        'id' => (int) $row['id'],
+        'full_name' => $row['full_name'],
+        'phone' => $row['phone'] ?? null,
+        'position' => $row['position'],
+        'payroll_type' => $row['payroll_type'],
+        'default_monthly_salary' => (float) $row['default_monthly_salary'],
+        'default_daily_wage' => (float) $row['default_daily_wage'],
+        'note' => $row['note'] ?? null,
+        'is_active' => (bool) $row['is_active'],
+        'created_at' => $row['created_at'],
+        'updated_at' => $row['updated_at'] ?? null,
+    ];
+}
+
+function map_worker_payroll(array $row): array
+{
+    return [
+        'id' => (int) $row['id'],
+        'worker_id' => (int) $row['worker_id'],
+        'worker_name' => $row['worker_name'] ?? null,
+        'month' => (int) $row['month'],
+        'year' => (int) $row['year'],
+        'payroll_type' => $row['payroll_type'],
+        'work_days' => (float) $row['work_days'],
+        'daily_wage' => (float) $row['daily_wage'],
+        'monthly_salary' => (float) $row['monthly_salary'],
+        'advances' => (float) $row['advances'],
+        'bonus' => (float) $row['bonus'],
+        'deductions' => (float) $row['deductions'],
+        'total_due' => (float) $row['total_due'],
+        'status' => $row['status'],
+        'paid_at' => $row['paid_at'] ?? null,
+        'note' => $row['note'] ?? null,
+        'created_at' => $row['created_at'],
+        'updated_at' => $row['updated_at'] ?? null,
+    ];
+}
+
+function map_company_expense(array $row): array
+{
+    return [
+        'id' => (int) $row['id'],
+        'expense_date' => $row['expense_date'],
+        'category' => $row['category'],
+        'description' => $row['description'],
+        'amount' => (float) $row['amount'],
+        'payment_method' => $row['payment_method'],
+        'vendor' => $row['vendor'] ?? null,
+        'vehicle_id' => isset($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
+        'worker_id' => isset($row['worker_id']) ? (int) $row['worker_id'] : null,
+        'worker_name' => $row['worker_name'] ?? null,
+        'note' => $row['note'] ?? null,
+        'created_at' => $row['created_at'],
+        'updated_at' => $row['updated_at'] ?? null,
     ];
 }
