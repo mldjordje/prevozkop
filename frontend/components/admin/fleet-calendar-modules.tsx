@@ -385,6 +385,7 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
   const [summary, setSummary] = useState({ total: 0, scheduled: 0, in_progress: 0, done: 0, cancelled: 0 });
   const [form, setForm] = useState(emptyDeliveryForm);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -420,6 +421,7 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
   function resetForm() {
     setEditingId(null);
     setForm(emptyDeliveryForm);
+    setIsPopupOpen(false);
   }
 
   function startAddAt(date: string, time: string) {
@@ -431,6 +433,7 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
       scheduled_date: date,
       scheduled_time: time,
     }));
+    setIsPopupOpen(true);
   }
 
   function startEdit(delivery: Delivery) {
@@ -451,6 +454,7 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
       status: delivery.status,
       note: delivery.note || "",
     });
+    setIsPopupOpen(true);
   }
 
   function selectOrder(orderId: string) {
@@ -560,13 +564,47 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
     { label: "Otkazano", value: summary.cancelled, tone: "bg-white text-gray-900" },
   ];
 
+  const deliveryForm = (
+    <form className="grid gap-3" onSubmit={saveDelivery}>
+      <Select label="Porudzbina" selectedKeys={form.order_id ? [form.order_id] : []} onSelectionChange={(keys) => selectOrder(Array.from(keys).at(0)?.toString() || "")}>
+        {orders.map((order) => <SelectItem key={String(order.id)}>{`${order.name} - ${order.subject || order.service_type || "upit"}`}</SelectItem>)}
+      </Select>
+      <Input label="Kupac" value={form.customer_name} onChange={(e) => setForm((p) => ({ ...p, customer_name: e.target.value }))} />
+      <Input label="Adresa" value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input label="Datum" type="date" value={form.scheduled_date} onChange={(e) => setForm((p) => ({ ...p, scheduled_date: e.target.value }))} />
+        <Input label="Vreme" type="time" value={form.scheduled_time} onChange={(e) => setForm((p) => ({ ...p, scheduled_time: e.target.value }))} />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input label="Kolicina" value={form.quantity} onChange={(e) => setForm((p) => ({ ...p, quantity: e.target.value }))} />
+        <Select label="Usluga" selectedKeys={[form.service_type]} onSelectionChange={(keys) => setForm((p) => ({ ...p, service_type: Array.from(keys).at(0)?.toString() || "other" }))}>
+          {serviceOptions.map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
+        </Select>
+      </div>
+      <Select label="Vozilo" selectedKeys={form.vehicle_id ? [form.vehicle_id] : []} onSelectionChange={(keys) => setForm((p) => ({ ...p, vehicle_id: Array.from(keys).at(0)?.toString() || "" }))}>
+        {vehicles.map((vehicle) => <SelectItem key={String(vehicle.id)}>{vehicle.name}</SelectItem>)}
+      </Select>
+      <Select label="Vozac / radnik" selectedKeys={form.worker_id ? [form.worker_id] : []} onSelectionChange={(keys) => setForm((p) => ({ ...p, worker_id: Array.from(keys).at(0)?.toString() || "" }))}>
+        {workers.map((worker) => <SelectItem key={String(worker.id)}>{worker.full_name}</SelectItem>)}
+      </Select>
+      <Select label="Status" selectedKeys={[form.status]} onSelectionChange={(keys) => setForm((p) => ({ ...p, status: Array.from(keys).at(0)?.toString() as DeliveryStatus }))}>
+        {deliveryStatuses.filter((item) => item.key !== "all").map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
+      </Select>
+      <Textarea label="Napomena" minRows={2} value={form.note} onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))} />
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Button color="primary" type="submit" isDisabled={loading}>{editingId ? "Sacuvaj" : "Dodaj"}</Button>
+        <Button type="button" variant="flat" onPress={resetForm}>Zatvori</Button>
+      </div>
+    </form>
+  );
+
   return (
     <section className="space-y-5">
       <ModuleHeader title="Kalendar isporuka" text="Dnevni i nedeljni raspored isporuka, vozila, vozaca i statusa." />
       <StatsGrid stats={stats} />
 
-      <div className="grid gap-4 lg:grid-cols-[380px_1fr]">
-        <Card className="border border-black/5 shadow-sm">
+      <div className="grid gap-4">
+        <Card className="hidden border border-black/5 shadow-sm">
           <CardHeader className="flex-col items-start gap-1">
             <h3 className="text-lg font-semibold text-dark">{editingId ? "Izmena isporuke" : "Dodaj isporuku"}</h3>
           </CardHeader>
@@ -692,6 +730,22 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
           </Card>
         </div>
       </div>
+
+      {isPopupOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3 py-6">
+          <div className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-black/10 bg-white p-4 shadow-2xl sm:p-5">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-primary">Kalendar</p>
+                <h3 className="mt-1 text-xl font-semibold text-dark">{editingId ? "Izmena isporuke" : "Nova isporuka"}</h3>
+                <p className="mt-1 text-sm text-gray-500">{form.scheduled_date} u {form.scheduled_time}</p>
+              </div>
+              <Button size="sm" variant="flat" onPress={resetForm}>Zatvori</Button>
+            </div>
+            {deliveryForm}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
