@@ -33,6 +33,16 @@ const adminLinks = [
     text: "Mesecna evidencija troskova i zbir po kategorijama.",
   },
   {
+    href: "/admin/vozila",
+    title: "Vozila",
+    text: "Vozila, registracija, servisi i troskovi po vozilu.",
+  },
+  {
+    href: "/admin/kalendar",
+    title: "Kalendar",
+    text: "Dnevni i nedeljni raspored isporuka na terenu.",
+  },
+  {
     href: "/admin/ponude",
     title: "Rucne ponude",
     text: "Kreiranje PDF ponuda za kupce van sajta.",

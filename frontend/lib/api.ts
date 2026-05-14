@@ -113,6 +113,9 @@ export type ExpenseCategory =
   | "bills"
   | "other";
 export type ExpensePaymentMethod = "cash" | "bank" | "card" | "other";
+export type VehicleType = "mixer" | "truck" | "pump" | "van" | "machine" | "other";
+export type VehicleStatus = "active" | "inactive" | "service";
+export type DeliveryStatus = "scheduled" | "in_progress" | "done" | "cancelled";
 
 export type Worker = {
   id: number;
@@ -158,8 +161,44 @@ export type CompanyExpense = {
   payment_method: ExpensePaymentMethod;
   vendor?: string | null;
   vehicle_id?: number | null;
+  vehicle_name?: string | null;
   worker_id?: number | null;
   worker_name?: string | null;
+  note?: string | null;
+  created_at: string;
+  updated_at?: string | null;
+};
+
+export type Vehicle = {
+  id: number;
+  name: string;
+  vehicle_type: VehicleType;
+  registration_number?: string | null;
+  registration_expires_at?: string | null;
+  last_service_at?: string | null;
+  next_service_at?: string | null;
+  mileage?: number | null;
+  work_hours?: number | null;
+  status: VehicleStatus;
+  note?: string | null;
+  month_expenses?: number;
+  created_at: string;
+  updated_at?: string | null;
+};
+
+export type Delivery = {
+  id: number;
+  order_id?: number | null;
+  customer_name: string;
+  address: string;
+  scheduled_at: string;
+  quantity?: string | null;
+  service_type?: string | null;
+  vehicle_id?: number | null;
+  vehicle_name?: string | null;
+  worker_id?: number | null;
+  worker_name?: string | null;
+  status: DeliveryStatus;
   note?: string | null;
   created_at: string;
   updated_at?: string | null;

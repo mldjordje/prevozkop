@@ -2,6 +2,8 @@ import type {
   CompanyExpense,
   ExpenseCategory,
   ExpensePaymentMethod,
+  Delivery,
+  DeliveryStatus,
   Order,
   OrderNote,
   OrderOffer,
@@ -13,6 +15,9 @@ import type {
   WorkerPayroll,
   WorkerPayrollType,
   WorkerPosition,
+  Vehicle,
+  VehicleStatus,
+  VehicleType,
 } from "./api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
@@ -477,6 +482,108 @@ export async function adminExpenseSummary(month: number, year: number) {
     total: number;
     by_category: Record<ExpenseCategory, number>;
   }>(`/admin/expenses/summary?${search.toString()}`, { method: "GET" });
+}
+
+export async function adminListVehicles(params: {
+  status?: VehicleStatus | "all";
+  month?: number;
+  year?: number;
+} = {}) {
+  const search = new URLSearchParams();
+  if (params.status) search.set("status", params.status);
+  if (params.month) search.set("month", String(params.month));
+  if (params.year) search.set("year", String(params.year));
+  const qs = search.toString();
+  return adminFetch<{ data: Vehicle[] }>(qs ? `/admin/vehicles?${qs}` : "/admin/vehicles", {
+    method: "GET",
+  });
+}
+
+export async function adminCreateVehicle(payload: {
+  name: string;
+  vehicle_type: VehicleType;
+  registration_number?: string | null;
+  registration_expires_at?: string | null;
+  last_service_at?: string | null;
+  next_service_at?: string | null;
+  mileage?: number | null;
+  work_hours?: number | null;
+  status?: VehicleStatus;
+  note?: string | null;
+}) {
+  return adminFetch<Vehicle>("/admin/vehicles", { method: "POST", json: payload });
+}
+
+export async function adminUpdateVehicle(id: number, payload: Partial<Vehicle>) {
+  return adminFetch<Vehicle>(`/admin/vehicles/${id}`, { method: "PUT", json: payload });
+}
+
+export async function adminDeleteVehicle(id: number) {
+  return adminFetch<{ ok: boolean }>(`/admin/vehicles/${id}`, { method: "DELETE" });
+}
+
+export async function adminVehicleSummary(month: number, year: number) {
+  const search = new URLSearchParams({ month: String(month), year: String(year) });
+  return adminFetch<{
+    total: number;
+    active: number;
+    service: number;
+    registration_alerts: number;
+    service_alerts: number;
+    expenses_total: number;
+  }>(`/admin/vehicles/summary?${search.toString()}`, { method: "GET" });
+}
+
+export async function adminListDeliveries(params: {
+  from?: string;
+  to?: string;
+  status?: DeliveryStatus | "all";
+} = {}) {
+  const search = new URLSearchParams();
+  if (params.from) search.set("from", params.from);
+  if (params.to) search.set("to", params.to);
+  if (params.status && params.status !== "all") search.set("status", params.status);
+  const qs = search.toString();
+  return adminFetch<{ data: Delivery[] }>(qs ? `/admin/deliveries?${qs}` : "/admin/deliveries", {
+    method: "GET",
+  });
+}
+
+export async function adminCreateDelivery(payload: {
+  order_id?: number | null;
+  customer_name: string;
+  address: string;
+  scheduled_at: string;
+  quantity?: string | null;
+  service_type?: string | null;
+  vehicle_id?: number | null;
+  worker_id?: number | null;
+  status?: DeliveryStatus;
+  note?: string | null;
+}) {
+  return adminFetch<Delivery>("/admin/deliveries", { method: "POST", json: payload });
+}
+
+export async function adminUpdateDelivery(id: number, payload: Partial<Delivery>) {
+  return adminFetch<Delivery>(`/admin/deliveries/${id}`, { method: "PUT", json: payload });
+}
+
+export async function adminDeleteDelivery(id: number) {
+  return adminFetch<{ ok: boolean }>(`/admin/deliveries/${id}`, { method: "DELETE" });
+}
+
+export async function adminDeliverySummary(params: { from?: string; to?: string } = {}) {
+  const search = new URLSearchParams();
+  if (params.from) search.set("from", params.from);
+  if (params.to) search.set("to", params.to);
+  const qs = search.toString();
+  return adminFetch<{
+    total: number;
+    scheduled: number;
+    in_progress: number;
+    done: number;
+    cancelled: number;
+  }>(qs ? `/admin/deliveries/summary?${qs}` : "/admin/deliveries/summary", { method: "GET" });
 }
 
 export { ApiError };

@@ -15,6 +15,7 @@ import {
 import type { Order, OrderNote, OrderOffer, Product, Project } from "@/lib/api";
 import { getProjects } from "@/lib/api";
 import BusinessModules from "@/components/admin/business-modules";
+import FleetCalendarModules from "@/components/admin/fleet-calendar-modules";
 import {
   ApiError,
   adminCreateProject,
@@ -103,7 +104,15 @@ const ADMIN_AUTH_STORAGE_KEY = "prevozkop-admin-authenticated";
 type OrderServiceFilter = (typeof orderServiceFilters)[number]["key"];
 
 type ViewState = "loading" | "login" | "ready";
-type AdminSection = "overview" | "projects" | "orders" | "products" | "workers" | "expenses";
+type AdminSection =
+  | "overview"
+  | "projects"
+  | "orders"
+  | "products"
+  | "workers"
+  | "expenses"
+  | "vehicles"
+  | "calendar";
 type OfferLineDraft = {
   description: string;
   quantity: string;
@@ -1364,6 +1373,20 @@ export default function AdminPanel({
             onPress={() => setSection("expenses")}
           >
             Troškovi
+          </Button>
+          <Button
+            variant={section === "vehicles" ? "solid" : "flat"}
+            color="primary"
+            onPress={() => setSection("vehicles")}
+          >
+            Vozila
+          </Button>
+          <Button
+            variant={section === "calendar" ? "solid" : "flat"}
+            color="primary"
+            onPress={() => setSection("calendar")}
+          >
+            Kalendar
           </Button>
         </div>
       )}
@@ -2850,6 +2873,14 @@ export default function AdminPanel({
 
           {section === "expenses" && (
             <BusinessModules module="expenses" isAuthenticated={isAuthenticated} setMessage={setMessage} />
+          )}
+
+          {section === "vehicles" && (
+            <FleetCalendarModules module="vehicles" isAuthenticated={isAuthenticated} setMessage={setMessage} />
+          )}
+
+          {section === "calendar" && (
+            <FleetCalendarModules module="calendar" isAuthenticated={isAuthenticated} setMessage={setMessage} />
           )}
         </>
       )}

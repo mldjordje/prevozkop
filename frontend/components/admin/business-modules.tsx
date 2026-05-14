@@ -11,6 +11,7 @@ import type {
   WorkerPayroll,
   WorkerPayrollType,
   WorkerPosition,
+  Vehicle,
 } from "@/lib/api";
 import {
   adminCreateExpense,
@@ -21,6 +22,7 @@ import {
   adminGeneratePayrolls,
   adminListExpenses,
   adminListPayrolls,
+  adminListVehicles,
   adminListWorkers,
   adminPayrollSummary,
   adminUpdateExpense,
@@ -95,6 +97,7 @@ const emptyExpenseForm = {
   amount: "",
   payment_method: "cash" as ExpensePaymentMethod,
   vendor: "",
+  vehicle_id: "",
   worker_id: "",
   note: "",
 };
@@ -483,6 +486,7 @@ function WorkersModule({ isAuthenticated, month, year, monthNumber, yearNumber, 
 function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber, setMonth, setYear, setMessage }: ModuleBaseProps) {
   const [expenses, setExpenses] = useState<CompanyExpense[]>([]);
   const [workers, setWorkers] = useState<Worker[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [category, setCategory] = useState<ExpenseCategory | "all">("all");
   const [summary, setSummary] = useState<{ total: number; by_category: Record<string, number> }>({ total: 0, by_category: {} });
   const [form, setForm] = useState(emptyExpenseForm);
@@ -496,7 +500,13 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    adminListWorkers({ status: "active" }).then((res) => setWorkers(res.data)).catch(() => setWorkers([]));
+    void Promise.all([
+      adminListWorkers({ status: "active" }).then((res) => setWorkers(res.data)),
+      adminListVehicles({ status: "active" }).then((res) => setVehicles(res.data)),
+    ]).catch(() => {
+      setWorkers([]);
+      setVehicles([]);
+    });
   }, [isAuthenticated]);
 
   async function refreshExpenses() {
@@ -529,6 +539,7 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
       amount: String(expense.amount),
       payment_method: expense.payment_method,
       vendor: expense.vendor || "",
+      vehicle_id: expense.vehicle_id ? String(expense.vehicle_id) : "",
       worker_id: expense.worker_id ? String(expense.worker_id) : "",
       note: expense.note || "",
     });
@@ -555,6 +566,7 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
       amount: toNumber(form.amount),
       payment_method: form.payment_method,
       vendor: form.vendor.trim() || null,
+      vehicle_id: form.vehicle_id ? Number(form.vehicle_id) : null,
       worker_id: form.worker_id ? Number(form.worker_id) : null,
       note: form.note.trim() || null,
     };
@@ -625,6 +637,9 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
                 {expensePaymentMethods.map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
               </Select>
               <Input label="Dobavljac / kome je placeno" value={form.vendor} onChange={(e) => setForm((p) => ({ ...p, vendor: e.target.value }))} />
+              <Select label="Vezano vozilo" selectedKeys={form.vehicle_id ? [form.vehicle_id] : []} onSelectionChange={(keys) => setForm((p) => ({ ...p, vehicle_id: Array.from(keys).at(0)?.toString() || "" }))}>
+                {vehicles.map((vehicle) => <SelectItem key={String(vehicle.id)}>{vehicle.name}</SelectItem>)}
+              </Select>
               <Select label="Vezan radnik" selectedKeys={form.worker_id ? [form.worker_id] : []} onSelectionChange={(keys) => setForm((p) => ({ ...p, worker_id: Array.from(keys).at(0)?.toString() || "" }))}>
                 {workers.map((worker) => <SelectItem key={String(worker.id)}>{worker.full_name}</SelectItem>)}
               </Select>
@@ -666,7 +681,7 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
                         </div>
                         <p className="mt-1 text-sm text-gray-600">{expense.expense_date} · {labelFor(expensePaymentMethods, expense.payment_method)}</p>
                         <p className="mt-1 text-sm text-gray-500">
-                          {expense.vendor ? `${expense.vendor} · ` : ""}{expense.worker_name ? `Radnik: ${expense.worker_name}` : ""}
+                          {expense.vendor ? `${expense.vendor} · ` : ""}{expense.vehicle_name ? `Vozilo: ${expense.vehicle_name} · ` : ""}{expense.worker_name ? `Radnik: ${expense.worker_name}` : ""}
                         </p>
                       </div>
                       <div className="grid gap-2 sm:grid-cols-3 md:w-80">

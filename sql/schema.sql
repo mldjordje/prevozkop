@@ -170,6 +170,25 @@ CREATE TABLE IF NOT EXISTS worker_payrolls (
   CONSTRAINT fk_worker_payrolls_worker FOREIGN KEY (worker_id) REFERENCES workers(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS vehicles (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(190) NOT NULL,
+  vehicle_type ENUM('mixer','truck','pump','van','machine','other') NOT NULL DEFAULT 'other',
+  registration_number VARCHAR(80) DEFAULT NULL,
+  registration_expires_at DATE DEFAULT NULL,
+  last_service_at DATE DEFAULT NULL,
+  next_service_at DATE DEFAULT NULL,
+  mileage DECIMAL(12,2) DEFAULT NULL,
+  work_hours DECIMAL(12,2) DEFAULT NULL,
+  status ENUM('active','inactive','service') NOT NULL DEFAULT 'active',
+  note TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_vehicles_status_name (status, name),
+  INDEX idx_vehicles_registration_expires (registration_expires_at),
+  INDEX idx_vehicles_next_service (next_service_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS company_expenses (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   expense_date DATE NOT NULL,
@@ -187,12 +206,33 @@ CREATE TABLE IF NOT EXISTS company_expenses (
   INDEX idx_company_expenses_category_date (category, expense_date),
   INDEX idx_company_expenses_worker (worker_id),
   INDEX idx_company_expenses_vehicle (vehicle_id),
-  CONSTRAINT fk_company_expenses_worker FOREIGN KEY (worker_id) REFERENCES workers(id) ON DELETE SET NULL
+  CONSTRAINT fk_company_expenses_worker FOREIGN KEY (worker_id) REFERENCES workers(id) ON DELETE SET NULL,
+  CONSTRAINT fk_company_expenses_vehicle FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Drugi paket je namerno ostavljen za kasnije:
--- company_expenses.vehicle_id je pripremljen za buducu tabelu vozila,
--- a worker_id se vec koristi kao veza ka radnicima za plate/akontacije.
+CREATE TABLE IF NOT EXISTS delivery_calendar (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  order_id INT UNSIGNED DEFAULT NULL,
+  customer_name VARCHAR(190) NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  scheduled_at DATETIME NOT NULL,
+  quantity VARCHAR(120) DEFAULT NULL,
+  service_type VARCHAR(80) DEFAULT NULL,
+  vehicle_id INT UNSIGNED DEFAULT NULL,
+  worker_id INT UNSIGNED DEFAULT NULL,
+  status ENUM('scheduled','in_progress','done','cancelled') NOT NULL DEFAULT 'scheduled',
+  note TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_delivery_calendar_scheduled (scheduled_at),
+  INDEX idx_delivery_calendar_status_scheduled (status, scheduled_at),
+  INDEX idx_delivery_calendar_vehicle (vehicle_id),
+  INDEX idx_delivery_calendar_worker (worker_id),
+  INDEX idx_delivery_calendar_order (order_id),
+  CONSTRAINT fk_delivery_calendar_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL,
+  CONSTRAINT fk_delivery_calendar_vehicle FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE SET NULL,
+  CONSTRAINT fk_delivery_calendar_worker FOREIGN KEY (worker_id) REFERENCES workers(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Seed primera (uklonite u produkciji):
 -- INSERT INTO admins (email, password_hash) VALUES ('admin@example.com', '<hash>');

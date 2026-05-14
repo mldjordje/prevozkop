@@ -392,6 +392,46 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
         delete_company_expense($pdo, (int) $m[1]);
     }
 
+    if ($sub === 'vehicles' && $method === 'GET') {
+        list_vehicles($pdo);
+    }
+
+    if ($sub === 'vehicles' && $method === 'POST') {
+        create_vehicle($pdo);
+    }
+
+    if ($sub === 'vehicles/summary' && $method === 'GET') {
+        vehicle_summary($pdo);
+    }
+
+    if (preg_match('#^vehicles/(\d+)$#', $sub, $m) && $method === 'PUT') {
+        update_vehicle($pdo, (int) $m[1]);
+    }
+
+    if (preg_match('#^vehicles/(\d+)$#', $sub, $m) && $method === 'DELETE') {
+        delete_vehicle($pdo, (int) $m[1]);
+    }
+
+    if ($sub === 'deliveries' && $method === 'GET') {
+        list_deliveries($pdo);
+    }
+
+    if ($sub === 'deliveries' && $method === 'POST') {
+        create_delivery($pdo);
+    }
+
+    if ($sub === 'deliveries/summary' && $method === 'GET') {
+        delivery_summary($pdo);
+    }
+
+    if (preg_match('#^deliveries/(\d+)$#', $sub, $m) && $method === 'PUT') {
+        update_delivery($pdo, (int) $m[1]);
+    }
+
+    if (preg_match('#^deliveries/(\d+)$#', $sub, $m) && $method === 'DELETE') {
+        delete_delivery($pdo, (int) $m[1]);
+    }
+
     if ($sub === 'manual-offers' && $method === 'POST') {
         create_manual_offer($pdo, (int) ($_SESSION['admin_id'] ?? 0));
     }
@@ -749,9 +789,10 @@ function list_company_expenses(PDO $pdo): void
     }
 
     $stmt = $pdo->prepare(
-        'SELECT e.*, w.full_name AS worker_name
+        'SELECT e.*, w.full_name AS worker_name, v.name AS vehicle_name
          FROM company_expenses e
          LEFT JOIN workers w ON w.id = e.worker_id
+         LEFT JOIN vehicles v ON v.id = e.vehicle_id
          WHERE ' . implode(' AND ', $where) . '
          ORDER BY e.expense_date DESC, e.id DESC'
     );
@@ -826,6 +867,194 @@ function company_expense_summary(PDO $pdo): void
     send_json([
         'total' => array_sum($byCategory),
         'by_category' => $byCategory,
+    ]);
+}
+
+function list_vehicles(PDO $pdo): void
+{
+    $status = trim((string) ($_GET['status'] ?? 'all'));
+    [$month, $year] = month_year_from_query();
+    $where = [];
+    $params = [':month' => $month, ':year' => $year];
+
+    if ($status !== '' && $status !== 'all') {
+        validate_vehicle_status($status);
+        $where[] = 'v.status = :status';
+        $params[':status'] = $status;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT v.*,
+            COALESCE(exp.month_expenses, 0) AS month_expenses
+         FROM vehicles v
+         LEFT JOIN (
+            SELECT vehicle_id, SUM(amount) AS month_expenses
+            FROM company_expenses
+            WHERE vehicle_id IS NOT NULL AND MONTH(expense_date) = :month AND YEAR(expense_date) = :year
+            GROUP BY vehicle_id
+         ) exp ON exp.vehicle_id = v.id
+         ' . ($where ? 'WHERE ' . implode(' AND ', $where) : '') . '
+         ORDER BY FIELD(v.status, "active", "service", "inactive"), v.name ASC'
+    );
+    $stmt->execute($params);
+    send_json(['data' => array_map('map_vehicle', $stmt->fetchAll())]);
+}
+
+function create_vehicle(PDO $pdo): void
+{
+    $data = read_json_body();
+    $payload = normalize_vehicle_payload($data, true);
+    $stmt = $pdo->prepare(
+        'INSERT INTO vehicles
+         (name, vehicle_type, registration_number, registration_expires_at, last_service_at, next_service_at, mileage, work_hours, status, note)
+         VALUES (:name, :vehicle_type, :registration_number, :registration_expires_at, :last_service_at, :next_service_at, :mileage, :work_hours, :status, :note)'
+    );
+    $stmt->execute($payload);
+    fetch_vehicle_response($pdo, (int) $pdo->lastInsertId(), 201);
+}
+
+function update_vehicle(PDO $pdo, int $id): void
+{
+    $data = read_json_body();
+    $payload = normalize_vehicle_payload($data, false);
+    $fields = [];
+    $params = [':id' => $id];
+
+    foreach ($payload as $key => $value) {
+        $fields[] = ltrim($key, ':') . ' = ' . $key;
+        $params[$key] = $value;
+    }
+    if (!$fields) {
+        error_json(400, 'No fields to update');
+    }
+
+    $stmt = $pdo->prepare('UPDATE vehicles SET ' . implode(', ', $fields) . ' WHERE id = :id');
+    $stmt->execute($params);
+    fetch_vehicle_response($pdo, $id);
+}
+
+function delete_vehicle(PDO $pdo, int $id): void
+{
+    $stmt = $pdo->prepare('DELETE FROM vehicles WHERE id = :id');
+    try {
+        $stmt->execute([':id' => $id]);
+    } catch (PDOException) {
+        error_json(400, 'Vehicle is linked to deliveries or expenses');
+    }
+    send_json(['ok' => true]);
+}
+
+function vehicle_summary(PDO $pdo): void
+{
+    [$month, $year] = month_year_from_query();
+    $counts = $pdo->query(
+        'SELECT
+            COUNT(*) AS total,
+            SUM(status = "active") AS active,
+            SUM(status = "service") AS service,
+            SUM(registration_expires_at IS NOT NULL AND registration_expires_at <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)) AS registration_alerts,
+            SUM(next_service_at IS NOT NULL AND next_service_at <= DATE_ADD(CURDATE(), INTERVAL 14 DAY)) AS service_alerts
+         FROM vehicles'
+    )->fetch() ?: [];
+
+    $stmt = $pdo->prepare('SELECT COALESCE(SUM(amount), 0) FROM company_expenses WHERE vehicle_id IS NOT NULL AND MONTH(expense_date) = :month AND YEAR(expense_date) = :year');
+    $stmt->execute([':month' => $month, ':year' => $year]);
+
+    send_json([
+        'total' => (int) ($counts['total'] ?? 0),
+        'active' => (int) ($counts['active'] ?? 0),
+        'service' => (int) ($counts['service'] ?? 0),
+        'registration_alerts' => (int) ($counts['registration_alerts'] ?? 0),
+        'service_alerts' => (int) ($counts['service_alerts'] ?? 0),
+        'expenses_total' => (float) $stmt->fetchColumn(),
+    ]);
+}
+
+function list_deliveries(PDO $pdo): void
+{
+    [$from, $to] = delivery_range_from_query();
+    $status = trim((string) ($_GET['status'] ?? ''));
+    $where = ['d.scheduled_at >= :from_date', 'd.scheduled_at <= :to_date'];
+    $params = [':from_date' => $from . ' 00:00:00', ':to_date' => $to . ' 23:59:59'];
+
+    if ($status !== '' && $status !== 'all') {
+        validate_delivery_status($status);
+        $where[] = 'd.status = :status';
+        $params[':status'] = $status;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT d.*, v.name AS vehicle_name, w.full_name AS worker_name
+         FROM delivery_calendar d
+         LEFT JOIN vehicles v ON v.id = d.vehicle_id
+         LEFT JOIN workers w ON w.id = d.worker_id
+         WHERE ' . implode(' AND ', $where) . '
+         ORDER BY d.scheduled_at ASC, d.id ASC'
+    );
+    $stmt->execute($params);
+    send_json(['data' => array_map('map_delivery', $stmt->fetchAll())]);
+}
+
+function create_delivery(PDO $pdo): void
+{
+    $data = read_json_body();
+    $payload = normalize_delivery_payload($data, true);
+    $stmt = $pdo->prepare(
+        'INSERT INTO delivery_calendar
+         (order_id, customer_name, address, scheduled_at, quantity, service_type, vehicle_id, worker_id, status, note)
+         VALUES (:order_id, :customer_name, :address, :scheduled_at, :quantity, :service_type, :vehicle_id, :worker_id, :status, :note)'
+    );
+    $stmt->execute($payload);
+    fetch_delivery_response($pdo, (int) $pdo->lastInsertId(), 201);
+}
+
+function update_delivery(PDO $pdo, int $id): void
+{
+    $data = read_json_body();
+    $payload = normalize_delivery_payload($data, false);
+    $fields = [];
+    $params = [':id' => $id];
+
+    foreach ($payload as $key => $value) {
+        $fields[] = ltrim($key, ':') . ' = ' . $key;
+        $params[$key] = $value;
+    }
+    if (!$fields) {
+        error_json(400, 'No fields to update');
+    }
+
+    $stmt = $pdo->prepare('UPDATE delivery_calendar SET ' . implode(', ', $fields) . ' WHERE id = :id');
+    $stmt->execute($params);
+    fetch_delivery_response($pdo, $id);
+}
+
+function delete_delivery(PDO $pdo, int $id): void
+{
+    $stmt = $pdo->prepare('DELETE FROM delivery_calendar WHERE id = :id');
+    $stmt->execute([':id' => $id]);
+    send_json(['ok' => true]);
+}
+
+function delivery_summary(PDO $pdo): void
+{
+    [$from, $to] = delivery_range_from_query();
+    $stmt = $pdo->prepare(
+        'SELECT status, COUNT(*) AS total
+         FROM delivery_calendar
+         WHERE scheduled_at >= :from_date AND scheduled_at <= :to_date
+         GROUP BY status'
+    );
+    $stmt->execute([':from_date' => $from . ' 00:00:00', ':to_date' => $to . ' 23:59:59']);
+    $summary = ['scheduled' => 0, 'in_progress' => 0, 'done' => 0, 'cancelled' => 0];
+    foreach ($stmt->fetchAll() as $row) {
+        $summary[(string) $row['status']] = (int) $row['total'];
+    }
+    send_json([
+        'total' => array_sum($summary),
+        'scheduled' => $summary['scheduled'],
+        'in_progress' => $summary['in_progress'],
+        'done' => $summary['done'],
+        'cancelled' => $summary['cancelled'],
     ]);
 }
 
@@ -2205,9 +2434,10 @@ function normalize_expense_payload(array $data, bool $requireRequired): array
 function fetch_company_expense_response(PDO $pdo, int $id, int $status = 200): void
 {
     $stmt = $pdo->prepare(
-        'SELECT e.*, w.full_name AS worker_name
+        'SELECT e.*, w.full_name AS worker_name, v.name AS vehicle_name
          FROM company_expenses e
          LEFT JOIN workers w ON w.id = e.worker_id
+         LEFT JOIN vehicles v ON v.id = e.vehicle_id
          WHERE e.id = :id LIMIT 1'
     );
     $stmt->execute([':id' => $id]);
@@ -2216,6 +2446,165 @@ function fetch_company_expense_response(PDO $pdo, int $id, int $status = 200): v
         error_json(404, 'Expense not found');
     }
     send_json(map_company_expense($row), $status);
+}
+
+function validate_vehicle_type(string $type): void
+{
+    if (!in_array($type, ['mixer', 'truck', 'pump', 'van', 'machine', 'other'], true)) {
+        error_json(400, 'Invalid vehicle type');
+    }
+}
+
+function validate_vehicle_status(string $status): void
+{
+    if (!in_array($status, ['active', 'inactive', 'service'], true)) {
+        error_json(400, 'Invalid vehicle status');
+    }
+}
+
+function normalize_vehicle_payload(array $data, bool $requireRequired): array
+{
+    $payload = [];
+    if (array_key_exists('name', $data) || $requireRequired) {
+        $name = trim((string) ($data['name'] ?? ''));
+        if ($name === '') {
+            error_json(400, 'Vehicle name is required');
+        }
+        $payload[':name'] = $name;
+    }
+    if (array_key_exists('vehicle_type', $data) || $requireRequired) {
+        $type = (string) ($data['vehicle_type'] ?? 'other');
+        validate_vehicle_type($type);
+        $payload[':vehicle_type'] = $type;
+    }
+    if (array_key_exists('registration_number', $data) || $requireRequired) {
+        $payload[':registration_number'] = trim((string) ($data['registration_number'] ?? '')) ?: null;
+    }
+    if (array_key_exists('registration_expires_at', $data) || $requireRequired) {
+        $payload[':registration_expires_at'] = normalize_optional_date($data['registration_expires_at'] ?? null);
+    }
+    if (array_key_exists('last_service_at', $data) || $requireRequired) {
+        $payload[':last_service_at'] = normalize_optional_date($data['last_service_at'] ?? null);
+    }
+    if (array_key_exists('next_service_at', $data) || $requireRequired) {
+        $payload[':next_service_at'] = normalize_optional_date($data['next_service_at'] ?? null);
+    }
+    if (array_key_exists('mileage', $data) || $requireRequired) {
+        $payload[':mileage'] = $data['mileage'] === null || $data['mileage'] === '' ? null : normalize_non_negative_number($data['mileage'], 'mileage');
+    }
+    if (array_key_exists('work_hours', $data) || $requireRequired) {
+        $payload[':work_hours'] = $data['work_hours'] === null || $data['work_hours'] === '' ? null : normalize_non_negative_number($data['work_hours'], 'work_hours');
+    }
+    if (array_key_exists('status', $data) || $requireRequired) {
+        $status = (string) ($data['status'] ?? 'active');
+        validate_vehicle_status($status);
+        $payload[':status'] = $status;
+    }
+    if (array_key_exists('note', $data) || $requireRequired) {
+        $payload[':note'] = trim((string) ($data['note'] ?? '')) ?: null;
+    }
+    return $payload;
+}
+
+function fetch_vehicle_response(PDO $pdo, int $id, int $status = 200): void
+{
+    $stmt = $pdo->prepare('SELECT v.*, 0 AS month_expenses FROM vehicles v WHERE v.id = :id LIMIT 1');
+    $stmt->execute([':id' => $id]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Vehicle not found');
+    }
+    send_json(map_vehicle($row), $status);
+}
+
+function validate_delivery_status(string $status): void
+{
+    if (!in_array($status, ['scheduled', 'in_progress', 'done', 'cancelled'], true)) {
+        error_json(400, 'Invalid delivery status');
+    }
+}
+
+function normalize_datetime(mixed $value): string
+{
+    $raw = trim((string) ($value ?? ''));
+    if ($raw === '') {
+        error_json(400, 'Scheduled date is required');
+    }
+    $parsed = date_create($raw);
+    if (!$parsed) {
+        error_json(400, 'Invalid scheduled date');
+    }
+    return $parsed->format('Y-m-d H:i:s');
+}
+
+function delivery_range_from_query(): array
+{
+    $from = normalize_optional_date($_GET['from'] ?? date('Y-m-d')) ?: date('Y-m-d');
+    $to = normalize_optional_date($_GET['to'] ?? $from) ?: $from;
+    return [$from, $to];
+}
+
+function normalize_delivery_payload(array $data, bool $requireRequired): array
+{
+    $payload = [];
+    if (array_key_exists('order_id', $data) || $requireRequired) {
+        $payload[':order_id'] = !empty($data['order_id']) ? (int) $data['order_id'] : null;
+    }
+    if (array_key_exists('customer_name', $data) || $requireRequired) {
+        $customer = trim((string) ($data['customer_name'] ?? ''));
+        if ($customer === '') {
+            error_json(400, 'Customer name is required');
+        }
+        $payload[':customer_name'] = $customer;
+    }
+    if (array_key_exists('address', $data) || $requireRequired) {
+        $address = trim((string) ($data['address'] ?? ''));
+        if ($address === '') {
+            error_json(400, 'Address is required');
+        }
+        $payload[':address'] = $address;
+    }
+    if (array_key_exists('scheduled_at', $data) || $requireRequired) {
+        $payload[':scheduled_at'] = normalize_datetime($data['scheduled_at'] ?? null);
+    }
+    if (array_key_exists('quantity', $data) || $requireRequired) {
+        $payload[':quantity'] = trim((string) ($data['quantity'] ?? '')) ?: null;
+    }
+    if (array_key_exists('service_type', $data) || $requireRequired) {
+        $payload[':service_type'] = trim((string) ($data['service_type'] ?? '')) ?: null;
+    }
+    if (array_key_exists('vehicle_id', $data) || $requireRequired) {
+        $payload[':vehicle_id'] = !empty($data['vehicle_id']) ? (int) $data['vehicle_id'] : null;
+    }
+    if (array_key_exists('worker_id', $data) || $requireRequired) {
+        $payload[':worker_id'] = !empty($data['worker_id']) ? (int) $data['worker_id'] : null;
+    }
+    if (array_key_exists('status', $data) || $requireRequired) {
+        $status = (string) ($data['status'] ?? 'scheduled');
+        validate_delivery_status($status);
+        $payload[':status'] = $status;
+    }
+    if (array_key_exists('note', $data) || $requireRequired) {
+        $payload[':note'] = trim((string) ($data['note'] ?? '')) ?: null;
+    }
+    return $payload;
+}
+
+function fetch_delivery_response(PDO $pdo, int $id, int $status = 200): void
+{
+    $stmt = $pdo->prepare(
+        'SELECT d.*, v.name AS vehicle_name, w.full_name AS worker_name
+         FROM delivery_calendar d
+         LEFT JOIN vehicles v ON v.id = d.vehicle_id
+         LEFT JOIN workers w ON w.id = d.worker_id
+         WHERE d.id = :id LIMIT 1'
+    );
+    $stmt->execute([':id' => $id]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        error_json(404, 'Delivery not found');
+    }
+    send_json(map_delivery($row), $status);
 }
 
 function html_escape(string $value): string
@@ -2738,8 +3127,50 @@ function map_company_expense(array $row): array
         'payment_method' => $row['payment_method'],
         'vendor' => $row['vendor'] ?? null,
         'vehicle_id' => isset($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
+        'vehicle_name' => $row['vehicle_name'] ?? null,
         'worker_id' => isset($row['worker_id']) ? (int) $row['worker_id'] : null,
         'worker_name' => $row['worker_name'] ?? null,
+        'note' => $row['note'] ?? null,
+        'created_at' => $row['created_at'],
+        'updated_at' => $row['updated_at'] ?? null,
+    ];
+}
+
+function map_vehicle(array $row): array
+{
+    return [
+        'id' => (int) $row['id'],
+        'name' => $row['name'],
+        'vehicle_type' => $row['vehicle_type'],
+        'registration_number' => $row['registration_number'] ?? null,
+        'registration_expires_at' => $row['registration_expires_at'] ?? null,
+        'last_service_at' => $row['last_service_at'] ?? null,
+        'next_service_at' => $row['next_service_at'] ?? null,
+        'mileage' => isset($row['mileage']) ? (float) $row['mileage'] : null,
+        'work_hours' => isset($row['work_hours']) ? (float) $row['work_hours'] : null,
+        'status' => $row['status'],
+        'note' => $row['note'] ?? null,
+        'month_expenses' => isset($row['month_expenses']) ? (float) $row['month_expenses'] : 0.0,
+        'created_at' => $row['created_at'],
+        'updated_at' => $row['updated_at'] ?? null,
+    ];
+}
+
+function map_delivery(array $row): array
+{
+    return [
+        'id' => (int) $row['id'],
+        'order_id' => isset($row['order_id']) ? (int) $row['order_id'] : null,
+        'customer_name' => $row['customer_name'],
+        'address' => $row['address'],
+        'scheduled_at' => $row['scheduled_at'],
+        'quantity' => $row['quantity'] ?? null,
+        'service_type' => $row['service_type'] ?? null,
+        'vehicle_id' => isset($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
+        'vehicle_name' => $row['vehicle_name'] ?? null,
+        'worker_id' => isset($row['worker_id']) ? (int) $row['worker_id'] : null,
+        'worker_name' => $row['worker_name'] ?? null,
+        'status' => $row['status'],
         'note' => $row['note'] ?? null,
         'created_at' => $row['created_at'],
         'updated_at' => $row['updated_at'] ?? null,
