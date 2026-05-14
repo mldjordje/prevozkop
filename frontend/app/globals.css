@@ -31,3 +31,34 @@ a {
 .content-section {
   @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8;
 }
+
+@media print {
+  body.printing-admin-calendar * {
+    visibility: hidden !important;
+  }
+
+  body.printing-admin-calendar .admin-calendar-print-area,
+  body.printing-admin-calendar .admin-calendar-print-area * {
+    visibility: visible !important;
+  }
+
+  body.printing-admin-calendar .admin-calendar-print-area {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body.printing-admin-calendar .admin-calendar-no-print {
+    display: none !important;
+  }
+
+  body.printing-admin-calendar .admin-calendar-grid {
+    min-width: 0 !important;
+  }
+
+  body.printing-admin-calendar .overflow-x-auto {
+    overflow: visible !important;
+  }
+}

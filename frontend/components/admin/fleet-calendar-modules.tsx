@@ -469,6 +469,18 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
     }));
   }
 
+  function useManualOrder() {
+    setForm((prev) => ({ ...prev, order_id: "" }));
+  }
+
+  function printCalendar() {
+    document.body.classList.add("printing-admin-calendar");
+    const cleanup = () => document.body.classList.remove("printing-admin-calendar");
+    window.addEventListener("afterprint", cleanup, { once: true });
+    window.print();
+    window.setTimeout(cleanup, 1000);
+  }
+
   async function saveDelivery(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.customer_name.trim()) {
@@ -566,9 +578,14 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
 
   const deliveryForm = (
     <form className="grid gap-3" onSubmit={saveDelivery}>
-      <Select label="Porudzbina" selectedKeys={form.order_id ? [form.order_id] : []} onSelectionChange={(keys) => selectOrder(Array.from(keys).at(0)?.toString() || "")}>
-        {orders.map((order) => <SelectItem key={String(order.id)}>{`${order.name} - ${order.subject || order.service_type || "upit"}`}</SelectItem>)}
-      </Select>
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+        <Select label="Porudzbina sa sajta (opciono)" selectedKeys={form.order_id ? [form.order_id] : []} onSelectionChange={(keys) => selectOrder(Array.from(keys).at(0)?.toString() || "")}>
+          {orders.map((order) => <SelectItem key={String(order.id)}>{`${order.name} - ${order.subject || order.service_type || "upit"}`}</SelectItem>)}
+        </Select>
+        <Button type="button" variant={form.order_id ? "flat" : "solid"} color={form.order_id ? "default" : "primary"} onPress={useManualOrder}>
+          Rucni unos
+        </Button>
+      </div>
       <Input label="Kupac" value={form.customer_name} onChange={(e) => setForm((p) => ({ ...p, customer_name: e.target.value }))} />
       <Input label="Adresa" value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
       <div className="grid gap-3 sm:grid-cols-2">
@@ -590,7 +607,7 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
       <Select label="Status" selectedKeys={[form.status]} onSelectionChange={(keys) => setForm((p) => ({ ...p, status: Array.from(keys).at(0)?.toString() as DeliveryStatus }))}>
         {deliveryStatuses.filter((item) => item.key !== "all").map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
       </Select>
-      <Textarea label="Napomena" minRows={2} value={form.note} onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))} />
+      <Textarea label="Porudzbina / napomena" minRows={2} value={form.note} onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))} />
       <div className="grid gap-2 sm:grid-cols-2">
         <Button color="primary" type="submit" isDisabled={loading}>{editingId ? "Sacuvaj" : "Dodaj"}</Button>
         <Button type="button" variant="flat" onPress={resetForm}>Zatvori</Button>
@@ -644,23 +661,28 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
         </Card>
 
         <div className="space-y-4">
-          <Card className="border border-black/5 shadow-sm">
-            <CardBody className="grid gap-3 sm:grid-cols-3">
+          <Card className="admin-calendar-no-print border border-black/5 shadow-sm">
+            <CardBody className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]">
               <Input label="Od" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
               <Input label="Do" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
               <Select label="Status" selectedKeys={[status]} onSelectionChange={(keys) => setStatus((Array.from(keys).at(0)?.toString() as DeliveryStatus | "all") || "all")}>
                 {deliveryStatuses.map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
               </Select>
+              <Button color="primary" variant="flat" onPress={printCalendar}>Stampaj</Button>
             </CardBody>
           </Card>
 
-          <Card className="border border-black/5 shadow-sm">
-            <CardHeader className="flex-col items-start">
+          <Card className="admin-calendar-print-area border border-black/5 shadow-sm">
+            <CardHeader className="flex-col items-start gap-1">
+              <p className="hidden text-xs uppercase tracking-[0.16em] text-gray-500 print:block">Prevoz Kop / Betonska baza</p>
               <h3 className="text-lg font-semibold text-dark">Mini raspored</h3>
+              <p className="hidden text-sm text-gray-500 print:block">
+                Period: {new Date(`${from}T00:00:00`).toLocaleDateString("sr-RS")} - {new Date(`${to}T00:00:00`).toLocaleDateString("sr-RS")}
+              </p>
             </CardHeader>
             <CardBody className="space-y-4">
               <div className="overflow-x-auto rounded-xl border border-black/5">
-                <div className="min-w-[860px]">
+                <div className="admin-calendar-grid min-w-[860px]">
                   <div className="grid border-b border-black/5 bg-gray-50" style={calendarGridStyle}>
                     <div className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">Vreme</div>
                     {weekDays.map((day) => (
