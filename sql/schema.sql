@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS workers (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   full_name VARCHAR(190) NOT NULL,
   phone VARCHAR(50) DEFAULT NULL,
-  position ENUM('driver','craftsman','worker','administration','other') NOT NULL DEFAULT 'worker',
+  position VARCHAR(120) NOT NULL DEFAULT 'worker',
   payroll_type ENUM('fixed','daily') NOT NULL DEFAULT 'fixed',
   default_monthly_salary DECIMAL(12,2) NOT NULL DEFAULT 0.00,
   default_daily_wage DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
 CREATE TABLE IF NOT EXISTS company_expenses (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   expense_date DATE NOT NULL,
-  category ENUM('fuel','material','service','registration','payroll','rent','bills','other') NOT NULL DEFAULT 'other',
+  category VARCHAR(120) NOT NULL DEFAULT 'other',
   description VARCHAR(255) NOT NULL DEFAULT '',
   amount DECIMAL(12,2) NOT NULL,
   payment_method ENUM('cash','bank','card','other') NOT NULL DEFAULT 'cash',

@@ -100,18 +100,10 @@ export type OrderOffer = {
   order_service?: string | null;
 };
 
-export type WorkerPosition = "driver" | "craftsman" | "worker" | "administration" | "other";
+export type WorkerPosition = string;
 export type WorkerPayrollType = "fixed" | "daily";
 export type PayrollStatus = "unpaid" | "partial" | "paid";
-export type ExpenseCategory =
-  | "fuel"
-  | "material"
-  | "service"
-  | "registration"
-  | "payroll"
-  | "rent"
-  | "bills"
-  | "other";
+export type ExpenseCategory = string;
 export type ExpensePaymentMethod = "cash" | "bank" | "card" | "other";
 export type VehicleType = "mixer" | "truck" | "pump" | "van" | "machine" | "other";
 export type VehicleStatus = "active" | "inactive" | "service";

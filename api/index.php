@@ -2309,9 +2309,9 @@ function normalize_worker_payload(array $data, bool $requireName): array
         $payload[':phone'] = trim((string) ($data['phone'] ?? '')) ?: null;
     }
     if (array_key_exists('position', $data) || $requireName) {
-        $position = (string) ($data['position'] ?? 'worker');
-        if (!in_array($position, ['driver', 'craftsman', 'worker', 'administration', 'other'], true)) {
-            error_json(400, 'Invalid worker position');
+        $position = trim((string) ($data['position'] ?? 'worker'));
+        if ($position === '') {
+            error_json(400, 'Worker position is required');
         }
         $payload[':position'] = $position;
     }
@@ -2383,8 +2383,8 @@ function fetch_worker_payroll_response(PDO $pdo, int $id, int $status = 200): vo
 
 function validate_expense_category(string $category): void
 {
-    if (!in_array($category, ['fuel', 'material', 'service', 'registration', 'payroll', 'rent', 'bills', 'other'], true)) {
-        error_json(400, 'Invalid expense category');
+    if (trim($category) === '') {
+        error_json(400, 'Expense category is required');
     }
 }
 
@@ -2395,7 +2395,7 @@ function normalize_expense_payload(array $data, bool $requireRequired): array
         $payload[':expense_date'] = normalize_required_date($data['expense_date'] ?? null);
     }
     if (array_key_exists('category', $data) || $requireRequired) {
-        $category = (string) ($data['category'] ?? '');
+        $category = trim((string) ($data['category'] ?? ''));
         validate_expense_category($category);
         $payload[':category'] = $category;
     }

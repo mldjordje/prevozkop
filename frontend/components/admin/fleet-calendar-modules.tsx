@@ -59,8 +59,26 @@ const serviceOptions = [
 ];
 
 const today = new Date();
-const todayDate = today.toISOString().slice(0, 10);
-const weekEnd = new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getCurrentWeekRange() {
+  const day = today.getDay() || 7;
+  const start = new Date(today);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(today.getDate() - day + 1);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { from: formatLocalDate(start), to: formatLocalDate(end) };
+}
+
+const currentWeek = getCurrentWeekRange();
+const todayDate = formatLocalDate(today);
 
 const emptyVehicleForm = {
   name: "",
@@ -88,6 +106,30 @@ const emptyDeliveryForm = {
   status: "scheduled" as DeliveryStatus,
   note: "",
 };
+
+const calendarSlots = Array.from({ length: 24 }, (_, index) => {
+  const minutes = 7 * 60 + index * 30;
+  const hour = Math.floor(minutes / 60);
+  const minute = minutes % 60;
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+});
+
+function daysBetween(from: string, to: string): string[] {
+  const start = new Date(`${from}T00:00:00`);
+  const end = new Date(`${to}T00:00:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return [];
+  const days: string[] = [];
+  const cursor = new Date(start);
+  while (cursor <= end && days.length < 14) {
+    days.push(formatLocalDate(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return days;
+}
+
+function slotKey(date: string, time: string) {
+  return `${date} ${time}`;
+}
 
 function toNumber(value: string | number | null | undefined): number {
   if (value === null || value === undefined || value === "") return 0;
@@ -337,8 +379,8 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [from, setFrom] = useState(todayDate);
-  const [to, setTo] = useState(weekEnd);
+  const [from, setFrom] = useState(currentWeek.from);
+  const [to, setTo] = useState(currentWeek.to);
   const [status, setStatus] = useState<DeliveryStatus | "all">("all");
   const [summary, setSummary] = useState({ total: 0, scheduled: 0, in_progress: 0, done: 0, cancelled: 0 });
   const [form, setForm] = useState(emptyDeliveryForm);
@@ -378,6 +420,17 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
   function resetForm() {
     setEditingId(null);
     setForm(emptyDeliveryForm);
+  }
+
+  function startAddAt(date: string, time: string) {
+    setEditingId(null);
+    setForm((prev) => ({
+      ...emptyDeliveryForm,
+      customer_name: prev.customer_name,
+      address: prev.address,
+      scheduled_date: date,
+      scheduled_time: time,
+    }));
   }
 
   function startEdit(delivery: Delivery) {
@@ -479,6 +532,26 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [deliveries]);
 
+  const weekDays = useMemo(() => daysBetween(from, to), [from, to]);
+  const deliveriesBySlot = useMemo(() => {
+    const map = new Map<string, Delivery[]>();
+    deliveries.forEach((delivery) => {
+      const date = delivery.scheduled_at.slice(0, 10);
+      const parsed = new Date(delivery.scheduled_at.replace(" ", "T"));
+      if (Number.isNaN(parsed.getTime())) return;
+      const minutes = parsed.getHours() * 60 + parsed.getMinutes();
+      const rounded = Math.floor(minutes / 30) * 30;
+      const time = `${String(Math.floor(rounded / 60)).padStart(2, "0")}:${String(rounded % 60).padStart(2, "0")}`;
+      const key = slotKey(date, time);
+      map.set(key, [...(map.get(key) || []), delivery]);
+    });
+    return map;
+  }, [deliveries]);
+  const calendarGridStyle = useMemo(
+    () => ({ gridTemplateColumns: `72px repeat(${Math.max(1, weekDays.length)}, minmax(110px, 1fr))` }),
+    [weekDays.length]
+  );
+
   const stats = [
     { label: "Ukupno", value: summary.total, tone: "bg-gray-950 text-white" },
     { label: "Zakazano", value: summary.scheduled, tone: "bg-sky-100 text-sky-900" },
@@ -545,37 +618,75 @@ function CalendarModule({ isAuthenticated, setMessage }: Omit<FleetCalendarModul
 
           <Card className="border border-black/5 shadow-sm">
             <CardHeader className="flex-col items-start">
-              <h3 className="text-lg font-semibold text-dark">Raspored</h3>
+              <h3 className="text-lg font-semibold text-dark">Mini raspored</h3>
             </CardHeader>
-            <CardBody className="grid gap-4">
-              {grouped.length === 0 ? (
-                <p className="rounded-xl bg-gray-50 px-4 py-4 text-sm text-gray-600">Nema isporuka za izabrani period.</p>
-              ) : (
-                grouped.map(([day, items]) => (
-                  <div key={day} className="space-y-2">
-                    <p className="text-sm font-semibold text-gray-600">{new Date(day).toLocaleDateString("sr-RS", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" })}</p>
-                    {items.map((delivery) => (
-                      <article key={delivery.id} className="rounded-xl border border-black/5 bg-white p-3">
-                        <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-semibold text-dark">{delivery.customer_name}</p>
-                              <Chip size="sm" variant="flat">{labelFor(deliveryStatuses, delivery.status)}</Chip>
-                            </div>
-                            <p className="mt-1 text-sm text-gray-600">{dateLabel(delivery.scheduled_at)} · {delivery.address}</p>
-                            <p className="mt-1 text-sm text-gray-500">
-                              {delivery.quantity || "-"} · {delivery.service_type || "-"} · {delivery.vehicle_name || "bez vozila"} · {delivery.worker_name || "bez radnika"}
-                            </p>
-                          </div>
-                          <div className="grid gap-2 sm:grid-cols-2 md:w-56">
-                            <Button size="sm" variant="flat" onPress={() => startEdit(delivery)}>Izmeni</Button>
-                            <Button size="sm" color="danger" variant="light" onPress={() => deleteDelivery(delivery)}>Obrisi</Button>
-                          </div>
-                        </div>
-                      </article>
+            <CardBody className="space-y-4">
+              <div className="overflow-x-auto rounded-xl border border-black/5">
+                <div className="min-w-[860px]">
+                  <div className="grid border-b border-black/5 bg-gray-50" style={calendarGridStyle}>
+                    <div className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">Vreme</div>
+                    {weekDays.map((day) => (
+                      <div key={day} className="border-l border-black/5 px-2 py-2 text-xs font-semibold text-dark">
+                        {new Date(`${day}T00:00:00`).toLocaleDateString("sr-RS", { weekday: "short", day: "2-digit", month: "2-digit" })}
+                      </div>
                     ))}
                   </div>
-                ))
+                  {calendarSlots.map((time) => (
+                    <div key={time} className="grid border-b border-black/5 last:border-b-0" style={calendarGridStyle}>
+                      <div className="bg-gray-50 px-2 py-2 text-xs font-semibold text-gray-500">{time}</div>
+                      {weekDays.map((day) => {
+                        const items = deliveriesBySlot.get(slotKey(day, time)) || [];
+                        return (
+                          <button
+                            key={`${day}-${time}`}
+                            type="button"
+                            onClick={() => (items[0] ? startEdit(items[0]) : startAddAt(day, time))}
+                            className="min-h-14 border-l border-black/5 px-2 py-1 text-left transition hover:bg-primary/10"
+                          >
+                            {items.length > 0 ? (
+                              <span className="block rounded-lg bg-gray-950 px-2 py-1 text-xs font-semibold leading-4 text-white">
+                                {items[0].customer_name}
+                                {items.length > 1 ? ` +${items.length - 1}` : ""}
+                              </span>
+                            ) : (
+                              <span className="block text-xs text-gray-300">+</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {grouped.length > 0 && (
+                <div className="grid gap-3">
+                  {grouped.map(([day, items]) => (
+                    <div key={day} className="space-y-2">
+                      <p className="text-sm font-semibold text-gray-600">{new Date(`${day}T00:00:00`).toLocaleDateString("sr-RS", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" })}</p>
+                      {items.map((delivery) => (
+                        <article key={delivery.id} className="rounded-xl border border-black/5 bg-white p-3">
+                          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold text-dark">{delivery.customer_name}</p>
+                                <Chip size="sm" variant="flat">{labelFor(deliveryStatuses, delivery.status)}</Chip>
+                              </div>
+                              <p className="mt-1 text-sm text-gray-600">{dateLabel(delivery.scheduled_at)} · {delivery.address}</p>
+                              <p className="mt-1 text-sm text-gray-500">
+                                {delivery.quantity || "-"} · {delivery.service_type || "-"} · {delivery.vehicle_name || "bez vozila"} · {delivery.worker_name || "bez radnika"}
+                              </p>
+                            </div>
+                            <div className="grid gap-2 sm:grid-cols-2 md:w-56">
+                              <Button size="sm" variant="flat" onPress={() => startEdit(delivery)}>Izmeni</Button>
+                              <Button size="sm" color="danger" variant="light" onPress={() => deleteDelivery(delivery)}>Obrisi</Button>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               )}
             </CardBody>
           </Card>

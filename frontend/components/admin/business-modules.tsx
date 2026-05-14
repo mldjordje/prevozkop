@@ -38,7 +38,7 @@ type BusinessModulesProps = {
   setMessage: (message: string | null) => void;
 };
 
-const workerPositions: { key: WorkerPosition; label: string }[] = [
+const baseWorkerPositions: { key: WorkerPosition; label: string }[] = [
   { key: "driver", label: "Vozac" },
   { key: "craftsman", label: "Majstor" },
   { key: "worker", label: "Radnik" },
@@ -58,7 +58,7 @@ const payrollStatuses: { key: PayrollStatus | "all"; label: string }[] = [
   { key: "paid", label: "Isplaceno" },
 ];
 
-const expenseCategories: { key: ExpenseCategory | "all"; label: string }[] = [
+const baseExpenseCategories: { key: ExpenseCategory | "all"; label: string }[] = [
   { key: "all", label: "Sve kategorije" },
   { key: "fuel", label: "Gorivo" },
   { key: "material", label: "Materijal" },
@@ -114,6 +114,11 @@ function money(value: number | string | null | undefined): string {
 
 function labelFor<T extends string>(items: { key: T; label: string }[], key: T | string | null | undefined): string {
   return items.find((item) => item.key === key)?.label || "-";
+}
+
+function labelForLoose(items: { key: string; label: string }[], key: string | null | undefined): string {
+  if (!key) return "-";
+  return items.find((item) => item.key === key)?.label || key;
 }
 
 function calculatePayrollTotal(payroll: Pick<WorkerPayroll, "payroll_type" | "work_days" | "daily_wage" | "monthly_salary" | "advances" | "bonus" | "deductions">) {
@@ -177,6 +182,7 @@ function WorkersModule({ isAuthenticated, month, year, monthNumber, yearNumber, 
   const [payrollStatus, setPayrollStatus] = useState<PayrollStatus | "all">("all");
   const [summary, setSummary] = useState({ workers_total: 0, active_workers: 0, total_due: 0, paid: 0, remaining: 0 });
   const [workerForm, setWorkerForm] = useState(emptyWorkerForm);
+  const [workerCustomPosition, setWorkerCustomPosition] = useState("");
   const [editingWorkerId, setEditingWorkerId] = useState<number | null>(null);
   const [payrollDrafts, setPayrollDrafts] = useState<Record<number, Partial<WorkerPayroll>>>({});
   const [loading, setLoading] = useState(false);
@@ -221,22 +227,25 @@ function WorkersModule({ isAuthenticated, month, year, monthNumber, yearNumber, 
   }
 
   function startEditWorker(worker: Worker) {
+    const known = baseWorkerPositions.some((item) => item.key === worker.position);
     setEditingWorkerId(worker.id);
     setWorkerForm({
       full_name: worker.full_name,
       phone: worker.phone || "",
-      position: worker.position,
+      position: known ? worker.position : worker.position,
       payroll_type: worker.payroll_type,
       default_monthly_salary: String(worker.default_monthly_salary || ""),
       default_daily_wage: String(worker.default_daily_wage || ""),
       note: worker.note || "",
       is_active: worker.is_active ? "1" : "0",
     });
+    setWorkerCustomPosition("");
   }
 
   function resetWorkerForm() {
     setEditingWorkerId(null);
     setWorkerForm(emptyWorkerForm);
+    setWorkerCustomPosition("");
   }
 
   async function saveWorker(event: React.FormEvent<HTMLFormElement>) {
@@ -249,10 +258,15 @@ function WorkersModule({ isAuthenticated, month, year, monthNumber, yearNumber, 
       setMessage("Iznos plate ili dnevnice ne sme biti negativan.");
       return;
     }
+    const position = workerForm.position === "__custom" ? workerCustomPosition.trim() : workerForm.position;
+    if (!position) {
+      setMessage("Pozicija radnika je obavezna.");
+      return;
+    }
     const payload = {
       full_name: workerForm.full_name.trim(),
       phone: workerForm.phone.trim() || null,
-      position: workerForm.position,
+      position,
       payroll_type: workerForm.payroll_type,
       default_monthly_salary: toNumber(workerForm.default_monthly_salary),
       default_daily_wage: toNumber(workerForm.default_daily_wage),
@@ -346,6 +360,15 @@ function WorkersModule({ isAuthenticated, month, year, monthNumber, yearNumber, 
     { label: "Isplaceno", value: money(summary.paid), tone: "bg-emerald-100 text-emerald-900" },
     { label: "Preostalo", value: money(summary.remaining), tone: "bg-white text-gray-900" },
   ];
+  const workerPositionOptions = useMemo(() => {
+    const map = new Map(baseWorkerPositions.map((item) => [item.key, item.label]));
+    workers.forEach((worker) => {
+      if (worker.position && !map.has(worker.position)) {
+        map.set(worker.position, worker.position);
+      }
+    });
+    return [...Array.from(map, ([key, label]) => ({ key, label })), { key: "__custom", label: "Nova pozicija" }];
+  }, [workers]);
 
   return (
     <section className="space-y-5">
@@ -362,8 +385,11 @@ function WorkersModule({ isAuthenticated, month, year, monthNumber, yearNumber, 
               <Input label="Ime i prezime" value={workerForm.full_name} onChange={(e) => setWorkerForm((p) => ({ ...p, full_name: e.target.value }))} />
               <Input label="Telefon" value={workerForm.phone} onChange={(e) => setWorkerForm((p) => ({ ...p, phone: e.target.value }))} />
               <Select label="Pozicija" selectedKeys={[workerForm.position]} onSelectionChange={(keys) => setWorkerForm((p) => ({ ...p, position: Array.from(keys).at(0)?.toString() as WorkerPosition }))}>
-                {workerPositions.map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
+                {workerPositionOptions.map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
               </Select>
+              {workerForm.position === "__custom" && (
+                <Input label="Nova pozicija" value={workerCustomPosition} onChange={(e) => setWorkerCustomPosition(e.target.value)} />
+              )}
               <Select label="Tip obracuna" selectedKeys={[workerForm.payroll_type]} onSelectionChange={(keys) => setWorkerForm((p) => ({ ...p, payroll_type: Array.from(keys).at(0)?.toString() as WorkerPayrollType }))}>
                 {payrollTypes.map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
               </Select>
@@ -413,7 +439,7 @@ function WorkersModule({ isAuthenticated, month, year, monthNumber, yearNumber, 
                       <Chip size="sm" variant="flat" color={worker.is_active ? "success" : "default"}>{worker.is_active ? "Aktivan" : "Neaktivan"}</Chip>
                     </div>
                     <p className="mt-1 text-sm text-gray-600">
-                      {labelFor(workerPositions, worker.position)} · {labelFor(payrollTypes, worker.payroll_type)}
+                      {labelForLoose(workerPositionOptions, worker.position)} · {labelFor(payrollTypes, worker.payroll_type)}
                     </p>
                     <p className="mt-1 text-sm text-gray-500">
                       Plata: {money(worker.default_monthly_salary)} · Dnevnica: {money(worker.default_daily_wage)}
@@ -490,6 +516,7 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
   const [category, setCategory] = useState<ExpenseCategory | "all">("all");
   const [summary, setSummary] = useState<{ total: number; by_category: Record<string, number> }>({ total: 0, by_category: {} });
   const [form, setForm] = useState(emptyExpenseForm);
+  const [customCategory, setCustomCategory] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -528,6 +555,7 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
   function resetForm() {
     setEditingId(null);
     setForm(emptyExpenseForm);
+    setCustomCategory("");
   }
 
   function startEdit(expense: CompanyExpense) {
@@ -543,6 +571,7 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
       worker_id: expense.worker_id ? String(expense.worker_id) : "",
       note: expense.note || "",
     });
+    setCustomCategory("");
   }
 
   async function saveExpense(event: React.FormEvent<HTMLFormElement>) {
@@ -551,7 +580,8 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
       setMessage("Datum troska je obavezan.");
       return;
     }
-    if (!form.category) {
+    const resolvedCategory = form.category === "__custom" ? customCategory.trim() : form.category;
+    if (!resolvedCategory) {
       setMessage("Kategorija troska je obavezna.");
       return;
     }
@@ -561,7 +591,7 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
     }
     const payload = {
       expense_date: form.expense_date,
-      category: form.category,
+      category: resolvedCategory,
       description: form.description.trim(),
       amount: toNumber(form.amount),
       payment_method: form.payment_method,
@@ -614,6 +644,21 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
     { label: "Plate", value: money(summary.by_category?.payroll), tone: "bg-emerald-100 text-emerald-900" },
     { label: "Ostalo", value: money(otherTotal), tone: "bg-white text-gray-900" },
   ];
+  const expenseCategoryOptions = useMemo(() => {
+    const map = new Map(baseExpenseCategories.map((item) => [item.key, item.label]));
+    Object.keys(summary.by_category || {}).forEach((key) => {
+      if (key && !map.has(key)) map.set(key, key);
+    });
+    expenses.forEach((expense) => {
+      if (expense.category && !map.has(expense.category)) map.set(expense.category, expense.category);
+    });
+    return Array.from(map, ([key, label]) => ({ key, label }));
+  }, [expenses, summary.by_category]);
+
+  const expenseFormCategoryOptions = useMemo(
+    () => [...expenseCategoryOptions.filter((item) => item.key !== "all"), { key: "__custom", label: "Nova vrsta troska" }],
+    [expenseCategoryOptions]
+  );
 
   return (
     <section className="space-y-5">
@@ -629,8 +674,11 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
             <form className="grid gap-3" onSubmit={saveExpense}>
               <Input label="Datum" type="date" value={form.expense_date} onChange={(e) => setForm((p) => ({ ...p, expense_date: e.target.value }))} />
               <Select label="Kategorija" selectedKeys={[form.category]} onSelectionChange={(keys) => setForm((p) => ({ ...p, category: Array.from(keys).at(0)?.toString() as ExpenseCategory }))}>
-                {expenseCategories.filter((item) => item.key !== "all").map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
+                {expenseFormCategoryOptions.map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
               </Select>
+              {form.category === "__custom" && (
+                <Input label="Nova vrsta troska" value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} />
+              )}
               <Input label="Opis" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
               <Input label="Iznos" type="number" min="0.01" step="0.01" value={form.amount} onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))} />
               <Select label="Nacin placanja" selectedKeys={[form.payment_method]} onSelectionChange={(keys) => setForm((p) => ({ ...p, payment_method: Array.from(keys).at(0)?.toString() as ExpensePaymentMethod }))}>
@@ -658,7 +706,7 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
               <Input label="Mesec" type="number" min="1" max="12" value={month} onChange={(e) => setMonth(e.target.value)} />
               <Input label="Godina" type="number" min="2020" value={year} onChange={(e) => setYear(e.target.value)} />
               <Select label="Kategorija" selectedKeys={[category]} onSelectionChange={(keys) => setCategory((Array.from(keys).at(0)?.toString() as ExpenseCategory | "all") || "all")}>
-                {expenseCategories.map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
+                {expenseCategoryOptions.map((item) => <SelectItem key={item.key}>{item.label}</SelectItem>)}
               </Select>
             </CardBody>
           </Card>
@@ -676,8 +724,8 @@ function ExpensesModule({ isAuthenticated, month, year, monthNumber, yearNumber,
                     <div className="grid gap-3 md:grid-cols-[1fr_auto]">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold text-dark">{expense.description || labelFor(expenseCategories, expense.category)}</p>
-                          <Chip size="sm" variant="flat">{labelFor(expenseCategories, expense.category)}</Chip>
+                          <p className="font-semibold text-dark">{expense.description || labelForLoose(expenseCategoryOptions, expense.category)}</p>
+                          <Chip size="sm" variant="flat">{labelForLoose(expenseCategoryOptions, expense.category)}</Chip>
                         </div>
                         <p className="mt-1 text-sm text-gray-600">{expense.expense_date} · {labelFor(expensePaymentMethods, expense.payment_method)}</p>
                         <p className="mt-1 text-sm text-gray-500">
