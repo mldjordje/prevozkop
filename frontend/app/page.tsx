@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
-import HeroSlider from "@/components/hero-slider";
+import HeroVideo from "@/components/hero-video";
 import FloatingCta from "@/components/floating-cta";
 import StatsSection from "@/components/stats-section";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
@@ -92,7 +92,13 @@ export default async function HomePage() {
         Prevozkop - isporuka betona, visinske pumpe za beton i zemljani radovi u Nisu
       </h1>
 
-      <HeroSlider slides={heroSlides} />
+      <HeroVideo
+        title={heroSlides[0].title}
+        kicker={heroSlides[0].kicker}
+        description={heroSlides[0].description}
+        ctaLabel={heroSlides[0].ctaLabel}
+        ctaHref={heroSlides[0].ctaHref}
+      />
 
       {/* ── Stats ────────────────────────────────────────── */}
       <StatsSection stats={stats} />

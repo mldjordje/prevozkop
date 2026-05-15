@@ -1,5 +1,11 @@
 uploads/*
 !uploads/.htaccess
+
+# Video source files (large, deploy manually)
+*.MOV
+*.mov
+frontend/public/video/*.mp4
+frontend/public/video/*.webm
 vendor/
 api/.env
 api/config.local.php
