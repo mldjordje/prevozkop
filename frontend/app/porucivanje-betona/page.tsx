@@ -127,7 +127,14 @@ export default function OrderConcretePage() {
 
           {/* Right: Form */}
           <ScrollReveal from="right">
-            <ContactForm />
+            <ContactForm
+              showQuantity
+              defaultServiceTab="beton"
+              quantityLabel="Kolicina betona (opciono)"
+              quantityPlaceholder="npr. 10"
+              quantityUnits={["m3"]}
+              defaultQuantityUnit="m3"
+            />
           </ScrollReveal>
         </div>
       </section>

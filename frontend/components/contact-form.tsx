@@ -6,20 +6,26 @@ import type { Order } from "@/lib/api";
 import { getCurrentPathWithSearch, trackEvent, trackGoogleAdsConversion } from "@/lib/tracking";
 
 type FormState = "idle" | "loading" | "success" | "error";
+type ServiceTab = "beton" | "behaton";
 
 const concreteTypes = [
-  "MB 10",
-  "MB 15",
-  "MB 20",
-  "MB 25 VODONEPROPUSTIV",
-  "MB 30 VODONEPROPUSTIV",
-  "MB 35 VODONEPROPUSTIV",
-  "MB 40 VODONEPROPUSTIV",
+  "MB 10", "MB 15", "MB 20",
+  "MB 25 VODONEPROPUSTIV", "MB 30 VODONEPROPUSTIV",
+  "MB 35 VODONEPROPUSTIV", "MB 40 VODONEPROPUSTIV",
   "V8 M150",
+];
+
+const behatonTypes = [
+  "Holland 6cm", "Holland 8cm",
+  "Roma 6cm", "Roma 8cm",
+  "Kocka 10cm",
+  "Trotoar 4cm", "Trotoar 6cm",
+  "Ivicnjak betonski",
 ];
 
 type ContactFormProps = {
   defaultSubject?: string;
+  defaultServiceTab?: ServiceTab;
   subjectPlaceholder?: string;
   selectLabel?: string;
   selectOptions?: string[];
@@ -32,30 +38,38 @@ type ContactFormProps = {
   quantityUnitLabel?: string;
   quantityUnits?: string[];
   defaultQuantityUnit?: string;
+  hideServiceTabs?: boolean;
 };
 
-const inputClass =
-  "block w-full min-w-0 rounded-xl border border-[rgba(15,14,12,0.12)] bg-white px-4 py-3.5 text-sm text-dark placeholder:text-faint outline-none transition-all duration-200 focus:border-primary focus:ring-3 focus:ring-primary/15 focus:shadow-[0_0_0_3px_rgba(244,161,0,0.12)]";
+const inputCls =
+  "block w-full rounded-xl border border-black/10 bg-gray-50/60 px-4 py-3.5 text-sm text-dark placeholder:text-faint outline-none transition-all duration-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20";
 
-const labelClass = "flex min-w-0 flex-col gap-1.5 text-sm font-semibold text-dark font-body";
+const labelCls = "flex flex-col gap-1.5 text-sm font-semibold text-dark";
 
 export default function ContactForm({
   defaultSubject,
+  defaultServiceTab,
   subjectPlaceholder,
   selectLabel,
   selectOptions,
   selectPlaceholder,
   defaultSelectValue,
   selectRequired,
-  showQuantity,
+  showQuantity = true,
   quantityLabel,
   quantityPlaceholder,
   quantityUnitLabel,
   quantityUnits,
   defaultQuantityUnit,
+  hideServiceTabs = false,
 }: ContactFormProps) {
   const [state, setState] = useState<FormState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [serviceTab, setServiceTab] = useState<ServiceTab>(() => {
+    if (defaultServiceTab) return defaultServiceTab;
+    if (defaultSubject?.toLowerCase().includes("behaton")) return "behaton";
+    return "beton";
+  });
   const submitInFlightRef = useRef(false);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
@@ -67,24 +81,18 @@ export default function ContactForm({
     process.env.NEXT_PUBLIC_GADS_SEND_TO ||
     DEFAULT_FORM_SEND_TO;
 
-  const resolvedSelectOptions = selectOptions ?? concreteTypes;
-  const resolvedSelectLabel = selectLabel || "Vrsta betona (opciono)";
-  const resolvedSelectPlaceholder = selectPlaceholder || "Izaberite vrstu betona";
-  const resolvedQuantityLabel = quantityLabel || "Kolicina (opciono)";
-  const resolvedQuantityPlaceholder = quantityPlaceholder || "npr. 20";
-  const resolvedQuantityUnitLabel = quantityUnitLabel || "Jedinica";
-  const resolvedQuantityUnits = quantityUnits ?? ["m2", "m3", "kom", "paleta"];
+  const isBeton = serviceTab === "beton";
+  const concreteSet = new Set(concreteTypes.map((t) => t.toLowerCase()));
 
-  const concreteSet = new Set(concreteTypes.map((item) => item.toLowerCase()));
-
-  function detectServiceType(subject: string, selectedType: string) {
-    const s = subject.trim().toLowerCase();
-    const t = selectedType.trim().toLowerCase();
-    if (s.includes("behaton")) return "behaton";
-    if (s.includes("beton")) return "beton";
-    if (t) return concreteSet.has(t) ? "beton" : "behaton";
-    return "other";
-  }
+  // Resolve options based on tab or explicit props
+  const resolvedSelectOptions = selectOptions ?? (isBeton ? concreteTypes : behatonTypes);
+  const resolvedSelectLabel = selectLabel ?? (isBeton ? "Vrsta betona (opciono)" : "Model behatona (opciono)");
+  const resolvedSelectPlaceholder = selectPlaceholder ?? (isBeton ? "Izaberite vrstu betona" : "Izaberite model behatona");
+  const resolvedQuantityLabel = quantityLabel ?? "Kolicina (opciono)";
+  const resolvedQuantityPlaceholder = quantityPlaceholder ?? (isBeton ? "npr. 10" : "npr. 50");
+  const resolvedQuantityUnitLabel = quantityUnitLabel ?? "Jedinica";
+  const resolvedQuantityUnits = quantityUnits ?? (isBeton ? ["m3"] : ["m2", "m3", "kom", "paleta"]);
+  const resolvedDefaultUnit = defaultQuantityUnit ?? (isBeton ? "m3" : "m2");
 
   function detectCitySlug(path: string | null): string | null {
     if (!path) return null;
@@ -112,8 +120,8 @@ export default function ContactForm({
     if (quantity) detailLines.push(`Kolicina: ${quantity}${quantityUnit ? ` ${quantityUnit}` : ""}`);
     const message = detailLines.length ? `${detailLines.join(" | ")}\n${rawMessage}` : rawMessage;
 
-    const subject = (data.get("subject") as string) || defaultSubject || "";
-    const serviceType = detectServiceType(subject, selectedType);
+    // Build subject from tab + defaultSubject
+    const baseSubject = defaultSubject || (isBeton ? "Isporuka betona - upit" : "Behaton - upit");
     const currentPath = getCurrentPathWithSearch();
     const citySlug = detectCitySlug(currentPath);
     const currentSearch =
@@ -123,9 +131,9 @@ export default function ContactForm({
       name: (data.get("name") as string) || "",
       email: (data.get("email") as string) || "",
       phone: (data.get("phone") as string) || "",
-      subject,
+      subject: baseSubject,
       concrete_type: selectedType,
-      service_type: serviceType,
+      service_type: serviceTab,
       quantity: quantity || null,
       quantity_unit: quantityUnit || null,
       city_slug: citySlug,
@@ -146,7 +154,7 @@ export default function ContactForm({
       const response = (await res.json()) as { id?: number; ok?: boolean };
 
       trackEvent("generate_lead", {
-        lead_type: serviceType,
+        lead_type: serviceTab,
         source_page: currentPath,
         city_slug: citySlug || undefined,
       });
@@ -159,7 +167,7 @@ export default function ContactForm({
     } catch (err) {
       console.error(err);
       setState("error");
-      setError("Server privremeno nije dostupan. Pozovite nas direktno.");
+      setError("Server privremeno nije dostupan.");
     } finally {
       submitInFlightRef.current = false;
     }
@@ -167,21 +175,21 @@ export default function ContactForm({
 
   if (state === "success") {
     return (
-      <div className="flex flex-col items-center gap-5 rounded-2xl border border-green-200 bg-green-50 px-6 py-12 text-center shadow-sm">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl">
+      <div className="flex flex-col items-center gap-5 rounded-2xl border border-green-100 bg-green-50 px-6 py-14 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500 text-2xl text-white shadow-lg">
           ✓
         </div>
         <div className="space-y-2">
-          <h3 className="font-display text-2xl font-bold text-dark">Upit je poslat!</h3>
+          <h3 className="font-display text-2xl font-bold text-dark">Upit je primljen!</h3>
           <p className="text-sm text-muted">
-            Javicemo se na vas broj u roku od <strong>2 sata</strong> radi potvrde termina i
-            detalja.
+            Javicemo se na vas broj u roku od{" "}
+            <strong className="text-dark">2 sata</strong> radi potvrde termina.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setState("idle")}
-          className="mt-2 text-sm font-semibold text-primary underline-offset-2 hover:underline"
+          className="mt-1 text-sm font-semibold text-primary underline-offset-2 hover:underline"
         >
           Posalji novi upit
         </button>
@@ -192,174 +200,179 @@ export default function ContactForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid w-full gap-5 overflow-hidden rounded-2xl border border-[rgba(15,14,12,0.07)] bg-white p-5 shadow-[0_8px_48px_rgba(0,0,0,0.07)] sm:p-8"
+      className="grid w-full gap-5 rounded-2xl border border-black/6 bg-white p-5 shadow-[0_4px_32px_rgba(0,0,0,0.06)] sm:p-7"
     >
-      {/* Gold accent header */}
-      <div className="flex items-start gap-3 border-l-4 border-primary pl-4">
-        <div>
-          <p className="font-display text-xl font-bold leading-tight text-dark sm:text-2xl">
-            Posaljite besplatan upit
-          </p>
-          <p className="mt-0.5 text-sm text-muted">Odgovaramo u roku od 2 sata · Bez obaveze</p>
-        </div>
+      {/* Header */}
+      <div className="border-l-[3px] border-primary pl-4">
+        <p className="font-display text-xl font-bold text-dark">Posaljite besplatan upit</p>
+        <p className="mt-0.5 text-xs text-faint">Odgovaramo u roku od 2 sata · Bez obaveze</p>
       </div>
 
-      {/* Phone — primary field, full width, large */}
-      <label className={labelClass}>
-        <span>
-          Vas broj telefona{" "}
-          <span className="font-normal text-primary">*</span>
+      {/* ── Service type tabs ── */}
+      {!hideServiceTabs && (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-dark">Sta vas zanima?</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setServiceTab("beton")}
+              className={clsx(
+                "flex flex-col items-center gap-1 rounded-xl border-2 px-3 py-3 text-center transition-all duration-200",
+                isBeton
+                  ? "border-primary bg-primary/8 text-dark shadow-[0_0_0_2px_rgba(244,161,0,0.15)]"
+                  : "border-black/8 bg-gray-50 text-muted hover:border-primary/40 hover:bg-primary/4"
+              )}
+            >
+              <span className="text-xl">🏗️</span>
+              <span className="font-display text-sm font-bold leading-tight">Beton / Pumpa</span>
+              <span className="text-xs font-normal text-faint">isporuka, mikseri</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setServiceTab("behaton")}
+              className={clsx(
+                "flex flex-col items-center gap-1 rounded-xl border-2 px-3 py-3 text-center transition-all duration-200",
+                !isBeton
+                  ? "border-primary bg-primary/8 text-dark shadow-[0_0_0_2px_rgba(244,161,0,0.15)]"
+                  : "border-black/8 bg-gray-50 text-muted hover:border-primary/40 hover:bg-primary/4"
+              )}
+            >
+              <span className="text-xl">🧱</span>
+              <span className="font-display text-sm font-bold leading-tight">Behaton</span>
+              <span className="text-xs font-normal text-faint">poplocavanje, trotoir</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Phone — required, full width ── */}
+      <label className={labelCls}>
+        <span className="flex items-center gap-1.5">
+          Vas broj telefona
+          <span className="text-primary">*</span>
         </span>
         <input
           required
           name="phone"
           type="tel"
           autoComplete="tel"
-          className={clsx(inputClass, "text-base font-medium")}
+          inputMode="tel"
+          className={clsx(inputCls, "text-base font-medium")}
           placeholder="060 / 065 / 062..."
         />
         <span className="text-xs font-normal text-faint">
-          Pozivamo vas radi potvrde termina i detalja
+          Pozivamo vas radi potvrde i detalja
         </span>
       </label>
 
-      {/* Name + Email — secondary row */}
+      {/* ── Name + Email ── */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className={labelClass}>
+        <label className={labelCls}>
           Vase ime{" "}
           <span className="font-normal text-faint">(opciono)</span>
-          <input
-            name="name"
-            autoComplete="name"
-            className={inputClass}
-            placeholder="Vase ime i prezime"
-          />
+          <input name="name" autoComplete="name" className={inputCls} placeholder="Ime i prezime" />
         </label>
-        <label className={labelClass}>
+        <label className={labelCls}>
           Email{" "}
           <span className="font-normal text-faint">(opciono)</span>
-          <input
-            name="email"
-            type="email"
-            autoComplete="email"
-            className={inputClass}
-            placeholder="primer@email.com"
-          />
+          <input name="email" type="email" autoComplete="email" className={inputCls} placeholder="primer@email.com" />
         </label>
       </div>
 
-      {/* Subject — hidden if defaultSubject is provided, shown otherwise */}
-      {defaultSubject ? (
-        <input type="hidden" name="subject" value={defaultSubject} />
-      ) : (
-        <label className={labelClass}>
-          Sta vas zanima{" "}
-          <span className="font-normal text-faint">(opciono)</span>
-          <input
-            name="subject"
-            className={inputClass}
-            placeholder={subjectPlaceholder || "Beton, pumpa, iskopi, behaton..."}
-          />
-        </label>
-      )}
-
-      {/* Type dropdown */}
-      <label className={labelClass}>
+      {/* ── Type dropdown ── */}
+      <label className={labelCls}>
         {resolvedSelectLabel}
         <select
           name="concrete_type"
-          className={clsx(inputClass, "cursor-pointer")}
-          defaultValue={defaultSelectValue || ""}
+          className={clsx(inputCls, "cursor-pointer")}
+          defaultValue={defaultSelectValue ?? ""}
           required={selectRequired}
+          key={serviceTab}
         >
           <option value="">{resolvedSelectPlaceholder}</option>
           {resolvedSelectOptions.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
+            <option key={type} value={type}>{type}</option>
           ))}
         </select>
       </label>
 
-      {/* Quantity */}
+      {/* ── Quantity + Unit ── */}
       {showQuantity && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className={labelClass}>
+        <div className="grid grid-cols-2 gap-4">
+          <label className={labelCls}>
             {resolvedQuantityLabel}
             <input
               name="quantity"
               type="number"
               min="0"
-              step="0.01"
-              className={inputClass}
+              step="0.1"
+              className={inputCls}
               placeholder={resolvedQuantityPlaceholder}
             />
           </label>
-          <label className={labelClass}>
+          <label className={labelCls}>
             {resolvedQuantityUnitLabel}
             <select
               name="quantity_unit"
-              className={clsx(inputClass, "cursor-pointer")}
-              defaultValue={defaultQuantityUnit || ""}
+              className={clsx(inputCls, "cursor-pointer")}
+              defaultValue={resolvedDefaultUnit}
+              key={`unit-${serviceTab}`}
             >
-              <option value="">Izaberite jedinicu</option>
-              {resolvedQuantityUnits.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
+              <option value="">Jedinica</option>
+              {resolvedQuantityUnits.map((u) => (
+                <option key={u} value={u}>{u}</option>
               ))}
             </select>
           </label>
         </div>
       )}
 
-      {/* Message — short and optional */}
-      <label className={labelClass}>
+      {/* ── Message ── */}
+      <label className={labelCls}>
         Napomena{" "}
         <span className="font-normal text-faint">(opciono)</span>
         <textarea
           name="message"
           rows={3}
-          className={clsx(inputClass, "resize-none")}
-          placeholder="Lokacija, posebni zahtevi, vreme isporuke..."
+          className={clsx(inputCls, "resize-none")}
+          placeholder="Lokacija, posebni zahtevi, termin isporuke..."
         />
       </label>
 
-      {/* Submit */}
+      {/* ── Submit ── */}
       <div className="space-y-3">
         <button
           type="submit"
           disabled={state === "loading"}
           className={clsx(
-            "relative w-full overflow-hidden rounded-xl px-6 py-4 text-center font-display text-base font-bold uppercase tracking-wider text-dark transition-all duration-300",
-            "bg-primary shadow-[0_12px_40px_rgba(244,161,0,0.35)]",
-            "hover:shadow-[0_20px_60px_rgba(244,161,0,0.45)] hover:-translate-y-0.5",
-            "active:translate-y-0 active:shadow-[0_8px_24px_rgba(244,161,0,0.3)]",
-            state === "loading" && "opacity-75 cursor-wait"
+            "flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4",
+            "font-display text-[15px] font-bold uppercase tracking-[0.08em] text-dark",
+            "shadow-[0_8px_28px_rgba(244,161,0,0.3)] transition-all duration-300",
+            "hover:-translate-y-0.5 hover:shadow-[0_16px_48px_rgba(244,161,0,0.42)]",
+            "active:translate-y-0 active:shadow-[0_4px_16px_rgba(244,161,0,0.25)]",
+            state === "loading" && "cursor-wait opacity-70"
           )}
         >
           {state === "loading" ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg
-                className="h-4 w-4 animate-spin"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
+            <>
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
               </svg>
               Slanje...
-            </span>
+            </>
           ) : (
-            "Posalji besplatan upit →"
+            <>
+              Posalji besplatan upit
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </>
           )}
         </button>
 
-        {/* Error */}
         {state === "error" && (
           <div className="flex items-start gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-            <span className="mt-0.5 shrink-0 text-red-500">⚠</span>
+            <span className="shrink-0">⚠</span>
             <span>
               {error}{" "}
               <a href="tel:+381605887471" className="font-semibold underline">
@@ -370,7 +383,6 @@ export default function ContactForm({
           </div>
         )}
 
-        {/* Trust signals */}
         <p className="text-center text-xs text-faint">
           Radimo pon–sub · Odgovaramo u roku od 2 sata · Bez obaveze
         </p>
