@@ -4,6 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import HeroSlider from "@/components/hero-slider";
 import FloatingCta from "@/components/floating-cta";
+import StatsSection from "@/components/stats-section";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import TiltCard from "@/components/motion/tilt-card";
 import { aboutHighlights, company, heroSlides, services, stats } from "@/content/site";
@@ -20,15 +21,8 @@ export const metadata: Metadata = buildMetadata({
   path: "/",
   image: "/img/napolje1.webp",
   keywords: [
-    "beton nis",
-    "isporuka betona nis",
-    "isporuka betona",
-    "behaton nis",
-    "behaton",
-    "gotov beton",
-    "beton pumpa",
-    "zemljani radovi",
-    "prevozkop",
+    "beton nis", "isporuka betona nis", "isporuka betona", "behaton nis", "behaton",
+    "gotov beton", "beton pumpa", "zemljani radovi", "prevozkop",
   ],
   languages: srEnLanguages("/", "/en"),
 });
@@ -52,12 +46,12 @@ const priorityLinks = [
   {
     href: "/porucivanje-betona",
     title: "Isporuka betona Nis",
-    description: "Landing stranica za porucivanje betona, miksera i beton pumpi u Nisu i okolini.",
+    description: "Porucivanje betona, miksera i beton pumpi u Nisu i okolini.",
   },
   {
     href: "/behaton",
     title: "Behaton Srbija",
-    description: "Glavna SEO stranica za behaton, modele, cene, isporuku i ugradnju sirom Srbije.",
+    description: "Modeli, cene, isporuka i ugradnja behatona sirom Srbije.",
   },
   {
     href: "/beton/grad/nis",
@@ -67,7 +61,7 @@ const priorityLinks = [
   {
     href: "/behaton/grad/nis",
     title: "Behaton Nis",
-    description: "Lokalna stranica za behaton u Nisu sa upitom i preporukama modela.",
+    description: "Behaton u Nisu sa upitom i preporukama modela.",
   },
   {
     href: "/usluge",
@@ -93,109 +87,86 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="space-y-16 sm:space-y-24">
+    <div className="pb-24 md:pb-0">
       <h1 className="sr-only">
         Prevozkop - isporuka betona, visinske pumpe za beton i zemljani radovi u Nisu
       </h1>
+
       <HeroSlider slides={heroSlides} />
 
-      <section className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Vazne stranice
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Glavne stranice za beton u okolini Nisa i behaton u Srbiji
+      {/* ── Stats ────────────────────────────────────────── */}
+      <StatsSection stats={stats} />
+
+      {/* ── Vazne stranice ───────────────────────────────── */}
+      <section className="content-section space-y-8 py-16 sm:py-24">
+        <ScrollReveal className="space-y-3">
+          <span className="section-label">Vazne stranice</span>
+          <h2 className="font-display text-4xl font-bold text-dark sm:text-5xl">
+            Beton i behaton — sve na jednom mestu
           </h2>
-          <p className="max-w-3xl text-sm text-gray-700">
-            Ako trazite isporuku betona za Nis i okolinu, behaton za Srbiju, beton pumpu ili
-            kompletne usluge, ovde su najvaznije stranice sajta sa konkretnim informacijama i upitom.
+          <p className="max-w-3xl font-body text-base text-muted">
+            Isporuka betona za Nis i okolinu, behaton za Srbiju, pumpe i kompletne usluge.
           </p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {priorityLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-3xl border border-black/5 bg-white p-6 shadow-lg transition hover:-translate-y-1"
-            >
-              <h3 className="text-lg font-semibold text-dark">{link.title}</h3>
-              <p className="mt-2 text-sm text-gray-700">{link.description}</p>
-              <span className="mt-4 inline-flex text-sm font-semibold text-primary">
-                Otvori stranicu {"->"}
-              </span>
-            </Link>
+        </ScrollReveal>
+        <StaggerReveal className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {priorityLinks.map((link, i) => (
+            <ScrollReveal key={link.href} from="up" delay={i * 0.05}>
+              <Link
+                href={link.href}
+                className="group flex h-full flex-col rounded-2xl border border-[rgba(15,14,12,0.07)] bg-white p-6 shadow-sm transition-all duration-400 hover:-translate-y-1.5 hover:border-primary/20 hover:shadow-[0_20px_56px_rgba(0,0,0,0.08),0_0_0_1px_rgba(244,161,0,0.12)]"
+              >
+                <h3 className="font-display text-xl font-bold text-dark">{link.title}</h3>
+                <p className="mt-2 flex-1 font-body text-sm text-muted">{link.description}</p>
+                <span className="mt-4 inline-flex items-center gap-1.5 font-body text-sm font-semibold text-primary">
+                  Otvori
+                  <svg className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </Link>
+            </ScrollReveal>
           ))}
-        </div>
+        </StaggerReveal>
       </section>
 
-      <section className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Najcesca pitanja
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Beton i isporuka u Nisu - brzi odgovori
-          </h2>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-3">
-          {homepageFaq.map((item) => (
-            <div key={item.q} className="rounded-3xl border border-black/5 bg-white p-6 shadow-lg">
-              <h3 className="text-base font-semibold text-dark">{item.q}</h3>
-              <p className="mt-2 text-sm text-gray-700">{item.a}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="content-section">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <ScrollReveal className="space-y-5" from="left">
-            <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-              O nama
-            </span>
-            <h2 className="text-3xl font-bold leading-tight text-dark sm:text-4xl">
+      {/* ── O nama ───────────────────────────────────────── */}
+      <section className="content-section py-16 sm:py-24">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <ScrollReveal from="left" className="space-y-6">
+            <span className="section-label">O nama</span>
+            <h2 className="font-display text-4xl font-bold leading-tight text-dark sm:text-5xl">
               Prevozkop: beton, pumpe i zemljani radovi
             </h2>
-            <p className="text-base text-gray-700">
+            <p className="font-body text-base leading-relaxed text-muted">
               Prevozkop je gradjevinska podrska iz Nisa specijalizovana za isporuku gotovog betona,
               visoke pumpe i pripremu gradilista. Radimo u Nisu i okolnim gradovima uz jasnu
               logistiku i pouzdane rokove.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2.5 sm:grid-cols-2">
               {aboutHighlights.map((item) => (
                 <div
                   key={item}
-                  className="rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm font-semibold text-dark shadow-sm"
+                  className="flex items-start gap-3 rounded-xl border border-[rgba(15,14,12,0.06)] bg-white px-4 py-3 shadow-sm"
                 >
-                  {item}
+                  <span className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-primary/15 text-center text-xs font-bold leading-5 text-primary">
+                    ✓
+                  </span>
+                  <p className="font-body text-sm font-semibold text-dark">{item}</p>
                 </div>
               ))}
             </div>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                href="/o-nama"
-                className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.35)] transition hover:translate-y-[-2px]"
-              >
+            <div className="flex flex-wrap gap-3 pt-1">
+              <Link href="/o-nama" className="btn-primary">
                 Vise o nama
               </Link>
-              <Link
-                href="/porucivanje-betona#forma"
-                className="inline-flex items-center rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
-              >
-                Poruci beton
+              <Link href="/porucivanje-betona#forma" className="btn-outline">
+                Posalji upit
               </Link>
             </div>
           </ScrollReveal>
 
-          <ScrollReveal
-            from="right"
-            className="relative overflow-hidden rounded-3xl border border-black/5 shadow-xl"
-          >
-            <div
-              className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-white/40"
-              aria-hidden
-            />
+          <ScrollReveal from="right" className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-xl lg:aspect-auto lg:h-[480px]">
+            <div className="absolute inset-0 z-10 bg-gradient-to-tr from-primary/10 via-transparent to-transparent" />
             <Image
               src="/img/napolje1.webp"
               alt="Betonska baza i dostava"
@@ -203,31 +174,41 @@ export default async function HomePage() {
               sizes="(max-width: 1024px) 100vw, 45vw"
               className="object-cover"
             />
+            {/* Floating badge */}
+            <div className="absolute bottom-4 left-4 z-20 rounded-xl border border-white/20 bg-dark/70 px-4 py-2.5 backdrop-blur-sm">
+              <p className="font-display text-lg font-bold text-primary">{stats[0]?.value}</p>
+              <p className="font-body text-xs text-white/70">{stats[0]?.label}</p>
+            </div>
           </ScrollReveal>
         </div>
       </section>
 
-      <section className="content-section space-y-8">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
-          <ScrollReveal className="space-y-2">
-            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Nase usluge
-            </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Gradjevinske usluge za teren i logistiku
+      {/* ── Usluge ───────────────────────────────────────── */}
+      <section className="content-section space-y-8 py-16 sm:py-24">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <ScrollReveal className="space-y-3">
+            <span className="section-label">Nase usluge</span>
+            <h2 className="font-display text-4xl font-bold text-dark sm:text-5xl">
+              Gradjevinske usluge za teren
             </h2>
           </ScrollReveal>
           <ScrollReveal from="right">
-            <Link href="/usluge" className="inline-flex items-center text-sm font-semibold text-primary">
-              Sve usluge -
+            <Link
+              href="/usluge"
+              className="inline-flex items-center gap-1.5 font-body text-sm font-semibold text-primary"
+            >
+              Sve usluge
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
             </Link>
           </ScrollReveal>
         </div>
-        <StaggerReveal className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StaggerReveal className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {featuredServices.map((service) => (
             <ScrollReveal key={service.title} from="up" className="h-full">
-              <TiltCard className="group relative h-full overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md">
-                <div className="relative h-40 overflow-hidden">
+              <TiltCard className="group h-full overflow-hidden rounded-2xl border border-[rgba(15,14,12,0.06)] bg-white shadow-sm transition-shadow duration-400 hover:shadow-[0_20px_56px_rgba(0,0,0,0.09)]">
+                <div className="relative h-44 overflow-hidden">
                   <Image
                     src={service.image}
                     alt={service.title}
@@ -235,10 +216,11 @@ export default async function HomePage() {
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     className="object-cover transition duration-700 group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 </div>
                 <div className="space-y-2 p-5">
-                  <h3 className="text-lg font-semibold text-dark">{service.title}</h3>
-                  <p className="text-sm text-gray-700">{service.description}</p>
+                  <h3 className="font-display text-xl font-bold text-dark">{service.title}</h3>
+                  <p className="font-body text-sm leading-relaxed text-muted">{service.description}</p>
                 </div>
               </TiltCard>
             </ScrollReveal>
@@ -246,31 +228,32 @@ export default async function HomePage() {
         </StaggerReveal>
       </section>
 
-      <section className="content-section space-y-8">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
-          <ScrollReveal className="space-y-2">
-            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Nasi projekti
-            </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">Galerija radova</h2>
-          </ScrollReveal>
-          <ScrollReveal from="right">
-            <Link href="/projekti" className="inline-flex items-center text-sm font-semibold text-primary">
-              Pogledaj sve -
-            </Link>
-          </ScrollReveal>
-        </div>
-        {featuredProjects.length === 0 ? (
-          <ScrollReveal>
-            <p className="text-sm text-gray-600">
-              Jos uvek nema objavljenih projekata. Pratite nas za nove radove.
-            </p>
-          </ScrollReveal>
-        ) : (
-          <StaggerReveal className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* ── Projekti ─────────────────────────────────────── */}
+      {featuredProjects.length > 0 && (
+        <section className="content-section space-y-8 py-16 sm:py-24">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <ScrollReveal className="space-y-3">
+              <span className="section-label">Nasi projekti</span>
+              <h2 className="font-display text-4xl font-bold text-dark sm:text-5xl">
+                Galerija radova
+              </h2>
+            </ScrollReveal>
+            <ScrollReveal from="right">
+              <Link
+                href="/projekti"
+                className="inline-flex items-center gap-1.5 font-body text-sm font-semibold text-primary"
+              >
+                Svi projekti
+                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </ScrollReveal>
+          </div>
+          <StaggerReveal className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {featuredProjects.map((project) => (
               <ScrollReveal key={project.id} from="up" className="h-full">
-                <TiltCard className="group h-full overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md">
+                <TiltCard className="group h-full overflow-hidden rounded-2xl border border-[rgba(15,14,12,0.06)] bg-white shadow-sm transition-shadow duration-400 hover:shadow-[0_20px_56px_rgba(0,0,0,0.09)]">
                   <div className="relative h-52 overflow-hidden">
                     <Image
                       src={project.hero_image || "/img/napolje1.webp"}
@@ -279,16 +262,39 @@ export default async function HomePage() {
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover transition duration-700 group-hover:scale-105"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
                   </div>
                   <div className="space-y-1 p-5">
-                    <p className="text-xs uppercase tracking-[0.2em] text-primary">Projekat</p>
-                    <h3 className="text-lg font-semibold text-dark">{project.title}</h3>
+                    <p className="font-body text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                      Projekat
+                    </p>
+                    <h3 className="font-display text-xl font-bold text-dark">{project.title}</h3>
                   </div>
                 </TiltCard>
               </ScrollReveal>
             ))}
           </StaggerReveal>
-        )}
+        </section>
+      )}
+
+      {/* ── FAQ ──────────────────────────────────────────── */}
+      <section className="content-section space-y-8 py-16 sm:py-24">
+        <ScrollReveal className="space-y-3">
+          <span className="section-label">Najcesca pitanja</span>
+          <h2 className="font-display text-4xl font-bold text-dark sm:text-5xl">
+            Beton u Nisu — brzi odgovori
+          </h2>
+        </ScrollReveal>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {homepageFaq.map((item, i) => (
+            <ScrollReveal key={item.q} from="up" delay={i * 0.07}>
+              <div className="h-full rounded-2xl border border-[rgba(15,14,12,0.07)] bg-white p-6 shadow-sm">
+                <h3 className="font-display text-lg font-bold text-dark">{item.q}</h3>
+                <p className="mt-2 font-body text-sm leading-relaxed text-muted">{item.a}</p>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
       </section>
 
       <Script id="home-localbusiness-jsonld" type="application/ld+json">
@@ -299,11 +305,7 @@ export default async function HomePage() {
           url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
           telephone: company.phone,
           email: company.email,
-          address: {
-            "@type": "PostalAddress",
-            addressLocality: "Nis",
-            addressCountry: "RS",
-          },
+          address: { "@type": "PostalAddress", addressLocality: "Nis", addressCountry: "RS" },
           areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Juzna Srbija", "Centralna Srbija"],
         })}
       </Script>
@@ -318,7 +320,15 @@ export default async function HomePage() {
           })),
         })}
       </Script>
-      <FloatingCta phone={company.phone} callNumber="0603720415" whatsappNumber="0601491491" />
+
+      <FloatingCta
+        phone={company.phone}
+        formHref="/porucivanje-betona#forma"
+        formLabel="Posalji upit"
+        callNumber="0603720415"
+        whatsappNumber="0601491491"
+        message="Pozdrav! Zanima me isporuka betona u Nisu."
+      />
     </div>
   );
 }

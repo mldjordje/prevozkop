@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Inter } from "next/font/google";
+import { Barlow_Condensed, DM_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import Navigation from "@/components/navigation";
@@ -9,10 +9,18 @@ import HeroUIProviders from "@/components/heroui-provider";
 import { company } from "@/content/site";
 import { SITE_URL } from "@/lib/seo";
 
-const inter = Inter({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
-  variable: "--font-inter",
+const barlowCondensed = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["700", "800", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-body",
   display: "swap",
 });
 
@@ -94,8 +102,8 @@ export default function RootLayout({
   const googleAdsId = process.env.NEXT_PUBLIC_GADS_ID || "AW-17801652604";
 
   return (
-    <html lang="sr-Latn-RS" className={inter.variable}>
-      <body className="bg-light text-dark antialiased">
+    <html lang="sr-Latn-RS" className={`${barlowCondensed.variable} ${dmSans.variable}`}>
+      <body>
         <Script id="prevozkop-jsonld" type="application/ld+json" strategy="afterInteractive">
           {JSON.stringify({
             "@context": "https://schema.org",

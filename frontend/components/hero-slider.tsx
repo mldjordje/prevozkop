@@ -1,50 +1,45 @@
 'use client';
 
-import { TouchEvent, useEffect, useMemo, useRef, useState } from "react";
+import { TouchEvent, useEffect, useRef, useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
 import { AnimatePresence, cubicBezier, motion } from "framer-motion";
 import type { HeroSlide } from "@/content/site";
 
-type Props = {
-  slides: HeroSlide[];
-};
+type Props = { slides: HeroSlide[] };
 
-const fadeEase = cubicBezier(0.22, 1, 0.36, 1);
+const ease = cubicBezier(0.22, 1, 0.36, 1);
 
 export default function HeroSlider({ slides }: Props) {
   const [index, setIndex] = useState(0);
   const [autoPlay, setAutoPlay] = useState(false);
+  const [progressKey, setProgressKey] = useState(0);
   const touchStartXRef = useRef<number | null>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const activeSlide = slides[index];
-  const imageInitial = index === 0 ? { scale: 1, opacity: 1 } : { scale: 1.06, opacity: 0 };
 
+  /* ── Enable autoplay after first interaction ── */
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mediaQuery.matches) {
-      return;
-    }
-
-    const enableAutoPlay = () => setAutoPlay(true);
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+    const enable = () => setAutoPlay(true);
     const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "scroll", "touchstart"];
-    events.forEach((event) =>
-      window.addEventListener(event, enableAutoPlay, { once: true, passive: true })
-    );
-
-    return () => {
-      events.forEach((event) => window.removeEventListener(event, enableAutoPlay));
-    };
+    events.forEach((e) => window.addEventListener(e, enable, { once: true, passive: true }));
+    return () => events.forEach((e) => window.removeEventListener(e, enable));
   }, []);
 
+  /* ── Autoplay interval ── */
   useEffect(() => {
     if (!autoPlay) return;
     const id = setInterval(() => {
       setIndex((prev) => (prev + 1) % slides.length);
+      setProgressKey((k) => k + 1);
     }, 9000);
     return () => clearInterval(id);
   }, [autoPlay, slides.length]);
 
+  /* ── Preload next image ── */
   useEffect(() => {
     if (!autoPlay) return;
     const next = slides[(index + 1) % slides.length];
@@ -53,43 +48,56 @@ export default function HeroSlider({ slides }: Props) {
     img.src = next.image;
   }, [autoPlay, index, slides]);
 
-  const label = useMemo(
-    () => "Betonska baza u Nisu · isporuka · pumpe · zemljani radovi",
-    []
-  );
+  /* ── GSAP word-by-word text animation ── */
+  useEffect(() => {
+    if (!titleRef.current) return;
+    const spans = titleRef.current.querySelectorAll<HTMLSpanElement>(".hero-word");
+    if (!spans.length) return;
 
-  const mobileDescription = useMemo(() => {
-    if (activeSlide.description.length <= 58) return activeSlide.description;
-    return `${activeSlide.description.slice(0, 58).replace(/\s+\S*$/, "")}...`;
-  }, [activeSlide.description]);
-
-  function goToPrevious() {
-    setIndex((prev) => (prev - 1 + slides.length) % slides.length);
-    setAutoPlay(true);
-  }
-
-  function goToNext() {
-    setIndex((prev) => (prev + 1) % slides.length);
-    setAutoPlay(true);
-  }
-
-  function handleTouchStart(event: TouchEvent<HTMLElement>) {
-    touchStartXRef.current = event.touches[0]?.clientX ?? null;
-  }
-
-  function handleTouchEnd(event: TouchEvent<HTMLElement>) {
-    if (touchStartXRef.current === null) return;
-
-    const endX = event.changedTouches[0]?.clientX ?? touchStartXRef.current;
-    const deltaX = endX - touchStartXRef.current;
-    touchStartXRef.current = null;
-
-    if (Math.abs(deltaX) < 40) return;
-    if (deltaX > 0) {
-      goToPrevious();
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) {
+      spans.forEach((s) => { s.style.opacity = "1"; s.style.transform = "none"; });
       return;
     }
-    goToNext();
+
+    spans.forEach((s, i) => {
+      s.style.opacity = "0";
+      s.style.transform = "translateY(18px)";
+      s.style.filter = "blur(4px)";
+      s.style.transition = `opacity 0.6s cubic-bezier(0.22,1,0.36,1) ${0.35 + i * 0.08}s, transform 0.6s cubic-bezier(0.22,1,0.36,1) ${0.35 + i * 0.08}s, filter 0.5s ease ${0.35 + i * 0.08}s`;
+    });
+
+    const raf = requestAnimationFrame(() => {
+      spans.forEach((s) => {
+        s.style.opacity = "1";
+        s.style.transform = "none";
+        s.style.filter = "blur(0px)";
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [index]);
+
+  const words = useMemo(() => activeSlide.title.split(" "), [activeSlide.title]);
+  const label = "Betonska baza u Nisu · isporuka · pumpe · zemljani radovi";
+
+  function goTo(i: number) {
+    setIndex(i);
+    setProgressKey((k) => k + 1);
+    setAutoPlay(true);
+  }
+  function goToPrev() { goTo((index - 1 + slides.length) % slides.length); }
+  function goToNext() { goTo((index + 1) % slides.length); }
+
+  function handleTouchStart(e: TouchEvent<HTMLElement>) {
+    touchStartXRef.current = e.touches[0]?.clientX ?? null;
+  }
+  function handleTouchEnd(e: TouchEvent<HTMLElement>) {
+    if (touchStartXRef.current === null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? touchStartXRef.current) - touchStartXRef.current;
+    touchStartXRef.current = null;
+    if (Math.abs(dx) < 40) return;
+    dx > 0 ? goToPrev() : goToNext();
   }
 
   return (
@@ -98,14 +106,15 @@ export default function HeroSlider({ slides }: Props) {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* ── Background image ── */}
       <div className="absolute inset-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSlide.image}
-            initial={imageInitial}
+            initial={{ scale: 1.06, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 1.02, opacity: 0 }}
-            transition={{ duration: 1.3, ease: fadeEase }}
+            exit={{ scale: 1.03, opacity: 0 }}
+            transition={{ duration: 1.4, ease }}
             className="absolute inset-0"
           >
             <Image
@@ -120,91 +129,157 @@ export default function HeroSlider({ slides }: Props) {
           </motion.div>
         </AnimatePresence>
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={`${activeSlide.image}-overlay`}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.02 }}
-          transition={{ duration: 1, ease: fadeEase }}
-          className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/75 to-black/55"
-        />
-      </AnimatePresence>
+
+      {/* ── Overlays ── */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/88 via-black/70 to-black/45" />
       <motion.div
         aria-hidden
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.8, rotate: 6 }}
-        transition={{ duration: 2.4, ease: fadeEase }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2.5, ease }}
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 15% 25%, rgba(244,161,0,0.28), transparent 35%), radial-gradient(circle at 85% 65%, rgba(255,255,255,0.14), transparent 35%)",
+            "radial-gradient(ellipse at 10% 20%, rgba(244,161,0,0.22) 0%, transparent 40%), radial-gradient(ellipse at 90% 75%, rgba(255,255,255,0.08) 0%, transparent 35%)",
         }}
       />
-      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-72px)] max-w-6xl flex-col justify-center gap-5 px-4 py-10 sm:min-h-[70vh] sm:gap-6 sm:px-6 sm:py-16 lg:px-8">
+      {/* Grain on hero */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+          backgroundSize: "200px 200px",
+        }}
+      />
+
+      {/* ── Content ── */}
+      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-64px)] max-w-6xl flex-col justify-center gap-6 px-4 py-12 sm:min-h-[72vh] sm:gap-8 sm:px-6 sm:py-20 lg:px-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSlide.title}
-            initial={{ opacity: 0, y: 32 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -24 }}
-            transition={{ duration: 0.85, ease: fadeEase }}
-            className="space-y-4 rounded-3xl bg-black/45 p-4 shadow-[0_30px_80px_rgba(0,0,0,0.45)] ring-1 ring-white/10 backdrop-blur-sm sm:space-y-6 sm:p-8 lg:p-10"
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.7, ease }}
+            className="max-w-3xl space-y-5 sm:space-y-7"
           >
+            {/* Kicker */}
             <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/15 px-3.5 py-1.5 font-body text-xs font-semibold uppercase tracking-[0.18em] text-primary backdrop-blur-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 {activeSlide.kicker}
               </span>
-              <span className="hidden rounded-full bg-white/5 px-3 py-1 text-xs text-gray-200 sm:inline-flex">
+              <span className="hidden rounded-full bg-white/8 px-3 py-1.5 font-body text-xs text-white/70 backdrop-blur-sm sm:inline-flex">
                 {label}
               </span>
             </div>
-            <div className="max-w-3xl space-y-3 sm:space-y-4">
-              <h1 className="max-w-2xl text-2xl font-bold leading-tight text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] sm:text-4xl lg:text-5xl">
-                {activeSlide.title}
-              </h1>
-              <p className="text-sm text-gray-100 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] sm:hidden">
-                {mobileDescription}
-              </p>
-              <p className="hidden text-base text-gray-100 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] sm:block sm:text-lg">
-                {activeSlide.description}
-              </p>
-            </div>
+
+            {/* Headline — GSAP word animation */}
+            <h1
+              ref={titleRef}
+              className="font-display text-4xl font-black leading-[1.0] text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] sm:text-5xl lg:text-6xl xl:text-7xl"
+            >
+              {words.map((word, i) => (
+                <span
+                  key={`${word}-${i}`}
+                  className="hero-word mr-[0.22em] inline-block last:mr-0"
+                  style={{ willChange: "transform, opacity, filter" }}
+                >
+                  {word}
+                </span>
+              ))}
+            </h1>
+
+            {/* Description */}
+            <p className="max-w-xl font-body text-base leading-relaxed text-white/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] sm:text-lg">
+              {activeSlide.description}
+            </p>
+
+            {/* CTAs */}
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                href={activeSlide.ctaHref}
-                className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_20px_60px_rgba(244,161,0,0.35)] transition hover:translate-y-[-3px]"
+                href="/porucivanje-betona#forma"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-dark shadow-[0_16px_48px_rgba(244,161,0,0.4)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_64px_rgba(244,161,0,0.5)]"
               >
                 {activeSlide.ctaLabel}
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
               </Link>
               <Link
                 href="/usluge"
-                className="hidden items-center rounded-full border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-dark sm:inline-flex"
+                className="hidden items-center rounded-full border border-white/25 px-6 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-white transition hover:border-white/50 hover:bg-white/10 sm:inline-flex"
               >
                 Pogledaj usluge
               </Link>
             </div>
           </motion.div>
         </AnimatePresence>
-        <div className="flex items-center gap-2">
-          {slides.map((slide, i) => (
-            <motion.button
-              key={slide.title}
+
+        {/* ── Navigation: dots + arrows ── */}
+        <div className="flex items-center gap-4">
+          {/* Slide dots */}
+          <div className="flex items-center gap-2">
+            {slides.map((slide, i) => (
+              <button
+                key={slide.title}
+                type="button"
+                aria-label={`Idi na slajd ${i + 1}`}
+                onClick={() => goTo(i)}
+                className={clsx(
+                  "rounded-full transition-all duration-500",
+                  i === index
+                    ? "h-2 w-8 bg-primary shadow-[0_0_12px_rgba(244,161,0,0.6)]"
+                    : "h-2 w-2 bg-white/35 hover:bg-white/60"
+                )}
+              />
+            ))}
+          </div>
+
+          {/* Arrow buttons */}
+          <div className="ml-auto flex items-center gap-2">
+            <button
               type="button"
-              aria-label={`Idi na slajd ${i + 1}`}
-              onClick={() => {
-                setIndex(i);
-                setAutoPlay(true);
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={clsx(
-                "h-2.5 rounded-full transition-all",
-                i === index ? "w-10 bg-primary" : "w-3 bg-white/40 hover:bg-white/70"
-              )}
-            />
-          ))}
+              aria-label="Prethodni slajd"
+              onClick={goToPrev}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/8 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/16 active:scale-95"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              aria-label="Sledeci slajd"
+              onClick={goToNext}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/8 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/16 active:scale-95"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Slide counter */}
+          <span className="hidden font-body text-xs font-semibold tabular-nums text-white/40 sm:inline">
+            {String(index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+          </span>
         </div>
+
+        {/* ── Progress bar ── */}
+        {autoPlay && (
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/10">
+            <motion.div
+              key={`progress-${progressKey}-${index}`}
+              className="h-full bg-primary"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 9, ease: "linear" }}
+              style={{ transformOrigin: "left" }}
+            />
+          </div>
+        )}
       </div>
     </section>
   );
