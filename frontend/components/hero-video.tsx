@@ -30,7 +30,7 @@ export default function HeroVideo({ title, kicker, description, ctaLabel, ctaHre
         poster="/video/hero-poster.jpg"
         aria-hidden="true"
       >
-        <source src="https://prevozkop.rs/video/hero-mobile.mp4" type="video/mp4" />
+        <source src="https://api.prevozkop.rs/video/hero-mobile.mp4" type="video/mp4" />
       </video>
 
       {/* Landscape video — shown on tablet/desktop (>= md) */}
@@ -44,7 +44,7 @@ export default function HeroVideo({ title, kicker, description, ctaLabel, ctaHre
         poster="/video/hero-poster.jpg"
         aria-hidden="true"
       >
-        <source src="https://prevozkop.rs/video/hero-desktop.mp4" type="video/mp4" />
+        <source src="https://api.prevozkop.rs/video/hero-desktop.mp4" type="video/mp4" />
       </video>
 
       {/* ── Layered overlays ─────────────────────────────── */}

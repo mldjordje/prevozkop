@@ -158,9 +158,12 @@ export default function Navigation() {
             <Link
               href={isEn ? "/en/order-concrete#form" : "/porucivanje-betona#forma"}
               onClick={() => setOpen(false)}
-              className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-dark shadow-[0_8px_28px_rgba(244,161,0,0.3)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(244,161,0,0.42)]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 font-display text-sm font-bold uppercase tracking-[0.06em] text-dark shadow-[0_6px_20px_rgba(244,161,0,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(244,161,0,0.5)]"
             >
               {isEn ? "Order concrete" : "Poruči beton"}
+              <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
             </Link>
 
             <Link
