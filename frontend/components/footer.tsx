@@ -2,11 +2,13 @@ import Link from "next/link";
 import { company } from "@/content/site";
 
 const footerLinks = [
+  { href: "/beton", label: "Beton" },
   { href: "/porucivanje-betona", label: "Porucivanje betona" },
-  { href: "/o-nama", label: "O nama" },
-  { href: "/usluge", label: "Usluge" },
+  { href: "/beton/grad/nis", label: "Beton Nis" },
   { href: "/behaton", label: "Behaton" },
   { href: "/behaton/grad/nis", label: "Behaton Nis" },
+  { href: "/usluge", label: "Usluge" },
+  { href: "/o-nama", label: "O nama" },
   { href: "/projekti", label: "Projekti" },
   { href: "/kontakt", label: "Kontakt" },
 ];

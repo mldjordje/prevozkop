@@ -1,7 +1,20 @@
+import type { Metadata } from "next";
 import PageHero from "@/components/page-hero";
+import JsonLd from "@/components/json-ld";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import TiltCard from "@/components/motion/tilt-card";
 import { videos } from "@/content/site";
+import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Video galerija - isporuka betona, pumpe i zemljani radovi",
+  description:
+    "Video snimci sa terena: isporuka betona mikserima, pumpe za beton, tamponiranje i priprema terena. Prevoz Kop, betonska baza Nis.",
+  path: "/projekti-video",
+  image: "/img/kamion3.webp",
+  keywords: ["video beton", "isporuka betona video", "pumpa za beton video", "prevoz kop video"],
+  languages: srEnLanguages("/projekti-video", "/en/projects"),
+});
 
 export default function VideoProjectsPage() {
   return (
@@ -55,6 +68,28 @@ export default function VideoProjectsPage() {
           ))}
         </StaggerReveal>
       </section>
+
+      <JsonLd
+        id="video-itemlist-jsonld"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Video galerija - Prevoz Kop",
+          itemListElement: videos.map((video, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            item: {
+              "@type": "VideoObject",
+              name: video.title,
+              description: video.title,
+              thumbnailUrl: [`https://i.ytimg.com/vi/${video.youtubeId}/hqdefault.jpg`],
+              embedUrl: `https://www.youtube.com/embed/${video.youtubeId}`,
+              contentUrl: `https://www.youtube.com/watch?v=${video.youtubeId}`,
+              publisher: { "@id": `${SITE_URL}#organization` },
+            },
+          })),
+        }}
+      />
     </div>
   );
 }

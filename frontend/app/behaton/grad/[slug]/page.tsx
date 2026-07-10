@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { notFound } from "next/navigation";
 import PageHero from "@/components/page-hero";
 import ContactForm from "@/components/contact-form";
+import JsonLd from "@/components/json-ld";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import {
   behatonBenefits,
@@ -12,7 +12,6 @@ import {
   behatonProcess,
   behatonUseCases,
 } from "@/content/behaton";
-import { company } from "@/content/site";
 import { getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api";
 import { getProductSelectLabel } from "@/lib/products";
@@ -376,23 +375,14 @@ export default async function BehatonCityPage({ params }: PageProps) {
         </div>
       </section>
 
-      <Script id="behaton-city-breadcrumbs" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        id="behaton-city-breadcrumbs"
+        data={{
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            {
-              "@type": "ListItem",
-              position: 1,
-              name: "Pocetna",
-              item: `${siteUrl}`,
-            },
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: "Behaton",
-              item: `${siteUrl}/behaton`,
-            },
+            { "@type": "ListItem", position: 1, name: "Pocetna", item: `${siteUrl}` },
+            { "@type": "ListItem", position: 2, name: "Behaton", item: `${siteUrl}/behaton` },
             {
               "@type": "ListItem",
               position: 3,
@@ -400,26 +390,23 @@ export default async function BehatonCityPage({ params }: PageProps) {
               item: `${siteUrl}/behaton/grad/${city.slug}`,
             },
           ],
-        })}
-      </Script>
-      <Script id="behaton-city-service-jsonld" type="application/ld+json">
-        {JSON.stringify({
+        }}
+      />
+      <JsonLd
+        id="behaton-city-service-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "Service",
           name: `Behaton ${city.name}`,
           serviceType: "Prodaja i ugradnja behatona",
-          provider: {
-            "@type": "LocalBusiness",
-            name: company.name,
-            telephone: company.phone,
-            url: siteUrl,
-          },
+          provider: { "@id": `${siteUrl}#organization` },
           areaServed: [city.name, ...(isNis ? ["Pantelej", "Palilula", "Medijana"] : [])],
           url: `${siteUrl}/behaton/grad/${city.slug}`,
-        })}
-      </Script>
-      <Script id="behaton-city-faq-jsonld" type="application/ld+json">
-        {JSON.stringify({
+        }}
+      />
+      <JsonLd
+        id="behaton-city-faq-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: localFaq.map((item) => ({
@@ -427,8 +414,8 @@ export default async function BehatonCityPage({ params }: PageProps) {
             name: item.q,
             acceptedAnswer: { "@type": "Answer", text: item.a },
           })),
-        })}
-      </Script>
+        }}
+      />
     </div>
   );
 }

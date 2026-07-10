@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import PageHero from "@/components/page-hero";
 import ContactForm from "@/components/contact-form";
 import FloatingCta from "@/components/floating-cta";
+import JsonLd from "@/components/json-ld";
 import { ScrollReveal } from "@/components/motion/reveal";
 import { company } from "@/content/site";
-import { buildMetadata, srEnLanguages } from "@/lib/seo";
+import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Isporuka betona Nis i okolina - porucivanje, pumpa i visinske pumpe",
@@ -28,6 +28,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 const betonPriorityLinks = [
+  { href: "/beton", label: "Sve o betonu (MB klase, cena)" },
   { href: "/beton/grad/nis", label: "Beton Nis i okolina" },
   { href: "/beton/grad/leskovac", label: "Beton Leskovac" },
   { href: "/beton/grad/prokuplje", label: "Beton Prokuplje" },
@@ -216,24 +217,21 @@ export default function OrderConcretePage() {
         </div>
       </section>
 
-      <Script id="beton-service-jsonld" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        id="beton-service-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "Service",
           name: "Proizvodnja i isporuka betona",
           serviceType: "Gotov beton, isporuka betona, pumpe za beton",
-          provider: {
-            "@type": "LocalBusiness",
-            name: "Prevoz Kop",
-            telephone: company.phone,
-            url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
-            areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Doljevac", "Merosina"],
-          },
+          provider: { "@id": `${SITE_URL}#organization` },
           areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Doljevac", "Merosina"],
-        })}
-      </Script>
-      <Script id="porucivanje-betona-faq-jsonld" type="application/ld+json">
-        {JSON.stringify({
+          url: `${SITE_URL}/porucivanje-betona`,
+        }}
+      />
+      <JsonLd
+        id="porucivanje-betona-faq-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: faqItems.map((item) => ({
@@ -241,8 +239,8 @@ export default function OrderConcretePage() {
             name: item.q,
             acceptedAnswer: { "@type": "Answer", text: item.a },
           })),
-        })}
-      </Script>
+        }}
+      />
 
       <FloatingCta
         phone={company.phone}

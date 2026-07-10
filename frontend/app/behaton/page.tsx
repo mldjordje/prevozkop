@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import Script from "next/script";
 import PageHero from "@/components/page-hero";
+import JsonLd from "@/components/json-ld";
 import ContactForm from "@/components/contact-form";
 import FloatingCta from "@/components/floating-cta";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
@@ -481,8 +481,9 @@ export default async function BehatonPage() {
         </div>
       </section>
 
-      <Script id="behaton-faq-jsonld" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        id="behaton-faq-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: behatonFaq.map((item) => ({
@@ -490,31 +491,17 @@ export default async function BehatonPage() {
             name: item.q,
             acceptedAnswer: { "@type": "Answer", text: item.a },
           })),
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="behaton-service-jsonld" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        id="behaton-service-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "Service",
           name: "Behaton ploce i kocke - prodaja i ugradnja",
           serviceType: "Behaton ploce i kocke",
-          provider: {
-            "@type": "LocalBusiness",
-            name: company.name,
-            telephone: company.phone,
-            url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
-            areaServed: [
-              "Srbija",
-              "Beograd",
-              "Novi Sad",
-              "Nis",
-              "Kragujevac",
-              "Subotica",
-              "Valjevo",
-              "Leskovac",
-            ],
-          },
+          provider: { "@id": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs"}#organization` },
           areaServed: [
             "Srbija",
             "Beograd",
@@ -525,11 +512,12 @@ export default async function BehatonPage() {
             "Valjevo",
             "Leskovac",
           ],
-        })}
-      </Script>
+        }}
+      />
       {products.length > 0 && (
-        <Script id="behaton-product-itemlist-jsonld" type="application/ld+json">
-          {JSON.stringify({
+        <JsonLd
+          id="behaton-product-itemlist-jsonld"
+          data={{
             "@context": "https://schema.org",
             "@type": "ItemList",
             itemListElement: products.map((item, index) => ({
@@ -538,8 +526,8 @@ export default async function BehatonPage() {
               name: item.name,
               url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs"}/behaton/${item.slug}`,
             })),
-          })}
-        </Script>
+          }}
+        />
       )}
       <FloatingCta
         phone={company.phone}

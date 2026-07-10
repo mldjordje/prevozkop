@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import BehatonProductClient from "./product-client";
+import JsonLd from "@/components/json-ld";
 import { getProduct, getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api";
 import { applyBehatonProductMedia } from "@/lib/behaton-media";
@@ -81,23 +81,14 @@ export default async function BehatonProductPage({ params }: PageProps) {
   return (
     <>
       <BehatonProductClient slug={slug} initialProduct={product} initialRelated={related} />
-      <Script id="behaton-product-breadcrumbs" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        id="behaton-product-breadcrumbs"
+        data={{
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            {
-              "@type": "ListItem",
-              position: 1,
-              name: "Pocetna",
-              item: SITE_URL,
-            },
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: "Behaton",
-              item: `${SITE_URL}/behaton`,
-            },
+            { "@type": "ListItem", position: 1, name: "Pocetna", item: SITE_URL },
+            { "@type": "ListItem", position: 2, name: "Behaton", item: `${SITE_URL}/behaton` },
             {
               "@type": "ListItem",
               position: 3,
@@ -105,11 +96,12 @@ export default async function BehatonProductPage({ params }: PageProps) {
               item: `${SITE_URL}/behaton/${slug}`,
             },
           ],
-        })}
-      </Script>
+        }}
+      />
       {product && (
-        <Script id="behaton-related-itemlist-jsonld" type="application/ld+json">
-          {JSON.stringify({
+        <JsonLd
+          id="behaton-related-itemlist-jsonld"
+          data={{
             "@context": "https://schema.org",
             "@type": "ItemList",
             itemListElement: related.map((item, index) => ({
@@ -118,8 +110,8 @@ export default async function BehatonProductPage({ params }: PageProps) {
               name: item.name,
               url: `${SITE_URL}/behaton/${item.slug}`,
             })),
-          })}
-        </Script>
+          }}
+        />
       )}
     </>
   );

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import ContactForm from "@/components/contact-form";
 import PageHero from "@/components/page-hero";
 import FloatingCta from "@/components/floating-cta";
+import JsonLd from "@/components/json-ld";
 import { company } from "@/content/site";
-import { buildMetadata, srEnLanguages } from "@/lib/seo";
+import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Kontakt | Prevozkop",
@@ -120,22 +120,26 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-      <Script id="contact-localbusiness-jsonld" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        id="contact-page-jsonld"
+        data={{
           "@context": "https://schema.org",
-          "@type": "LocalBusiness",
-          name: "Prevoz Kop",
-          url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
-          telephone: company.phone,
-          email: company.email,
-          address: {
-            "@type": "PostalAddress",
-            addressLocality: "Nis",
-            addressCountry: "RS",
-          },
-          areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Juzna Srbija", "Centralna Srbija"],
-        })}
-      </Script>
+          "@type": "ContactPage",
+          url: `${SITE_URL}/kontakt`,
+          about: { "@id": `${SITE_URL}#organization` },
+        }}
+      />
+      <JsonLd
+        id="contact-breadcrumbs-jsonld"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Pocetna", item: SITE_URL },
+            { "@type": "ListItem", position: 2, name: "Kontakt", item: `${SITE_URL}/kontakt` },
+          ],
+        }}
+      />
       <FloatingCta
         phone={company.phone}
         callNumber="0603720415"

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { notFound } from "next/navigation";
 import PageHero from "@/components/page-hero";
+import JsonLd from "@/components/json-ld";
 import ContactForm from "@/components/contact-form";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import { betonCities } from "@/content/behaton";
@@ -271,35 +271,33 @@ export default async function BetonCityPage({ params }: PageProps) {
         </div>
       </section>
 
-      <Script id="beton-city-breadcrumbs" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        id="beton-city-breadcrumbs"
+        data={{
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
             { "@type": "ListItem", position: 1, name: "Pocetna", item: SITE_URL },
-            { "@type": "ListItem", position: 2, name: "Porucivanje betona", item: `${SITE_URL}/porucivanje-betona` },
+            { "@type": "ListItem", position: 2, name: "Beton", item: `${SITE_URL}/beton` },
             { "@type": "ListItem", position: 3, name: city.name, item: `${SITE_URL}/beton/grad/${city.slug}` },
           ],
-        })}
-      </Script>
-      <Script id="beton-city-service-jsonld" type="application/ld+json">
-        {JSON.stringify({
+        }}
+      />
+      <JsonLd
+        id="beton-city-service-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "Service",
           name: `Isporuka betona ${city.name}`,
           serviceType: "Gotov beton, beton pumpa i visinske pumpe",
-          provider: {
-            "@type": "LocalBusiness",
-            name: company.name,
-            telephone: company.phone,
-            url: SITE_URL,
-          },
+          provider: { "@id": `${SITE_URL}#organization` },
           areaServed: [city.name, ...(isNis ? ["Pantelej", "Palilula", "Medijana"] : [])],
           url: `${SITE_URL}/beton/grad/${city.slug}`,
-        })}
-      </Script>
-      <Script id="beton-city-faq-jsonld" type="application/ld+json">
-        {JSON.stringify({
+        }}
+      />
+      <JsonLd
+        id="beton-city-faq-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: localFaq.map((item) => ({
@@ -307,8 +305,8 @@ export default async function BetonCityPage({ params }: PageProps) {
             name: item.q,
             acceptedAnswer: { "@type": "Answer", text: item.a },
           })),
-        })}
-      </Script>
+        }}
+      />
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import Script from "next/script";
 import HeroSlider from "@/components/hero-slider";
 import FloatingCta from "@/components/floating-cta";
+import JsonLd from "@/components/json-ld";
 import StatsSection from "@/components/stats-section";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import TiltCard from "@/components/motion/tilt-card";
@@ -297,20 +297,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <Script id="home-localbusiness-jsonld" type="application/ld+json">
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "LocalBusiness",
-          name: "Prevoz Kop",
-          url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://prevozkop.rs",
-          telephone: company.phone,
-          email: company.email,
-          address: { "@type": "PostalAddress", addressLocality: "Nis", addressCountry: "RS" },
-          areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Juzna Srbija", "Centralna Srbija"],
-        })}
-      </Script>
-      <Script id="home-faq-jsonld" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        id="home-faq-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: homepageFaq.map((item) => ({
@@ -318,8 +307,8 @@ export default async function HomePage() {
             name: item.q,
             acceptedAnswer: { "@type": "Answer", text: item.a },
           })),
-        })}
-      </Script>
+        }}
+      />
 
       <FloatingCta
         phone={company.phone}

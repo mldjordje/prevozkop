@@ -9,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const priorityRoutes: Record<string, number> = {
     "/": 1,
     "/porucivanje-betona": 0.95,
+    "/beton": 0.95,
     "/behaton": 0.95,
     "/usluge": 0.9,
     "/kontakt": 0.8,
@@ -19,6 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes = [
     "/",
     "/porucivanje-betona",
+    "/beton",
     "/usluge",
     "/behaton",
     "/kontakt",

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Script from "next/script";
+import JsonLd from "@/components/json-ld";
 import PageHero from "@/components/page-hero";
 import ContactForm from "@/components/contact-form";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
@@ -519,8 +519,9 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
         </div>
       </section>
 
-      <Script id="behaton-product-jsonld" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        id="behaton-product-jsonld"
+        data={{
           "@context": "https://schema.org",
           "@type": "Product",
           name: displayTitle,
@@ -528,39 +529,21 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
           image: galleryImages.length > 0 ? galleryImages : undefined,
           brand: { "@type": "Brand", name: company.name },
           category: product.category,
+          url: `${siteUrl}/behaton/${product.slug}`,
           additionalProperty: displaySpecsEntries.map(([label, value]) => ({
             "@type": "PropertyValue",
             name: label,
             value: Array.isArray(value) ? value.join(", ") : String(value),
           })),
-        })}
-      </Script>
-      <Script id="behaton-product-client-breadcrumbs" type="application/ld+json">
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            {
-              "@type": "ListItem",
-              position: 1,
-              name: "Pocetna",
-              item: `${siteUrl}`,
-            },
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: "Behaton",
-              item: `${siteUrl}/behaton`,
-            },
-            {
-              "@type": "ListItem",
-              position: 3,
-              name: displayTitle,
-              item: `${siteUrl}/behaton/${product.slug}`,
-            },
-          ],
-        })}
-      </Script>
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "RSD",
+            availability: "https://schema.org/InStock",
+            url: `${siteUrl}/behaton/${product.slug}`,
+            seller: { "@id": `${siteUrl}#organization` },
+          },
+        }}
+      />
     </div>
   );
 }

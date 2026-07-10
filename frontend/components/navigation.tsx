@@ -13,6 +13,7 @@ const srLinks: NavLink[] = [
   { href: "/", label: "Početna" },
   { href: "/o-nama", label: "O nama" },
   { href: "/usluge", label: "Usluge" },
+  { href: "/beton", label: "Beton" },
   { href: "/behaton", label: "Behaton" },
   { href: "/projekti", label: "Projekti" },
   { href: "/projekti-video", label: "Video" },
@@ -56,6 +57,7 @@ export default function Navigation() {
     if (normalizedPath.startsWith("/o-nama")) return "/en/about";
     if (normalizedPath.startsWith("/kontakt")) return "/en/contact";
     if (normalizedPath.startsWith("/porucivanje-betona")) return "/en/order-concrete";
+    if (normalizedPath.startsWith("/beton")) return "/en/order-concrete";
     if (normalizedPath.startsWith("/behaton")) return "/en";
     return "/en";
   }, [isEn, normalizedPath]);

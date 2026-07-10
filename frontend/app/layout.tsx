@@ -6,6 +6,7 @@ import "./globals.css";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import HeroUIProviders from "@/components/heroui-provider";
+import JsonLd from "@/components/json-ld";
 import { company } from "@/content/site";
 import { SITE_URL } from "@/lib/seo";
 
@@ -104,58 +105,94 @@ export default function RootLayout({
   return (
     <html lang="sr-Latn-RS" className={`${barlowCondensed.variable} ${dmSans.variable}`}>
       <body>
-        <Script id="prevozkop-jsonld" type="application/ld+json" strategy="afterInteractive">
-          {JSON.stringify({
+        <JsonLd
+          id="prevozkop-jsonld"
+          data={{
             "@context": "https://schema.org",
-            "@type": "ConstructionCompany",
+            "@type": ["ConstructionCompany", "LocalBusiness"],
             "@id": `${SITE_URL}#organization`,
-            name: "Prevozkop",
-            alternateName: company.name,
+            name: "Prevoz Kop",
+            alternateName: ["Prevozkop", "Prevoz Kop Betonska Baza", "Prevozkop Nis"],
             url: SITE_URL,
             logo: `${SITE_URL}/img/logos/logo.png`,
+            image: `${SITE_URL}/img/napolje1.webp`,
             telephone: "+381605887471",
             email: company.email,
+            priceRange: "$$",
+            currenciesAccepted: "RSD",
+            paymentAccepted: "Gotovina, Racun, Kartica",
             address: {
               "@type": "PostalAddress",
-              streetAddress: company.address,
+              streetAddress: "Krusce bb",
               addressLocality: "Nis",
               postalCode: "18000",
+              addressRegion: "Nisavski okrug",
               addressCountry: "RS",
             },
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: 43.3292085,
+              longitude: 21.7812499,
+            },
+            hasMap:
+              "https://www.google.com/maps/search/?api=1&query=PREVOZ+KOP+BETONSKA+BAZA+Nis",
+            openingHoursSpecification: [
+              {
+                "@type": "OpeningHoursSpecification",
+                dayOfWeek: [
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                ],
+                opens: "08:00",
+                closes: "20:00",
+              },
+            ],
             areaServed: [
               { "@type": "City", name: "Nis" },
               { "@type": "City", name: "Leskovac" },
               { "@type": "City", name: "Prokuplje" },
               { "@type": "City", name: "Aleksinac" },
-              "Juzna i centralna Srbija",
+              { "@type": "Country", name: "Srbija" },
             ],
             description:
-              "Prevozkop je gradjevinska podrska iz Nisa specijalizovana za isporuku gotovog betona za Nis i okolinu, behaton za Srbiju, visoke pumpe za beton i zemljane radove.",
+              "Prevoz Kop je betonska baza iz Nisa specijalizovana za proizvodnju i isporuku gotovog betona za Nis i okolinu, behaton ploce i kocke za celu Srbiju, visinske pumpe za beton i zemljane radove.",
             knowsAbout: [
               "isporuka betona",
-              "behaton",
               "gotov beton",
+              "behaton",
+              "behaton ploce",
+              "behaton kocke",
               "beton pumpa",
               "visinske pumpe za beton",
               "zemljani radovi",
               "iskopi temelja",
               "priprema gradilista",
+              "MB klase betona",
             ],
             makesOffer: [
               {
                 "@type": "Offer",
                 itemOffered: { "@type": "Service", name: "Isporuka gotovog betona" },
               },
-              { "@type": "Offer", itemOffered: { "@type": "Service", name: "Visoke pumpe za beton" } },
+              { "@type": "Offer", itemOffered: { "@type": "Service", name: "Visinske pumpe za beton" } },
+              {
+                "@type": "Offer",
+                itemOffered: { "@type": "Service", name: "Behaton ploce i kocke - prodaja i ugradnja" },
+              },
               {
                 "@type": "Offer",
                 itemOffered: { "@type": "Service", name: "Zemljani radovi i priprema gradilista" },
               },
             ],
-          })}
-        </Script>
-        <Script id="prevozkop-website-jsonld" type="application/ld+json" strategy="afterInteractive">
-          {JSON.stringify({
+          }}
+        />
+        <JsonLd
+          id="prevozkop-website-jsonld"
+          data={{
             "@context": "https://schema.org",
             "@type": "WebSite",
             "@id": `${SITE_URL}#website`,
@@ -166,8 +203,8 @@ export default function RootLayout({
             publisher: {
               "@id": `${SITE_URL}#organization`,
             },
-          })}
-        </Script>
+          }}
+        />
 
         {googleAdsId && (
           <>

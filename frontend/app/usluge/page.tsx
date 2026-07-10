@@ -1,16 +1,39 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHero from "@/components/page-hero";
+import JsonLd from "@/components/json-ld";
 import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
 import TiltCard from "@/components/motion/tilt-card";
 import { services, stats } from "@/content/site";
+import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Usluge: isporuka betona, visoke pumpe i zemljani radovi | Niš",
   description:
     "Prevozkop (Prevoz Kop) iz Niša pruža isporuku gotovog betona, visinske pumpe za beton (za višespratnice i nepristupačne terene) i zemljane radove (iskopi, ravnanje, priprema gradilišta). Radimo u Nišu, Leskovcu, Prokuplju, Aleksincu i širom juga/centralne Srbije.",
-  alternates: { canonical: "/usluge" },
-};
+  path: "/usluge",
+  image: "/img/kamionislika2.webp",
+  keywords: [
+    "usluge",
+    "isporuka betona",
+    "visinske pumpe za beton",
+    "zemljani radovi nis",
+    "iskopi temelja",
+    "priprema gradilista",
+    "rusenje objekata",
+    "prevoz rasutih materijala",
+  ],
+  languages: srEnLanguages("/usluge", "/en/services"),
+});
+
+const serviceCatalog = [
+  "Proizvodnja i isporuka gotovog betona",
+  "Visinske pumpe za beton",
+  "Iskopi i tamponiranje",
+  "Rusenje i priprema terena",
+  "Prevoz rasutih materijala",
+  "Izgradnja temelja",
+];
 
 const coreServices = [
   {
@@ -243,6 +266,36 @@ export default function ServicesPage() {
           </div>
         </div>
       </section>
+
+      <JsonLd
+        id="usluge-itemlist-jsonld"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Usluge - Prevoz Kop",
+          itemListElement: serviceCatalog.map((name, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            item: {
+              "@type": "Service",
+              name,
+              provider: { "@id": `${SITE_URL}#organization` },
+              areaServed: ["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Srbija"],
+            },
+          })),
+        }}
+      />
+      <JsonLd
+        id="usluge-breadcrumbs-jsonld"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Pocetna", item: SITE_URL },
+            { "@type": "ListItem", position: 2, name: "Usluge", item: `${SITE_URL}/usluge` },
+          ],
+        }}
+      />
     </div>
   );
 }
