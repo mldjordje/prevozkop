@@ -128,6 +128,27 @@ export default function BetonPage() {
         </p>
       </section>
 
+      {/* Forma - odmah ispod klasa betona */}
+      <section id="forma" className="content-section space-y-6">
+        <div className="space-y-2">
+          <span className="section-label">Upit</span>
+          <h2 className="font-display text-4xl font-bold text-dark sm:text-5xl">Trazi ponudu za beton</h2>
+          <p className="max-w-3xl text-base text-muted">
+            Navedite MB klasu, kolicinu, lokaciju i da li je potrebna pumpa. Potvrdjujemo termin i
+            saljemo cenu po m3.
+          </p>
+        </div>
+        <ContactForm
+          defaultSubject="Beton - upit za ponudu"
+          subjectPlaceholder="Beton za temelj, plocu, gradiliste..."
+          showQuantity
+          quantityLabel="Kolicina betona (opciono)"
+          quantityPlaceholder="npr. 20"
+          quantityUnitLabel="Jedinica"
+          quantityUnits={["m3", "m2"]}
+        />
+      </section>
+
       {/* Sta odredjuje cenu */}
       <section className="content-section space-y-6">
         <ScrollReveal className="space-y-2">
@@ -204,27 +225,6 @@ export default function BetonPage() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* Forma */}
-      <section id="forma" className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="section-label">Upit</span>
-          <h2 className="font-display text-4xl font-bold text-dark sm:text-5xl">Trazi ponudu za beton</h2>
-          <p className="max-w-3xl text-base text-muted">
-            Navedite MB klasu, kolicinu, lokaciju i da li je potrebna pumpa. Potvrdjujemo termin i
-            saljemo cenu po m3.
-          </p>
-        </div>
-        <ContactForm
-          defaultSubject="Beton - upit za ponudu"
-          subjectPlaceholder="Beton za temelj, plocu, gradiliste..."
-          showQuantity
-          quantityLabel="Kolicina betona (opciono)"
-          quantityPlaceholder="npr. 20"
-          quantityUnitLabel="Jedinica"
-          quantityUnits={["m3", "m2"]}
-        />
       </section>
 
       {/* Povezane stranice */}

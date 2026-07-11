@@ -90,98 +90,6 @@ export default async function BehatonPage() {
         ]}
       />
 
-      <section className="content-section space-y-8">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <ScrollReveal className="space-y-3">
-            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Ponuda za behaton
-            </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Behaton ponuda prilagodjena vasem projektu
-            </h2>
-            <p className="text-sm text-gray-700">
-              Dobijate jasnu preporuku za model, debljinu i namenu behatona, kao i smernice za
-              pripremu podloge, rokove i logistiku isporuke za projekte sirom Srbije.
-            </p>
-          </ScrollReveal>
-          <StaggerReveal className="grid gap-3">
-            {behatonHighlights.map((item) => (
-              <ScrollReveal key={item} from="up">
-                <div className="rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm font-semibold text-dark shadow-sm">
-                  {item}
-                </div>
-              </ScrollReveal>
-            ))}
-          </StaggerReveal>
-        </div>
-      </section>
-
-      <section className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Vazni linkovi
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Glavne stranice za behaton u Srbiji i lokalne upite
-          </h2>
-          <p className="max-w-3xl text-sm text-gray-700">
-            Ove stranice su najvaznije za upite kao sto su behaton Srbija, behaton Beograd,
-            behaton Nis, cena behatona i lokalna ugradnja.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {featuredSeoLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="content-section space-y-6">
-        <div className="grid gap-6 rounded-3xl border border-black/5 bg-white px-6 py-8 shadow-xl lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-3">
-            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Behaton Nis
-            </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Behaton Nis kao jak lokalni signal uz glavni fokus na Srbiju
-            </h2>
-            <p className="text-sm text-gray-700">
-              Pored glavnog fokusa na upit behaton Srbija, ova stranica podrzava i lokalne pretrage
-              kao sto su behaton Nis, cena behatona u Nisu i ugradnja behatona u Nisu kroz interne
-              linkove, lokalne stranice i upit za konkretan grad.
-            </p>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                href="/behaton/grad/nis"
-                className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.35)] transition hover:translate-y-[-2px]"
-              >
-                Otvori Behaton Nis
-              </Link>
-              <Link
-                href="#lokacije"
-                className="inline-flex items-center rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
-              >
-                Svi gradovi
-              </Link>
-            </div>
-          </div>
-          <div className="rounded-3xl border border-black/5 bg-gray-50 p-5">
-            <ul className="space-y-3 text-sm text-gray-700">
-              <li>- Behaton Nis cena i preporuka modela</li>
-              <li>- Behaton Nis prodaja i isporuka po dogovoru</li>
-              <li>- Ugradnja behatona u Nisu i okolini</li>
-              <li>- Nacionalna ponuda za gradove sirom Srbije</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
       <section className="content-section space-y-6" id="ponuda">
         <div className="flex flex-col gap-2">
           <ScrollReveal>
@@ -280,6 +188,98 @@ export default async function BehatonPage() {
           quantityUnitLabel="Jedinica"
           quantityUnits={["m2", "m3", "kom", "paleta"]}
         />
+      </section>
+
+      <section className="content-section space-y-8">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <ScrollReveal className="space-y-3">
+            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+              Ponuda za behaton
+            </span>
+            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+              Behaton ponuda prilagodjena vasem projektu
+            </h2>
+            <p className="text-sm text-gray-700">
+              Dobijate jasnu preporuku za model, debljinu i namenu behatona, kao i smernice za
+              pripremu podloge, rokove i logistiku isporuke za projekte sirom Srbije.
+            </p>
+          </ScrollReveal>
+          <StaggerReveal className="grid gap-3">
+            {behatonHighlights.map((item) => (
+              <ScrollReveal key={item} from="up">
+                <div className="rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm font-semibold text-dark shadow-sm">
+                  {item}
+                </div>
+              </ScrollReveal>
+            ))}
+          </StaggerReveal>
+        </div>
+      </section>
+
+      <section className="content-section space-y-6">
+        <div className="space-y-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Vazni linkovi
+          </span>
+          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+            Glavne stranice za behaton u Srbiji i lokalne upite
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-700">
+            Ove stranice su najvaznije za upite kao sto su behaton Srbija, behaton Beograd,
+            behaton Nis, cena behatona i lokalna ugradnja.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {featuredSeoLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="content-section space-y-6">
+        <div className="grid gap-6 rounded-3xl border border-black/5 bg-white px-6 py-8 shadow-xl lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-3">
+            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+              Behaton Nis
+            </span>
+            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
+              Behaton Nis kao jak lokalni signal uz glavni fokus na Srbiju
+            </h2>
+            <p className="text-sm text-gray-700">
+              Pored glavnog fokusa na upit behaton Srbija, ova stranica podrzava i lokalne pretrage
+              kao sto su behaton Nis, cena behatona u Nisu i ugradnja behatona u Nisu kroz interne
+              linkove, lokalne stranice i upit za konkretan grad.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                href="/behaton/grad/nis"
+                className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.35)] transition hover:translate-y-[-2px]"
+              >
+                Otvori Behaton Nis
+              </Link>
+              <Link
+                href="#lokacije"
+                className="inline-flex items-center rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
+              >
+                Svi gradovi
+              </Link>
+            </div>
+          </div>
+          <div className="rounded-3xl border border-black/5 bg-gray-50 p-5">
+            <ul className="space-y-3 text-sm text-gray-700">
+              <li>- Behaton Nis cena i preporuka modela</li>
+              <li>- Behaton Nis prodaja i isporuka po dogovoru</li>
+              <li>- Ugradnja behatona u Nisu i okolini</li>
+              <li>- Nacionalna ponuda za gradove sirom Srbije</li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       <section className="content-section space-y-6" id="projekti">
