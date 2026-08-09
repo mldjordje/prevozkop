@@ -126,7 +126,14 @@ export default function Footer() {
           </p>
           <p className="font-body text-xs text-white/25">
             Izradio{" "}
-            <span className="text-primary/60">Prevoz Kop tim</span>
+            <a
+              href="https://adspire.rs"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary/60 transition-colors hover:text-primary"
+            >
+              Adspire
+            </a>
           </p>
         </div>
       </div>
