@@ -535,13 +535,6 @@ export default function BehatonProductClient({ slug, initialProduct, initialRela
             name: label,
             value: Array.isArray(value) ? value.join(", ") : String(value),
           })),
-          offers: {
-            "@type": "Offer",
-            priceCurrency: "RSD",
-            availability: "https://schema.org/InStock",
-            url: `${siteUrl}/behaton/${product.slug}`,
-            seller: { "@id": `${siteUrl}#organization` },
-          },
         }}
       />
     </div>
