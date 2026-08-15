@@ -53,5 +53,10 @@ return [
         // Cache TTL in seconds.
         'ttl' => (int) (getenv('CACHE_TTL') ?: 120),
     ],
+    'analytics' => [
+        // Shared secret used by the Vercel Cron job / Next.js server routes to write
+        // monthly analytics snapshots. Must match ANALYTICS_SNAPSHOT_SECRET on Vercel.
+        'snapshot_secret' => getenv('ANALYTICS_SNAPSHOT_SECRET') ?: '',
+    ],
     'debug' => getenv('APP_DEBUG') === '1',
 ];

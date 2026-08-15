@@ -59,6 +59,11 @@ if ($method === 'GET' && preg_match('#^products/([^/]+)$#', $path, $m)) {
     get_product($pdo, $config, $m[1]);
 }
 
+// Server-to-server: monthly analytics snapshot (Vercel Cron / admin panel), protected by shared secret.
+if ($method === 'POST' && $path === 'analytics/snapshot') {
+    save_analytics_snapshot($pdo, $config);
+}
+
 // Admin endpoints
 if (str_starts_with($path, 'admin')) {
     admin_router($pdo, $config, $path, $method);
@@ -382,6 +387,10 @@ function admin_router(PDO $pdo, array $config, string $path, string $method): vo
 
     if ($sub === 'expenses/summary' && $method === 'GET') {
         company_expense_summary($pdo);
+    }
+
+    if ($sub === 'analytics/history' && $method === 'GET') {
+        list_analytics_history($pdo);
     }
 
     if (preg_match('#^expenses/(\d+)$#', $sub, $m) && $method === 'PUT') {
@@ -868,6 +877,90 @@ function company_expense_summary(PDO $pdo): void
         'total' => array_sum($byCategory),
         'by_category' => $byCategory,
     ]);
+}
+
+function save_analytics_snapshot(PDO $pdo, array $config): void
+{
+    $secret = (string) ($config['analytics']['snapshot_secret'] ?? '');
+    $provided = (string) ($_SERVER['HTTP_X_SNAPSHOT_KEY'] ?? '');
+    if ($secret === '' || !hash_equals($secret, $provided)) {
+        error_json(401, 'Unauthorized');
+    }
+
+    $body = json_decode(file_get_contents('php://input') ?: '', true);
+    if (!is_array($body)) {
+        error_json(400, 'Invalid payload');
+    }
+
+    $month = trim((string) ($body['month'] ?? ''));
+    if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
+        error_json(400, 'Invalid month');
+    }
+
+    $pageviews = max(0, (int) ($body['pageviews'] ?? 0));
+    $visitors = max(0, (int) ($body['visitors'] ?? 0));
+    $topPages = json_encode($body['top_pages'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $topReferrers = json_encode($body['top_referrers'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $topCountries = json_encode($body['top_countries'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $topDevices = json_encode($body['top_devices'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $capturedAt = trim((string) ($body['captured_at'] ?? ''));
+    $capturedAt = $capturedAt !== '' ? date('Y-m-d H:i:s', strtotime($capturedAt) ?: time()) : gmdate('Y-m-d H:i:s');
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO analytics_monthly_snapshots
+            (month, pageviews, visitors, top_pages, top_referrers, top_countries, top_devices, captured_at)
+         VALUES
+            (:month, :pageviews, :visitors, :top_pages, :top_referrers, :top_countries, :top_devices, :captured_at)
+         ON DUPLICATE KEY UPDATE
+            pageviews = VALUES(pageviews),
+            visitors = VALUES(visitors),
+            top_pages = VALUES(top_pages),
+            top_referrers = VALUES(top_referrers),
+            top_countries = VALUES(top_countries),
+            top_devices = VALUES(top_devices),
+            captured_at = VALUES(captured_at)'
+    );
+    $stmt->execute([
+        ':month' => $month,
+        ':pageviews' => $pageviews,
+        ':visitors' => $visitors,
+        ':top_pages' => $topPages,
+        ':top_referrers' => $topReferrers,
+        ':top_countries' => $topCountries,
+        ':top_devices' => $topDevices,
+        ':captured_at' => $capturedAt,
+    ]);
+
+    send_json(['ok' => true, 'month' => $month]);
+}
+
+function list_analytics_history(PDO $pdo): void
+{
+    $limit = max(1, min(36, (int) ($_GET['limit'] ?? 24)));
+    $stmt = $pdo->prepare(
+        'SELECT month, pageviews, visitors, top_pages, top_referrers, top_countries, top_devices, captured_at
+         FROM analytics_monthly_snapshots
+         ORDER BY month DESC
+         LIMIT :limit'
+    );
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    $rows = array_reverse($stmt->fetchAll());
+
+    $data = array_map(static function ($row) {
+        return [
+            'month' => $row['month'],
+            'pageviews' => (int) $row['pageviews'],
+            'visitors' => (int) $row['visitors'],
+            'top_pages' => json_decode((string) $row['top_pages'], true) ?: [],
+            'top_referrers' => json_decode((string) $row['top_referrers'], true) ?: [],
+            'top_countries' => json_decode((string) $row['top_countries'], true) ?: [],
+            'top_devices' => json_decode((string) $row['top_devices'], true) ?: [],
+            'captured_at' => $row['captured_at'],
+        ];
+    }, $rows);
+
+    send_json(['data' => $data]);
 }
 
 function list_vehicles(PDO $pdo): void

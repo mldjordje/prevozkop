@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@heroui/react";
-import { ApiError, adminAnalyticsOverview, type AnalyticsOverview } from "@/lib/admin-client";
+import {
+  ApiError,
+  adminAnalyticsHistory,
+  adminAnalyticsOverview,
+  adminSaveAnalyticsSnapshot,
+  type AnalyticsMonthlySnapshot,
+  type AnalyticsOverview,
+} from "@/lib/admin-client";
 
 const ranges = [
   { key: 7, label: "7 dana" },
@@ -23,6 +30,20 @@ function formatChange(current: number, previous: number) {
 
 function formatDay(timestamp: string) {
   return new Date(timestamp).toLocaleDateString("sr-RS", { day: "2-digit", month: "2-digit" });
+}
+
+function formatMonthLabel(month: string) {
+  const [year, monthNum] = month.split("-").map(Number);
+  if (!year || !monthNum) return month;
+  return new Date(Date.UTC(year, monthNum - 1, 1)).toLocaleDateString("sr-RS", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function currentMonthLabel() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
 function BarList({
@@ -70,6 +91,11 @@ export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
 
+  const [history, setHistory] = useState<AnalyticsMonthlySnapshot[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [savingSnapshot, setSavingSnapshot] = useState(false);
+  const [snapshotMessage, setSnapshotMessage] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -93,6 +119,41 @@ export default function AnalyticsDashboard() {
       cancelled = true;
     };
   }, [days]);
+
+  async function loadHistory() {
+    setHistoryLoading(true);
+    try {
+      const res = await adminAnalyticsHistory(24);
+      setHistory(res.data);
+    } catch {
+      setHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadHistory();
+  }, []);
+
+  async function handleSaveSnapshot() {
+    setSavingSnapshot(true);
+    setSnapshotMessage(null);
+    try {
+      const res = await adminSaveAnalyticsSnapshot();
+      setSnapshotMessage(`Sacuvano za ${formatMonthLabel(res.month)}.`);
+      await loadHistory();
+    } catch (error) {
+      const status = error instanceof ApiError ? error.status : null;
+      setSnapshotMessage(
+        status === 501
+          ? "Nedostaje ANALYTICS_SNAPSHOT_SECRET na serveru."
+          : "Greska pri cuvanju snapshot-a."
+      );
+    } finally {
+      setSavingSnapshot(false);
+    }
+  }
 
   if (errorStatus === 501) {
     return (
@@ -263,6 +324,63 @@ export default function AnalyticsDashboard() {
               <BarList rows={data.devices} labelKey="deviceType" emptyLabel="Nepoznato" />
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold uppercase text-gray-500">Istorija po mesecima</h3>
+            <p className="mt-1 text-xs text-gray-500">
+              Prethodni meseci se cuvaju automatski (1. u mesecu). Vercel Analytics ne drzi podatke
+              unazad zauvek, ova tabela ostaje trajna evidencija.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            color="primary"
+            variant="flat"
+            isDisabled={savingSnapshot}
+            onPress={handleSaveSnapshot}
+          >
+            {savingSnapshot ? "Cuvanje..." : `Sacuvaj ${formatMonthLabel(currentMonthLabel())} sada`}
+          </Button>
+        </div>
+
+        {snapshotMessage && <p className="mt-3 text-sm text-gray-600">{snapshotMessage}</p>}
+
+        <div className="mt-4">
+          {historyLoading ? (
+            <p className="text-sm text-gray-500">Ucitavanje...</p>
+          ) : history.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              Jos nema sacuvane istorije. Snapshot se automatski pravi 1. u mesecu za prethodni mesec,
+              ili ga mozete sacuvati rucno dugmetom iznad.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[420px] text-sm">
+                <thead>
+                  <tr className="border-b border-black/10 text-left text-xs uppercase text-gray-500">
+                    <th className="py-2 pr-4">Mesec</th>
+                    <th className="py-2 pr-4">Poseta</th>
+                    <th className="py-2">Posetioci</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...history].reverse().map((row) => (
+                    <tr key={row.month} className="border-b border-black/5 last:border-0">
+                      <td className="py-2 pr-4 font-medium text-dark capitalize">
+                        {formatMonthLabel(row.month)}
+                      </td>
+                      <td className="py-2 pr-4">{formatNumber(row.pageviews)}</td>
+                      <td className="py-2">{formatNumber(row.visitors)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

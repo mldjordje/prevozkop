@@ -616,4 +616,39 @@ export async function adminAnalyticsOverview(days: number = 30): Promise<Analyti
   return res.json();
 }
 
+export type AnalyticsMonthlySnapshot = {
+  month: string;
+  pageviews: number;
+  visitors: number;
+  top_pages: { route?: string; pageviews: number; visitors: number }[];
+  top_referrers: { referrerHostname?: string; pageviews: number; visitors: number }[];
+  top_countries: { country?: string; pageviews: number; visitors: number }[];
+  top_devices: { deviceType?: string; pageviews: number; visitors: number }[];
+  captured_at: string;
+};
+
+export async function adminAnalyticsHistory(limit: number = 24) {
+  return adminFetch<{ data: AnalyticsMonthlySnapshot[] }>(`/admin/analytics/history?limit=${limit}`, {
+    method: "GET",
+  });
+}
+
+export async function adminSaveAnalyticsSnapshot(month?: string) {
+  const qs = month ? `?month=${encodeURIComponent(month)}` : "";
+  const res = await fetch(`/api/admin/analytics/snapshot${qs}`, {
+    method: "POST",
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    let body: unknown;
+    try {
+      body = await res.json();
+    } catch {
+      body = await res.text();
+    }
+    throw new ApiError("Neuspesno cuvanje snapshot-a.", res.status, body);
+  }
+  return res.json() as Promise<{ ok: boolean; month: string }>;
+}
+
 export { ApiError };
