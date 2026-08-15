@@ -586,4 +586,34 @@ export async function adminDeliverySummary(params: { from?: string; to?: string 
   }>(qs ? `/admin/deliveries/summary?${qs}` : "/admin/deliveries/summary", { method: "GET" });
 }
 
+export type AnalyticsCount = {
+  pageviews: number;
+  visitors: number;
+};
+
+export type AnalyticsOverview = {
+  range: { days: number; since: string; until: string };
+  current: AnalyticsCount;
+  previous: AnalyticsCount;
+  trend: { timestamp: string; pageviews: number; visitors: number }[];
+  pages: { route: string; pageviews: number; visitors: number }[];
+  referrers: { referrerHostname: string; pageviews: number; visitors: number }[];
+  countries: { country: string; pageviews: number; visitors: number }[];
+  devices: { deviceType: string; pageviews: number; visitors: number }[];
+};
+
+export async function adminAnalyticsOverview(days: number = 30): Promise<AnalyticsOverview> {
+  const res = await fetch(`/api/admin/analytics?days=${days}`, { cache: "no-store" });
+  if (!res.ok) {
+    let body: unknown;
+    try {
+      body = await res.json();
+    } catch {
+      body = await res.text();
+    }
+    throw new ApiError("Neuspesno ucitavanje analitike.", res.status, body);
+  }
+  return res.json();
+}
+
 export { ApiError };

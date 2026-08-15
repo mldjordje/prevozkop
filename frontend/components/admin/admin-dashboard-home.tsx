@@ -34,6 +34,7 @@ const moduleGroups = [
     items: [
       { href: "/admin/projects", title: "Projekti", text: "Reference i galerije." },
       { href: "/admin/products", title: "Behaton", text: "Katalog proizvoda." },
+      { href: "/admin/analitika", title: "Analitika", text: "Posete, izvori i najposecenije stranice." },
     ],
   },
 ];
