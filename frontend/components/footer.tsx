@@ -127,7 +127,7 @@ export default function Footer() {
           <p className="font-body text-xs text-white/25">
             Izradio{" "}
             <a
-              href="https://adspire.rs"
+              href="https://adspire.rs/softver-za-betonsku-bazu-i-proizvodnju-materijala"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary/60 transition-colors hover:text-primary"
