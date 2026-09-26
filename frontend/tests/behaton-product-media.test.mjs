@@ -16,6 +16,10 @@ const catalogUtilsSource = await readFile(
   resolve(repoRoot, "frontend/components/behaton/catalog-utils.ts"),
   "utf8",
 );
+const catalogSource = await readFile(
+  resolve(repoRoot, "frontend/components/behaton/catalog.tsx"),
+  "utf8",
+);
 const catalogPageSource = await readFile(resolve(repoRoot, "frontend/app/behaton/page.tsx"), "utf8");
 const detailClientSource = await readFile(
   resolve(repoRoot, "frontend/app/behaton/[slug]/product-client.tsx"),
@@ -46,5 +50,8 @@ test("placeholder products remain visible but are sorted after named products", 
 
 test("generated WebP packshots use contained product-image styling", () => {
   assert.match(catalogUtilsSource, /generated/);
+  assert.match(catalogSource, /item\.isPackshot && "bg-white"/);
+  assert.match(catalogSource, /item\.isPackshot \? "object-contain" : "object-cover"/);
+  assert.doesNotMatch(catalogSource, /item\.isPackshot \? "object-contain p-/);
   assert.match(detailClientSource, /generated/);
 });

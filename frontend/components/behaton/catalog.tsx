@@ -85,7 +85,7 @@ export default function BehatonCatalog({ items }: { items: CatalogItem[] }) {
                 <div
                   className={clsx(
                     "relative aspect-[3/4] overflow-hidden",
-                    item.isPackshot && "bg-[radial-gradient(circle_at_50%_40%,#f6f4ee_0%,#dcd8cf_100%)]",
+                    item.isPackshot && "bg-white",
                   )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -95,7 +95,7 @@ export default function BehatonCatalog({ items }: { items: CatalogItem[] }) {
                     loading={i < 4 ? "eager" : "lazy"}
                     className={clsx(
                       "h-full w-full transition-transform duration-[1.2s] [transition-timing-function:var(--ease-out)] group-hover:scale-[1.07]",
-                      item.isPackshot ? "object-contain p-6 sm:p-10" : "object-cover",
+                      item.isPackshot ? "object-contain" : "object-cover",
                     )}
                   />
                   {!item.isPackshot && (
