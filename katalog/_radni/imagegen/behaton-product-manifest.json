@@ -9,7 +9,7 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-behaton-16-5x20-d-6-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-behaton-16-5x20-d-6-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-behaton-16-5x20-d-6-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 8,
@@ -20,7 +20,7 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-behaton-16-5x20-d-8-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-behaton-16-5x20-d-8-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-behaton-16-5x20-d-8-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 9,
@@ -31,7 +31,7 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-behaton-ravna-ivica-16-5x20-d-10-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-behaton-ravna-ivica-16-5x20-d-10-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-behaton-ravna-ivica-16-5x20-d-10-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 10,
@@ -53,7 +53,7 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-elegance-dimenzija-20x20-d-6-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-elegance-dimenzija-20x20-d-6-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-elegance-dimenzija-20x20-d-6-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 12,
@@ -64,7 +64,7 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-elegance-dimenzija-20x20-d-8-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-elegance-dimenzija-20x20-d-8-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-elegance-dimenzija-20x20-d-8-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 13,
@@ -75,7 +75,7 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-uni-elegance-dimenzija-20x10-d-6-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-uni-elegance-dimenzija-20x10-d-6-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-uni-elegance-dimenzija-20x10-d-6-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 14,
@@ -86,7 +86,7 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-mini-elegance-dimenzija-10x10-d-6-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-mini-elegance-dimenzija-10x10-d-6-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-mini-elegance-dimenzija-10x10-d-6-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 15,
@@ -97,7 +97,7 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-uni-profil-dimenzija-24x12-d-6-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-uni-profil-dimenzija-24x12-d-6-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-uni-profil-dimenzija-24x12-d-6-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 16,
@@ -108,7 +108,7 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-sace-dimenzija-22x22-d-6-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-sace-dimenzija-22x22-d-6-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-sace-dimenzija-22x22-d-6-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 17,
@@ -119,29 +119,29 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-city-line-ravna-ivica-dimenzija-24x16-d-6-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-city-line-ravna-ivica-dimenzija-24x16-d-6-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-city-line-ravna-ivica-dimenzija-24x16-d-6-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 18,
       "slug": "ploca-antica-dimenzija-7-50-x-11-50-x-10-d-6-cm",
       "label": "PLOCA ANTICA 7,5x11,5x10 d=6 cm",
-      "reference": "docs/behaton-xlsx-extract/xl/media/image19.jpeg",
+      "reference": "docs/behaton-xlsx-extract/xl/media/image20.jpeg",
       "mainMaster": "katalog/_radni/imagegen/masters/ploca-antica-dimenzija-7-50-x-11-50-x-10-d-6-cm-main.png",
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-antica-dimenzija-7-50-x-11-50-x-10-d-6-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-antica-dimenzija-7-50-x-11-50-x-10-d-6-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-antica-dimenzija-7-50-x-11-50-x-10-d-6-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 19,
       "slug": "ploca-combo-ravna-ivica-60x40-d-6-cm-1-kom-m-40x40-d-6-cm-2-kom-m-40x20-d-6-cm-3-kom-m-20x20-d-6-cm-4-kom-m",
       "label": "PLOCA COMBO ravna ivica d=6 cm",
-      "reference": "docs/behaton-xlsx-extract/xl/media/image15.jpeg",
+      "reference": "frontend/public/img/behaton/products/combo-katalog.jpg",
       "mainMaster": "katalog/_radni/imagegen/masters/ploca-combo-ravna-ivica-60x40-d-6-cm-1-kom-m-40x40-d-6-cm-2-kom-m-40x20-d-6-cm-3-kom-m-20x20-d-6-cm-4-kom-m-main.png",
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-combo-ravna-ivica-60x40-d-6-cm-1-kom-m-40x40-d-6-cm-2-kom-m-40x20-d-6-cm-3-kom-m-20x20-d-6-cm-4-kom-m-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-combo-ravna-ivica-60x40-d-6-cm-1-kom-m-40x40-d-6-cm-2-kom-m-40x20-d-6-cm-3-kom-m-20x20-d-6-cm-4-kom-m-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-combo-ravna-ivica-60x40-d-6-cm-1-kom-m-40x40-d-6-cm-2-kom-m-40x20-d-6-cm-3-kom-m-20x20-d-6-cm-4-kom-m-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 20,
@@ -152,18 +152,18 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-city-park-ravna-ivica-7x14-d-6-cm-12-kom-m-14x14-d-6-cm-18-kom-m-21x14-d-6-cm-18-kom-m-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-city-park-ravna-ivica-7x14-d-6-cm-12-kom-m-14x14-d-6-cm-18-kom-m-21x14-d-6-cm-18-kom-m-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-city-park-ravna-ivica-7x14-d-6-cm-12-kom-m-14x14-d-6-cm-18-kom-m-21x14-d-6-cm-18-kom-m-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 21,
       "slug": "ploca-vodilja-taktilna-dimenzija-30x30-d-6-cm",
       "label": "PLOCA VODILJA TAKTILNA 30x30 d=6 cm",
-      "reference": "docs/behaton-xlsx-extract/xl/media/image18.jpeg",
+      "reference": "frontend/public/img/behaton/products/vodilja-taktilna.jpg",
       "mainMaster": "katalog/_radni/imagegen/masters/ploca-vodilja-taktilna-dimenzija-30x30-d-6-cm-main.png",
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-vodilja-taktilna-dimenzija-30x30-d-6-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-vodilja-taktilna-dimenzija-30x30-d-6-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-vodilja-taktilna-dimenzija-30x30-d-6-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 22,
@@ -174,18 +174,18 @@
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-eco-dimenzija-20x20-d-8-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-eco-dimenzija-20x20-d-8-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-eco-dimenzija-20x20-d-8-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 23,
       "slug": "ploca-raster-dimenzija-60x40-d-10-cm",
       "label": "PLOCA RASTER 60x40 d=10 cm",
-      "reference": "docs/behaton-xlsx-extract/xl/media/image14.jpeg",
+      "reference": "frontend/public/img/behaton/products/raster-60x40-2.jpg",
       "mainMaster": "katalog/_radni/imagegen/masters/ploca-raster-dimenzija-60x40-d-10-cm-main.png",
       "groupMaster": "katalog/_radni/imagegen/masters/ploca-raster-dimenzija-60x40-d-10-cm-group.png",
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-raster-dimenzija-60x40-d-10-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-raster-dimenzija-60x40-d-10-cm-group.webp",
-      "status": "pending"
+      "status": "approved"
     }
   ]
 }
