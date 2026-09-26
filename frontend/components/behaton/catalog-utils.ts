@@ -46,11 +46,28 @@ export function toCatalogItem(product: Product): CatalogItem {
     spec,
     thickness: thicknessMatch ? Number(thicknessMatch[1]) : null,
     image,
-    isPackshot: /\.png$/i.test(image) || /removebg|packshot|studio/i.test(image),
+    isPackshot: /\.png$/i.test(image) || /removebg|packshot|studio|\/generated\//i.test(image),
   };
 }
 
-/** Drops placeholder rows (e.g. products literally named "1" / "2"). */
+/** Keeps malformed numeric placeholder rows visible, but moves them after named products. */
+export function sortBehatonProducts(products: Product[]) {
+  return products
+    .map((product, index) => ({ product, index }))
+    .sort((a, b) => {
+      const aIsPlaceholder = /^\d+$/.test(a.product.name.trim());
+      const bIsPlaceholder = /^\d+$/.test(b.product.name.trim());
+
+      if (aIsPlaceholder !== bIsPlaceholder) {
+        return aIsPlaceholder ? 1 : -1;
+      }
+
+      return a.index - b.index;
+    })
+    .map(({ product }) => product);
+}
+
+/** Used by compact/SEO product selections that should omit malformed numeric rows. */
 export function isRealBehatonProduct(product: Product) {
   return product.name.trim().length > 2 && !/^\d+$/.test(product.name.trim());
 }

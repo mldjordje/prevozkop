@@ -25,7 +25,8 @@ type Props = {
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.prevozkop.rs/api";
 const ease = [0.16, 1, 0.3, 1] as const;
 
-const isPackshotSrc = (src: string) => /\.png$/i.test(src) || /removebg|packshot|studio/i.test(src);
+const isPackshotSrc = (src: string) =>
+  /\.png$/i.test(src) || /removebg|packshot|studio|\/generated\//i.test(src);
 
 export default function BehatonProductClient({ slug, initialProduct, initialRelated }: Props) {
   const [product, setProduct] = useState<Product | null>(

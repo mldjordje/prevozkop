@@ -7,7 +7,7 @@ import QuickInquiryButton from "@/components/quick-inquiry-button";
 import SplitText from "@/components/motion/split-text";
 import { ParallaxImage, ScrollFillText, VelocityMarquee } from "@/components/motion/scroll-effects";
 import BehatonCatalog from "@/components/behaton/catalog";
-import { isRealBehatonProduct, toCatalogItem } from "@/components/behaton/catalog-utils";
+import { sortBehatonProducts, toCatalogItem } from "@/components/behaton/catalog-utils";
 import {
   behatonBenefits,
   behatonCities,
@@ -70,9 +70,9 @@ export default async function BehatonPage() {
 
   try {
     const res = await getProducts({ category: "behaton", limit: 120, offset: 0 });
-    products = (res.data || [])
-      .filter((item) => item.category?.trim().toLowerCase() === "behaton")
-      .filter(isRealBehatonProduct);
+    products = sortBehatonProducts(
+      (res.data || []).filter((item) => item.category?.trim().toLowerCase() === "behaton"),
+    );
   } catch (error) {
     console.error("Neuspelo učitavanje behaton proizvoda:", error);
   }
