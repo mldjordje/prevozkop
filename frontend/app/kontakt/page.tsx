@@ -4,13 +4,14 @@ import ContactForm from "@/components/contact-form";
 import PageHero from "@/components/page-hero";
 import FloatingCta from "@/components/floating-cta";
 import JsonLd from "@/components/json-ld";
+import { ChipLinks, FormSection } from "@/components/sections";
 import { company } from "@/content/site";
 import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Kontakt | Prevozkop",
   description:
-    "Kontaktirajte Prevozkop za isporuku betona, visoke pumpe i zemljane radove u Nisu i regionu.",
+    "Kontaktirajte Prevozkop za isporuku betona, visoke pumpe i zemljane radove u Nišu i regionu.",
   path: "/kontakt",
   image: "/img/volvonov2.webp",
   keywords: [
@@ -23,9 +24,23 @@ export const metadata: Metadata = buildMetadata({
   languages: srEnLanguages("/kontakt", "/en/contact"),
 });
 
+const channels = [
+  { label: "Telefon", value: company.phone, href: "tel:+381605887471", note: "Najbrži put — dispečer odgovara odmah" },
+  { label: "Email", value: company.email, href: `mailto:${company.email}`, note: "Za projekte, specifikacije i ponude" },
+  {
+    label: "Adresa",
+    value: company.address,
+    href: "https://www.google.com/maps/search/?api=1&query=PREVOZ+KOP+BETONSKA+BAZA+Nis",
+    note: "Betonska baza — Krušce bb",
+  },
+  { label: "Radno vreme", value: company.workingHours, note: "Hitne isporuke po dogovoru" },
+];
+
+const zones = ["Niš", "Leskovac", "Prokuplje", "Aleksinac", "Južna/Centralna Srbija"];
+
 export default function ContactPage() {
   return (
-    <div className="space-y-16 sm:space-y-24">
+    <div className="bg-cement">
       <PageHero
         title="Kontaktirajte nas"
         kicker="Kontakt"
@@ -34,92 +49,91 @@ export default function ContactPage() {
         priority
         actions={[
           { label: "Pozovi", href: "tel:+381605887471" },
-          { label: "Posalji upit", href: "#forma" },
+          { label: "Pošalji upit", href: "#forma" },
         ]}
       />
 
-      <section className="content-section">
-        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-6">
-            <div className="rounded-3xl border border-black/5 bg-white p-6 shadow-xl">
-              <h2 className="text-2xl font-bold text-dark">Stupite u kontakt</h2>
-              <p className="mt-2 text-sm text-gray-700">
-                Pozovite nas za hitne isporuke ili posaljite detalje projekta i odgovoricemo u
-                najkracem roku.
+      {/* ── Channels as giant type rows ───────────────────── */}
+      <section className="content-section py-24 sm:py-32">
+        <p className="section-label mb-5">Stupite u kontakt</p>
+        <h2 className="mb-12 max-w-3xl font-body text-lg leading-relaxed text-muted">
+          Pozovite nas za hitne isporuke ili pošaljite detalje projekta i odgovorićemo u najkraćem roku.
+        </h2>
+        <ul className="border-t border-ink/15">
+          {channels.map((c, i) => {
+            const inner = (
+              <>
+                <span className="absolute inset-0 origin-bottom scale-y-0 bg-primary transition-transform duration-500 [transition-timing-function:var(--ease-out)] group-hover:scale-y-100" />
+                <span className="relative font-mono text-[11px] uppercase tracking-[0.2em] text-muted group-hover:text-ink">
+                  {String(i + 1).padStart(2, "0")} · {c.label}
+                </span>
+                <span className="relative break-all font-display text-4xl font-black uppercase leading-[0.9] text-ink [font-stretch:62%] sm:text-6xl lg:text-7xl">
+                  {c.value}
+                </span>
+                <span className="relative font-body text-sm text-muted group-hover:text-ink/75 md:text-right">{c.note}</span>
+              </>
+            );
+            const cls =
+              "group relative grid gap-3 overflow-hidden py-7 md:grid-cols-[180px_1fr_220px] md:items-center md:gap-8";
+            return (
+              <li key={c.label} className="border-b border-ink/15">
+                {c.href ? (
+                  <a href={c.href} className={cls} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer">
+                    {inner}
+                  </a>
+                ) : (
+                  <div className={cls}>{inner}</div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      {/* ── Map ───────────────────────────────────────────── */}
+      <section className="content-section pb-24 sm:pb-32">
+        <div className="grid gap-6 lg:grid-cols-[0.7fr_1.3fr]">
+          <div className="flex flex-col justify-between gap-8 rounded-[28px] bg-ink p-7 text-white sm:p-10">
+            <div>
+              <p className="section-label mb-5">Servisna zona</p>
+              <h2 className="font-display text-5xl font-black uppercase leading-[0.88] [font-stretch:62%]">
+                Polazimo iz Niša
+              </h2>
+              <p className="mt-4 font-body text-[15px] leading-relaxed text-white/65">
+                Radimo u okolnim gradovima: Leskovac, Prokuplje, Aleksinac i region.
               </p>
-              <ul className="mt-6 space-y-3 text-sm text-gray-800">
-                <li>
-                  <span className="text-gray-500">Adresa: </span>
-                  {company.address}
-                </li>
-                <li>
-                  <span className="text-gray-500">Telefon: </span>
-                  <a className="text-primary" href="tel:+381605887471">
-                    {company.phone}
-                  </a>
-                </li>
-                <li>
-                  <span className="text-gray-500">Email: </span>
-                  <a className="text-primary" href={`mailto:${company.email}`}>
-                    {company.email}
-                  </a>
-                </li>
-                <li>
-                  <span className="text-gray-500">Radno vreme: </span>
-                  {company.workingHours}
-                </li>
-              </ul>
-
-              <div className="mt-6 rounded-2xl border border-black/5 bg-gray-50 p-4">
-                <h3 className="text-sm font-semibold text-dark">Servisna zona</h3>
-                <p className="mt-1 text-sm text-gray-700">
-                  Polazimo iz Nisa i radimo u okolnim gradovima: Leskovac, Prokuplje, Aleksinac i
-                  region.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {["Nis", "Leskovac", "Prokuplje", "Aleksinac", "Juzna/Centralna Srbija"].map(
-                    (city) => (
-                      <span
-                        key={city}
-                        className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold text-dark"
-                      >
-                        {city}
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
             </div>
-
-            <div className="overflow-hidden rounded-3xl border border-black/5 shadow-xl">
-              <iframe
-                title="Mapa Prevoz Kop"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3601.4041065583438!2d21.7812499!3d43.3292085!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4755c9c6d19f399d%3A0x677ab617dde894eb!2sPREVOZ%20KOP%20BETONSKA%20BAZA!5e1!3m2!1sen!2srs!4v1739409789864!5m2!1sen!2srs"
-                className="h-[360px] w-full border-0"
-                loading="lazy"
-                allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
+            <ChipLinks tone="dark" links={zones.map((z) => ({ href: "/porucivanje-betona#forma", label: z }))} />
           </div>
-
-          <div id="forma" className="space-y-4">
-            <h2 className="text-2xl font-bold text-dark">Posaljite upit</h2>
-            <p className="text-sm text-gray-700">
-              Napisite kolicinu, klasu betona i informacije o pristupu terenu. Ako planirate
-              zemljane radove, navedite lokaciju i sta je potrebno.
-            </p>
-            <p className="text-sm text-gray-700">
-              Za porucivanje betona mozete koristiti i stranicu{" "}
-              <Link className="font-semibold text-primary" href="/porucivanje-betona#forma">
-                Porucivanje betona
-              </Link>
-              .
-            </p>
-            <ContactForm />
+          <div className="relative min-h-[380px] overflow-hidden rounded-[28px] bg-ink" data-cursor="Mapa">
+            <iframe
+              title="Mapa Prevoz Kop"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3601.4041065583438!2d21.7812499!3d43.3292085!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4755c9c6d19f399d%3A0x677ab617dde894eb!2sPREVOZ%20KOP%20BETONSKA%20BAZA!5e1!3m2!1sen!2srs!4v1739409789864!5m2!1sen!2srs"
+              className="absolute inset-0 h-full w-full border-0 grayscale-[0.85] contrast-[1.1] transition-[filter] duration-700 hover:grayscale-0"
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+            />
           </div>
         </div>
       </section>
+
+      <FormSection
+        lines={["Pošaljite", { text: "upit", className: "text-primary" }]}
+        text="Napišite količinu, klasu betona i informacije o pristupu terenu. Ako planirate zemljane radove, navedite lokaciju i šta je potrebno."
+        extra={
+          <p className="mt-8 font-body text-sm text-white/55">
+            Za poručivanje betona možete koristiti i stranicu{" "}
+            <Link className="text-primary hover:text-white" href="/porucivanje-betona#forma">
+              Poručivanje betona
+            </Link>
+            .
+          </p>
+        }
+      >
+        <ContactForm />
+      </FormSection>
+
       <JsonLd
         id="contact-page-jsonld"
         data={{
@@ -142,6 +156,8 @@ export default function ContactPage() {
       />
       <FloatingCta
         phone={company.phone}
+        quickService="beton"
+        formLabel="Brzi upit"
         callNumber="0603720415"
         whatsappNumber="0601491491"
         message="Pozdrav! Treba mi ponuda za beton."

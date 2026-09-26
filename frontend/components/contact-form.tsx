@@ -35,9 +35,10 @@ type ContactFormProps = {
 };
 
 const inputClass =
-  "block w-full min-w-0 rounded-xl border border-[rgba(15,14,12,0.12)] bg-white px-4 py-3.5 text-sm text-dark placeholder:text-faint outline-none transition-all duration-200 focus:border-primary focus:ring-3 focus:ring-primary/15 focus:shadow-[0_0_0_3px_rgba(244,161,0,0.12)]";
+  "block w-full min-w-0 rounded-2xl border border-transparent bg-cement px-4 py-4 font-body text-[15px] text-ink placeholder:text-ink/35 outline-none transition-all duration-300 hover:bg-[#e8e5de] focus:border-ink focus:bg-white focus:shadow-[0_0_0_4px_rgba(244,161,0,0.25)]";
 
-const labelClass = "flex min-w-0 flex-col gap-1.5 text-sm font-semibold text-dark font-body";
+const labelClass =
+  "flex min-w-0 flex-col gap-2 font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-ink/60";
 
 export default function ContactForm({
   defaultSubject,
@@ -70,7 +71,7 @@ export default function ContactForm({
   const resolvedSelectOptions = selectOptions ?? concreteTypes;
   const resolvedSelectLabel = selectLabel || "Vrsta betona (opciono)";
   const resolvedSelectPlaceholder = selectPlaceholder || "Izaberite vrstu betona";
-  const resolvedQuantityLabel = quantityLabel || "Kolicina (opciono)";
+  const resolvedQuantityLabel = quantityLabel || "Količina (opciono)";
   const resolvedQuantityPlaceholder = quantityPlaceholder || "npr. 20";
   const resolvedQuantityUnitLabel = quantityUnitLabel || "Jedinica";
   const resolvedQuantityUnits = quantityUnits ?? ["m2", "m3", "kom", "paleta"];
@@ -109,7 +110,7 @@ export default function ContactForm({
 
     const detailLines: string[] = [];
     if (selectedType) detailLines.push(`Model: ${selectedType}`);
-    if (quantity) detailLines.push(`Kolicina: ${quantity}${quantityUnit ? ` ${quantityUnit}` : ""}`);
+    if (quantity) detailLines.push(`Količina: ${quantity}${quantityUnit ? ` ${quantityUnit}` : ""}`);
     const message = detailLines.length ? `${detailLines.join(" | ")}\n${rawMessage}` : rawMessage;
 
     const subject = (data.get("subject") as string) || defaultSubject || "";
@@ -167,14 +168,14 @@ export default function ContactForm({
 
   if (state === "success") {
     return (
-      <div className="flex flex-col items-center gap-5 rounded-2xl border border-green-200 bg-green-50 px-6 py-12 text-center shadow-sm">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl">
+      <div className="flex flex-col items-center gap-6 rounded-[22px] bg-white px-6 py-16 text-center">
+        <div className="grid h-20 w-20 place-items-center rounded-full bg-primary text-4xl text-ink shadow-[0_20px_50px_-10px_rgba(244,161,0,0.7)]">
           ✓
         </div>
         <div className="space-y-2">
-          <h3 className="font-display text-2xl font-bold text-dark">Upit je poslat!</h3>
-          <p className="text-sm text-muted">
-            Javicemo se na vas broj u roku od <strong>2 sata</strong> radi potvrde termina i
+          <h3 className="font-display text-5xl font-black uppercase leading-none text-ink [font-stretch:62%]">Upit je poslat</h3>
+          <p className="font-body text-base text-muted">
+            Javićemo se na vaš broj u roku od <strong>2 sata</strong> radi potvrde termina i
             detalja.
           </p>
         </div>
@@ -183,7 +184,7 @@ export default function ContactForm({
           onClick={() => setState("idle")}
           className="mt-2 text-sm font-semibold text-primary underline-offset-2 hover:underline"
         >
-          Posalji novi upit
+          Pošalji novi upit
         </button>
       </div>
     );
@@ -192,33 +193,37 @@ export default function ContactForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid w-full gap-5 overflow-hidden rounded-2xl border border-[rgba(15,14,12,0.07)] bg-white p-5 shadow-[0_8px_48px_rgba(0,0,0,0.07)] sm:p-8"
+      className="grid w-full gap-5 overflow-hidden rounded-[22px] bg-white p-5 sm:p-8"
+      data-reveal-skip
     >
-      {/* Gold accent header */}
-      <div className="flex items-start gap-3 border-l-4 border-primary pl-4">
+      <div className="flex items-end justify-between gap-4 border-b border-ink/10 pb-5">
         <div>
-          <p className="font-display text-xl font-bold leading-tight text-dark sm:text-2xl">
-            Posaljite besplatan upit
+          <p className="font-display text-4xl font-black uppercase leading-[0.9] text-ink [font-stretch:62%] sm:text-5xl">
+            Besplatan upit
           </p>
-          <p className="mt-0.5 text-sm text-muted">Odgovaramo u roku od 2 sata · Bez obaveze</p>
+          <p className="mt-2 font-body text-sm text-muted">Odgovaramo u roku od 2 sata · Bez obaveze</p>
         </div>
+        <span className="hidden shrink-0 items-center gap-2 rounded-full bg-cement px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink/70 sm:flex">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+          Dispečer aktivan
+        </span>
       </div>
 
       {/* Phone — primary field, full width, large */}
       <label className={labelClass}>
         <span>
-          Vas broj telefona{" "}
-          <span className="font-normal text-primary">*</span>
+          Vaš broj telefona{" "}
+          <span className="text-primary">*</span>
         </span>
         <input
           required
           name="phone"
           type="tel"
           autoComplete="tel"
-          className={clsx(inputClass, "text-base font-medium")}
+          className={clsx(inputClass, "py-5 text-lg font-medium")}
           placeholder="060 / 065 / 062..."
         />
-        <span className="text-xs font-normal text-faint">
+        <span className="font-body text-xs normal-case tracking-normal text-ink/45">
           Pozivamo vas radi potvrde termina i detalja
         </span>
       </label>
@@ -226,18 +231,18 @@ export default function ContactForm({
       {/* Name + Email — secondary row */}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={labelClass}>
-          Vase ime{" "}
-          <span className="font-normal text-faint">(opciono)</span>
+          Vaše ime{" "}
+          <span className="normal-case tracking-normal text-ink/35">(opciono)</span>
           <input
             name="name"
             autoComplete="name"
             className={inputClass}
-            placeholder="Vase ime i prezime"
+            placeholder="Vaše ime i prezime"
           />
         </label>
         <label className={labelClass}>
           Email{" "}
-          <span className="font-normal text-faint">(opciono)</span>
+          <span className="normal-case tracking-normal text-ink/35">(opciono)</span>
           <input
             name="email"
             type="email"
@@ -253,8 +258,8 @@ export default function ContactForm({
         <input type="hidden" name="subject" value={defaultSubject} />
       ) : (
         <label className={labelClass}>
-          Sta vas zanima{" "}
-          <span className="font-normal text-faint">(opciono)</span>
+          Šta vas zanima{" "}
+          <span className="normal-case tracking-normal text-ink/35">(opciono)</span>
           <input
             name="subject"
             className={inputClass}
@@ -316,7 +321,7 @@ export default function ContactForm({
       {/* Message — short and optional */}
       <label className={labelClass}>
         Napomena{" "}
-        <span className="font-normal text-faint">(opciono)</span>
+        <span className="normal-case tracking-normal text-ink/35">(opciono)</span>
         <textarea
           name="message"
           rows={3}
@@ -331,11 +336,8 @@ export default function ContactForm({
           type="submit"
           disabled={state === "loading"}
           className={clsx(
-            "relative w-full overflow-hidden rounded-xl px-6 py-4 text-center font-display text-base font-bold uppercase tracking-wider text-dark transition-all duration-300",
-            "bg-primary shadow-[0_12px_40px_rgba(244,161,0,0.35)]",
-            "hover:shadow-[0_20px_60px_rgba(244,161,0,0.45)] hover:-translate-y-0.5",
-            "active:translate-y-0 active:shadow-[0_8px_24px_rgba(244,161,0,0.3)]",
-            state === "loading" && "opacity-75 cursor-wait"
+            "btn-primary !min-h-[4rem] w-full !text-base",
+            state === "loading" && "cursor-wait opacity-75"
           )}
         >
           {state === "loading" ? (
@@ -352,7 +354,7 @@ export default function ContactForm({
               Slanje...
             </span>
           ) : (
-            "Posalji besplatan upit →"
+            "Pošalji besplatan upit →"
           )}
         </button>
 
@@ -371,7 +373,7 @@ export default function ContactForm({
         )}
 
         {/* Trust signals */}
-        <p className="text-center text-xs text-faint">
+        <p className="text-center font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink/40">
           Radimo pon–sub · Odgovaramo u roku od 2 sata · Bez obaveze
         </p>
       </div>

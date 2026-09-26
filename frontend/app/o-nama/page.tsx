@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import PageHero from "@/components/page-hero";
+import StatsSection from "@/components/stats-section";
+import { ParallaxImage, ScrollFillText } from "@/components/motion/scroll-effects";
+import { CtaBand, RuleList, SectionHead } from "@/components/sections";
 import { aboutHighlights, company, stats, team } from "@/content/site";
 import { buildMetadata, srEnLanguages } from "@/lib/seo";
 
@@ -16,12 +20,24 @@ export const metadata: Metadata = buildMetadata({
 const aboutParagraphs = [
   "Prevoz Kop iz Niša posluje od 2020. godine i specijalizovan je za proizvodnju i isporuku betona. Naša sopstvena betonska baza i tim iskusnih operatera garantuju da beton stiže na vreme i u klasi koja vam je potrebna.",
   "Pored betona, pružamo kompletne građevinske usluge: iskope, nasipanje šljunka, rizle, tampona i iberlaufa, kao i rušenje objekata. Svaki projekat vodimo od pripreme terena do završne ploče, sa fokusom na sigurnost i preciznost.",
-  "Naša misija je da budemo pouzdan partner na svakom gradilištu, a vizija da pomeramo standarde kvaliteta i brzine u građevinskoj industriji na jugu Srbije.",
+];
+
+const mission = [
+  {
+    title: "Naša misija",
+    text: "Da budemo lider u industriji betona i građevinskih usluga, uz preciznu isporuku i tehnologiju koja skraćuje rokove.",
+    image: "/img/mikseri.webp",
+  },
+  {
+    title: "Naša vizija",
+    text: "Da postanemo prvi izbor za sve vrste projekata – od temelja do kompletne pripreme terena, uz stalno ulaganje u ljude i opremu.",
+    image: "/img/vozila5.webp",
+  },
 ];
 
 export default function AboutPage() {
   return (
-    <div className="space-y-16 sm:space-y-24">
+    <div className="bg-cement">
       <PageHero
         title="Gradimo sve što vam je potrebno"
         kicker="O nama"
@@ -29,188 +45,124 @@ export default function AboutPage() {
         background="/img/napolje5.webp"
         priority
         actions={[
-          { label: "Poruci beton", href: "/porucivanje-betona#forma" },
+          { label: "Poruči beton", href: "/porucivanje-betona#forma" },
           { label: "Naše usluge", href: "/usluge" },
         ]}
       />
 
-      <section className="content-section space-y-10">
-        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-5">
-            {aboutParagraphs.map((paragraph) => (
-              <p key={paragraph} className="text-base leading-relaxed text-gray-800">
-                {paragraph}
-              </p>
-            ))}
+      {/* ── Manifesto ─────────────────────────────────────── */}
+      <section className="content-section py-24 sm:py-36">
+        <div className="mb-10 flex items-center justify-between">
+          <p className="section-label">Od 2020.</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted">Krušce bb · Niš</p>
+        </div>
+        <ScrollFillText
+          as="h2"
+          className="font-display text-[2.6rem] font-extrabold uppercase leading-[0.93] text-ink [font-stretch:66%] sm:text-7xl lg:text-[6.2rem]"
+          text="Naša misija je da budemo pouzdan partner na svakom gradilištu — a vizija da pomeramo standarde kvaliteta i brzine na jugu Srbije."
+        />
+      </section>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              {aboutHighlights.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm font-semibold text-dark shadow-sm"
-                >
-                  {item}
-                </div>
+      {/* ── Story + image ─────────────────────────────────── */}
+      <section className="content-section pb-24 sm:pb-32">
+        <div className="grid gap-12 lg:grid-cols-12">
+          <ParallaxImage
+            src="/img/radnici1.webp"
+            alt="Naš tim na terenu"
+            sizes="(max-width: 1024px) 100vw, 55vw"
+            className="aspect-[4/5] rounded-[28px] lg:col-span-6"
+          >
+            <div className="absolute bottom-5 left-5 rounded-2xl bg-ink/80 px-5 py-4 text-white backdrop-blur-md">
+              <p className="font-display text-5xl font-black leading-none text-primary [font-stretch:62%]">2020</p>
+              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/60">Godina osnivanja</p>
+            </div>
+          </ParallaxImage>
+          <div className="flex flex-col justify-between gap-10 lg:col-span-6">
+            <div className="space-y-6">
+              {aboutParagraphs.map((paragraph) => (
+                <p key={paragraph} className="font-body text-lg leading-relaxed text-ink/80">
+                  {paragraph}
+                </p>
               ))}
             </div>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                href="/projekti"
-                className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.35)] transition hover:translate-y-[-2px]"
-              >
+            <RuleList items={aboutHighlights} big />
+            <div className="flex flex-wrap gap-3">
+              <Link href="/projekti" className="btn-primary">
                 Pogledaj projekte
               </Link>
-              <Link
-                href="tel:+381605887471"
-                className="inline-flex items-center rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
-              >
+              <a href="tel:+381605887471" className="btn-outline">
                 Pozovi {company.phone}
-              </Link>
+              </a>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="grid gap-4">
-            <div className="relative overflow-hidden rounded-3xl border border-black/5 shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-white/50" />
-              <img
-                src="/img/radnici1.webp"
-                alt="Naš tim na terenu"
-                className="h-full w-full object-cover"
-                loading="lazy"
+      <StatsSection stats={stats} />
+
+      {/* ── Mission / vision split ────────────────────────── */}
+      <section className="grid bg-ink lg:grid-cols-2">
+        {mission.map((m, i) => (
+          <article key={m.title} className="group relative flex min-h-[80svh] items-end overflow-hidden p-6 text-white sm:p-12">
+            <Image
+              src={m.image}
+              alt={m.title}
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover opacity-50 transition-all duration-[1.4s] [transition-timing-function:var(--ease-out)] group-hover:scale-105 group-hover:opacity-35"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+            <div className="relative max-w-lg">
+              <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-primary">
+                {String(i + 1).padStart(2, "0")} — {m.title}
+              </p>
+              <p className="mt-5 font-display text-4xl font-black uppercase leading-[0.95] [font-stretch:62%] sm:text-5xl">{m.text}</p>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      {/* ── Team ──────────────────────────────────────────── */}
+      <section className="content-section py-24 sm:py-32">
+        <SectionHead
+          label="Tim"
+          lines={["Ljudi iza", { text: "svakog projekta", className: "text-outline" }]}
+          text="Povezujemo iskustvo, vozni park i sigurnost na terenu."
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {team.map((member, i) => (
+            <article key={member.name} className="group relative aspect-[3/4] overflow-hidden rounded-[24px] bg-ink" data-cursor="view">
+              <Image
+                src={member.image}
+                alt={member.name}
+                fill
+                sizes="(max-width: 640px) 100vw, 33vw"
+                className="object-cover grayscale transition-all duration-[1.2s] [transition-timing-function:var(--ease-out)] group-hover:scale-105 group-hover:grayscale-0"
               />
-              <div className="absolute bottom-4 left-4 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-dark shadow-md">
-                Osnovani 2020. godine
+              <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">{String(i + 1).padStart(2, "0")}</p>
+                <h3 className="mt-2 font-display text-4xl font-black uppercase leading-[0.9] [font-stretch:62%]">{member.name}</h3>
+                <p className="mt-1 font-body text-sm text-white/65">{member.role}</p>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {stats.map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl border border-black/5 bg-white px-4 py-5 text-center shadow-sm"
-                >
-                  <div className="text-2xl font-bold text-dark">{item.value}</div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    {item.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="content-section space-y-6">
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Misija i vizija
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Povezujemo iskustvo, vozni park i sigurnost na terenu
-          </h2>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <MissionCard
-            title="Naša misija"
-            description="Da budemo lider u industriji betona i građevinskih usluga, uz preciznu isporuku i tehnologiju koja skraćuje rokove."
-            image="/img/mikseri.webp"
-          />
-          <MissionCard
-            title="Naša vizija"
-            description="Da postanemo prvi izbor za sve vrste projekata – od temelja do kompletne pripreme terena, uz stalno ulaganje u ljude i opremu."
-            image="/img/vozila5.webp"
-          />
-        </div>
-      </section>
-
-      <section className="content-section space-y-6">
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Tim
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Ljudi koji stoje iza svakog projekta
-          </h2>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {team.map((member) => (
-            <div
-              key={member.name}
-              className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="h-52 overflow-hidden">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-              <div className="space-y-1 p-4">
-                <h3 className="text-lg font-semibold text-dark">{member.name}</h3>
-                <p className="text-sm text-gray-600">{member.role}</p>
-              </div>
-            </div>
+            </article>
           ))}
         </div>
       </section>
 
-      <section className="content-section">
-        <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-dark text-white shadow-2xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(244,161,0,0.25),_transparent_45%)]" />
-          <div className="flex flex-col gap-5 px-6 py-10 sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-3">
-              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                Spremni za projekat
-              </span>
-              <h3 className="text-3xl font-bold sm:text-4xl">Pričajmo o vašem gradilištu</h3>
-              <p className="max-w-2xl text-sm text-gray-200">
-                Dostupni smo za konsultacije, procenu i brzu isporuku materijala širom juga
-                Srbije.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/porucivanje-betona#forma"
-                className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.4)] transition hover:translate-y-[-2px]"
-              >
-                Pošalji upit
-              </Link>
-              <Link
-                href="mailto:prevozkopbb@gmail.com"
-                className="inline-flex items-center rounded-full border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-dark"
-              >
-                {company.email}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function MissionCard({
-  title,
-  description,
-  image,
-}: {
-  title: string;
-  description: string;
-  image: string;
-}) {
-  return (
-    <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-white shadow-xl">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${image})` }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/50 to-black/20" />
-      <div className="relative flex h-full flex-col justify-end space-y-3 p-6 text-white sm:p-8">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          {title}
-        </span>
-        <p className="text-sm text-gray-100">{description}</p>
-      </div>
+      <CtaBand
+        label="Spremni za projekat"
+        lines={["Pričajmo o", { text: "vašem gradilištu", className: "text-primary" }]}
+        text="Dostupni smo za konsultacije, procenu i brzu isporuku materijala širom juga Srbije."
+        image="/img/napolje2.webp"
+      >
+        <Link href="/porucivanje-betona#forma" className="btn-primary">
+          Pošalji upit
+        </Link>
+        <a href={`mailto:${company.email}`} className="btn-outline-white">
+          {company.email}
+        </a>
+      </CtaBand>
     </div>
   );
 }

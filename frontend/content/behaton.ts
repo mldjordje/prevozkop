@@ -8,47 +8,47 @@ export type BehatonCity = {
 export type BetonCity = BehatonCity;
 
 export const behatonHighlights = [
-  "Behaton kocke i ploce za dvorista, staze, parkinge i poslovne povrsine sirom Srbije",
-  "Brza AI procena potrebne kolicine i preporuka modela prema nameni i opterecenju",
+  "Behaton kocke i ploče za dvorišta, staze, parkinge i poslovne površine širom Srbije",
+  "Brza AI procena potrebne količine i preporuka modela prema nameni i opterećenju",
   "Savet za podlogu, nivelaciju, ivicnjake i odvodnjavanje pre ugradnje",
-  "Organizacija isporuke i ugradnje u vecim gradovima i regionalnim centrima po dogovoru",
+  "Organizacija isporuke i ugradnje u većim gradovima i regionalnim centrima po dogovoru",
 ];
 
 export const behatonBenefits = [
   "Stabilna podloga i duga trajnost u svim vremenskim uslovima",
-  "Brza ugradnja i lakse odrzavanje u odnosu na asfalt i klasicne zavrsne slojeve",
-  "Uredjene privatne, komercijalne i javne povrsine sa jasnom funkcijom",
-  "Fleksibilne kombinacije boja, formata i debljina za razlicite tipove projekata",
+  "Brza ugradnja i lakše održavanje u odnosu na asfalt i klasične završne slojeve",
+  "Uređene privatne, komercijalne i javne površine sa jasnom funkcijom",
+  "Fleksibilne kombinacije boja, formata i debljina za različite tipove projekata",
 ];
 
 export const behatonUseCases = [
   {
-    title: "Dvorista i prilazi",
+    title: "Dvorišta i prilazi",
     description:
-      "Behaton je idealan za stambene prilaze, garaze i unutrasnja dvorista jer trpi opterecenje i lako se obnavlja.",
+      "Behaton je idealan za stambene prilaze, garaže i unutrašnja dvorišta jer trpi opterećenje i lako se obnavlja.",
   },
   {
-    title: "Parking povrsine",
+    title: "Parking površine",
     description:
-      "Za parkinge i poslovne objekte potrebna je precizna ugradnja i pravilna podloga kako bi povrsina ostala ravna.",
+      "Za parkinge i poslovne objekte potrebna je precizna ugradnja i pravilna podloga kako bi površina ostala ravna.",
   },
   {
     title: "Staze i trotoari",
     description:
-      "Za pesacke staze biramo format, boju i debljinu u skladu sa namenom i vizuelnim identitetom prostora.",
+      "Za pešačke staze biramo format, boju i debljinu u skladu sa namenom i vizuelnim identitetom prostora.",
   },
 ];
 
 export const behatonProcess = [
   {
-    title: "Preporuka modela i kolicine",
+    title: "Preporuka modela i količine",
     description:
-      "Definisemo format, boju i debljinu na osnovu namene, opterecenja, kvadrature i lokacije projekta.",
+      "Definišemo format, boju i debljinu na osnovu namene, opterećenja, kvadrature i lokacije projekta.",
   },
   {
     title: "Plan podloge i pripreme",
     description:
-      "Pravilna podloga, tampon, nivelacija i odvodnjavanje obezbedjuju stabilnost i dug vek behatona.",
+      "Pravilna podloga, tampon, nivelacija i odvodnjavanje obezbeđuju stabilnost i dug vek behatona.",
   },
   {
     title: "Isporuka i ugradnja",
@@ -59,113 +59,113 @@ export const behatonProcess = [
 
 export const behatonFaq = [
   {
-    q: "Koja je razlika izmedju behaton kocke i behaton ploce?",
-    a: "Kocke se koriste za povrsine koje trpe veca opterecenja, dok ploce vise odgovaraju pesackim zonama i dekorativnim povrsinama.",
+    q: "Koja je razlika između behaton kocke i behaton ploče?",
+    a: "Kocke se koriste za površine koje trpe veća opterećenja, dok ploče više odgovaraju pešačkim zonama i dekorativnim površinama.",
   },
   {
-    q: "Da li behaton moze da se postavlja na terene sa nagibom?",
-    a: "Moze, ali je vazno pravilno pripremiti podlogu, ivicnjake i odvodnjavanje kako bi se izbeglo pomeranje elemenata.",
+    q: "Da li behaton može da se postavlja na terene sa nagibom?",
+    a: "Može, ali je važno pravilno pripremiti podlogu, ivicnjake i odvodnjavanje kako bi se izbeglo pomeranje elemenata.",
   },
   {
     q: "Da li organizujete isporuku van juga Srbije?",
-    a: "Da. Za behaton projekte organizujemo logistiku i preporuku modela za gradove sirom Srbije, uz potvrdu termina i uslova isporuke.",
+    a: "Da. Za behaton projekte organizujemo logistiku i preporuku modela za gradove širom Srbije, uz potvrdu termina i uslova isporuke.",
   },
   {
     q: "Koliko je vremena potrebno za ugradnju?",
-    a: "Trajanje zavisi od povrsine, pripreme podloge i pristupa terenu, ali behaton omogucava brzu ugradnju i etapne radove.",
+    a: "Trajanje zavisi od površine, pripreme podloge i pristupa terenu, ali behaton omogućava brzu ugradnju i etapne radove.",
   },
 ];
 
 const southSerbiaCities: BehatonCity[] = [
   {
     slug: "nis",
-    name: "Nis",
+    name: "Niš",
     intro:
-      "Prodaja i ugradnja behatona u Nisu uz brzu logistiku, pripremu podloge i savet oko izbora modela.",
-    focus: ["dvorista", "garazni prilazi", "parking povrsine"],
+      "Prodaja i ugradnja behatona u Nišu uz brzu logistiku, pripremu podloge i savet oko izbora modela.",
+    focus: ["dvorišta", "garažni prilazi", "parking površine"],
   },
   {
     slug: "leskovac",
     name: "Leskovac",
     intro:
-      "Behaton resenja za stambene i poslovne objekte u Leskovcu, uz lokalnu podrsku i organizaciju isporuke.",
-    focus: ["privatna dvorista", "poslovni prilazi", "staze"],
+      "Behaton rešenja za stambene i poslovne objekte u Leskovcu, uz lokalnu podršku i organizaciju isporuke.",
+    focus: ["privatna dvorišta", "poslovni prilazi", "staze"],
   },
   {
     slug: "prokuplje",
     name: "Prokuplje",
     intro:
-      "Ugradnja behatona u Prokuplju sa fokusom na izdrzljivost i tacnu nivelaciju podloge.",
-    focus: ["parking povrsine", "prilazi kucama", "trotoari"],
+      "Ugradnja behatona u Prokuplju sa fokusom na izdržljivost i tačnu nivelaciju podloge.",
+    focus: ["parking površine", "prilazi kucama", "trotoari"],
   },
   {
     slug: "aleksinac",
     name: "Aleksinac",
     intro:
       "Behaton za privatne i industrijske objekte u Aleksincu, uz savet oko formata i debljine.",
-    focus: ["industrijski prilazi", "magacini", "dvorista"],
+    focus: ["industrijski prilazi", "magacini", "dvorišta"],
   },
   {
     slug: "vranje",
     name: "Vranje",
     intro:
-      "Prodaja i ugradnja behatona u Vranju za privatne i poslovne povrsine sa jasnim planom podloge.",
-    focus: ["prilazi kucama", "dvorista", "pesacke staze"],
+      "Prodaja i ugradnja behatona u Vranju za privatne i poslovne površine sa jasnim planom podloge.",
+    focus: ["prilazi kucama", "dvorišta", "pešačke staze"],
   },
   {
     slug: "pirot",
     name: "Pirot",
     intro:
-      "Behaton resenja u Pirotu za parkinge, staze i uredjenje oko objekata uz preciznu nivelaciju.",
-    focus: ["parking povrsine", "staze", "ulazi u objekte"],
+      "Behaton rešenja u Pirotu za parkinge, staze i uređenje oko objekata uz preciznu nivelaciju.",
+    focus: ["parking površine", "staze", "ulazi u objekte"],
   },
   {
     slug: "zajecar",
-    name: "Zajecar",
+    name: "Zaječar",
     intro:
-      "Lokalna ponuda behatona u Zajecaru sa preporukom modela prema opterecenju i nameni.",
-    focus: ["dvorista", "kolski prilazi", "javne povrsine"],
+      "Lokalna ponuda behatona u Zaječaru sa preporukom modela prema opterećenju i nameni.",
+    focus: ["dvorišta", "kolski prilazi", "javne površine"],
   },
   {
     slug: "knjazevac",
-    name: "Knjazevac",
+    name: "Knjaževac",
     intro:
-      "Ugradnja behatona u Knjazevcu sa fokusom na dug vek trajanja i lako odrzavanje povrsina.",
-    focus: ["dvorisni prilazi", "parking", "staze oko kuce"],
+      "Ugradnja behatona u Knjaževcu sa fokusom na dug vek trajanja i lako održavanje površina.",
+    focus: ["dvorišni prilazi", "parking", "staze oko kuće"],
   },
   {
     slug: "svrljig",
     name: "Svrljig",
     intro:
       "Behaton za Svrljig i okolinu uz dogovor oko isporuke, podloge i organizacije radova.",
-    focus: ["prilazi", "privatna dvorista", "pesacke zone"],
+    focus: ["prilazi", "privatna dvorišta", "pešačke zone"],
   },
   {
     slug: "doljevac",
     name: "Doljevac",
     intro:
-      "Prodaja behatona u Doljevcu i terenska podrska za pripremu podloge i zavrsnu ugradnju.",
-    focus: ["garazni ulazi", "dvorista", "manje parking povrsine"],
+      "Prodaja behatona u Doljevcu i terenska podrška za pripremu podloge i završnu ugradnju.",
+    focus: ["garažni ulazi", "dvorišta", "manje parking površine"],
   },
   {
     slug: "merosina",
-    name: "Merosina",
+    name: "Merošina",
     intro:
-      "Behaton ponuda u Merosini za privatne projekte i poslovne prilaze sa brzom logistikom.",
+      "Behaton ponuda u Merošini za privatne projekte i poslovne prilaze sa brzom logistikom.",
     focus: ["prilazi kucama", "poslovni ulazi", "staze"],
   },
   {
     slug: "gadzin-han",
-    name: "Gadzin Han",
+    name: "Gadžin Han",
     intro:
-      "Ugradnja behatona u Gadzinom Hanu sa preporukama za debljinu i stabilnu podlogu.",
-    focus: ["dvorista", "prilazi", "parking mesta"],
+      "Ugradnja behatona u Gadžinom Hanu sa preporukama za debljinu i stabilnu podlogu.",
+    focus: ["dvorišta", "prilazi", "parking mesta"],
   },
   {
     slug: "sokobanja",
     name: "Sokobanja",
     intro:
-      "Behaton za stambene i turisticke objekte u Sokobanji uz estetski i funkcionalni izbor modela.",
+      "Behaton za stambene i turističke objekte u Sokobanji uz estetski i funkcionalni izbor modela.",
     focus: ["staze", "hotelski prilazi", "parking"],
   },
   {
@@ -173,13 +173,13 @@ const southSerbiaCities: BehatonCity[] = [
     name: "Blace",
     intro:
       "Lokalna ponuda behatona u Blacu uz procenu terena i dogovor oko rokova ugradnje.",
-    focus: ["dvorisne povrsine", "ulazi", "prolazi"],
+    focus: ["dvorišne površine", "ulazi", "prolazi"],
   },
   {
     slug: "kursumlija",
-    name: "Kursumlija",
+    name: "Kuršumlija",
     intro:
-      "Behaton resenja u Kursumliji za privatne i komercijalne povrsine uz pouzdanu isporuku.",
+      "Behaton rešenja u Kuršumliji za privatne i komercijalne površine uz pouzdanu isporuku.",
     focus: ["parking", "staze", "prilazi objektima"],
   },
   {
@@ -187,28 +187,28 @@ const southSerbiaCities: BehatonCity[] = [
     name: "Bojnik",
     intro:
       "Ugradnja behatona u Bojniku sa terenskom podrskom i jasnom specifikacijom modela.",
-    focus: ["kolski prilazi", "dvorista", "staze"],
+    focus: ["kolski prilazi", "dvorišta", "staze"],
   },
   {
     slug: "lebane",
     name: "Lebane",
     intro:
-      "Prodaja i ugradnja behatona u Lebanu za dugotrajne povrsine koje trpe dnevno opterecenje.",
-    focus: ["ulazi", "dvorista", "parking prostori"],
+      "Prodaja i ugradnja behatona u Lebanu za dugotrajne površine koje trpe dnevno opterećenje.",
+    focus: ["ulazi", "dvorišta", "parking prostori"],
   },
   {
     slug: "medvedja",
-    name: "Medvedja",
+    name: "Medveđa",
     intro:
-      "Behaton za Medvedju i okolinu uz savet oko izbora dezena, boje i debljine elemenata.",
-    focus: ["staze", "prilazi", "dvorisni platoi"],
+      "Behaton za Medveđu i okolinu uz savet oko izbora dezena, boje i debljine elemenata.",
+    focus: ["staze", "prilazi", "dvorišni platoi"],
   },
   {
     slug: "bela-palanka",
     name: "Bela Palanka",
     intro:
       "Lokalna behaton ponuda u Beloj Palanci sa fokusom na stabilnu podlogu i kvalitetnu ugradnju.",
-    focus: ["dvorista", "kolski prilazi", "parking"],
+    focus: ["dvorišta", "kolski prilazi", "parking"],
   },
 ];
 
@@ -217,176 +217,176 @@ const nationwideCities: BehatonCity[] = [
     slug: "beograd",
     name: "Beograd",
     intro:
-      "Behaton za Beograd i prigradska naselja uz preporuku modela za prilaze, parkinge i uredjenje oko objekata.",
-    focus: ["dvorista", "parking povrsine", "poslovni prilazi"],
+      "Behaton za Beograd i prigradska naselja uz preporuku modela za prilaze, parkinge i uređenje oko objekata.",
+    focus: ["dvorišta", "parking površine", "poslovni prilazi"],
   },
   {
     slug: "novi-sad",
     name: "Novi Sad",
     intro:
       "Prodaja i ugradnja behatona u Novom Sadu za privatne i poslovne projekte sa planom logistike i podloge.",
-    focus: ["stambeni prilazi", "staze", "komercijalne povrsine"],
+    focus: ["stambeni prilazi", "staze", "komercijalne površine"],
   },
   {
     slug: "subotica",
     name: "Subotica",
     intro:
-      "Behaton resenja u Subotici za dvorista, parkinge i uredjenje oko objekata uz pouzdanu isporuku.",
-    focus: ["parking", "dvorisni platoi", "ulazi u objekte"],
+      "Behaton rešenja u Subotici za dvorišta, parkinge i uređenje oko objekata uz pouzdanu isporuku.",
+    focus: ["parking", "dvorišni platoi", "ulazi u objekte"],
   },
   {
     slug: "zrenjanin",
     name: "Zrenjanin",
     intro:
       "Lokalna ponuda behatona u Zrenjaninu sa savetom za pravilnu pripremu podloge i izbor debljine.",
-    focus: ["privatna dvorista", "prilazi", "pesacke zone"],
+    focus: ["privatna dvorišta", "prilazi", "pešačke zone"],
   },
   {
     slug: "pancevo",
-    name: "Pancevo",
+    name: "Pančevo",
     intro:
-      "Behaton za Pancevo i okolinu sa fokusom na izdrzljive povrsine za domacinstva i firme.",
+      "Behaton za Pančevo i okolinu sa fokusom na izdržljive površine za domaćinstva i firme.",
     focus: ["prilazi kucama", "manji parking", "staze"],
   },
   {
     slug: "smederevo",
     name: "Smederevo",
     intro:
-      "Prodaja i ugradnja behatona u Smederevu uz preporuku modela za vece opterecenje i lakse odrzavanje.",
+      "Prodaja i ugradnja behatona u Smederevu uz preporuku modela za veće opterećenje i lakše održavanje.",
     focus: ["kolski prilazi", "parking", "platoi"],
   },
   {
     slug: "pozarevac",
-    name: "Pozarevac",
+    name: "Požarevac",
     intro:
-      "Behaton resenja u Pozarevcu za privatne i komercijalne povrsine uz jasan plan isporuke i ugradnje.",
-    focus: ["dvorista", "poslovni ulazi", "parking mesta"],
+      "Behaton rešenja u Požarevcu za privatne i komercijalne površine uz jasan plan isporuke i ugradnje.",
+    focus: ["dvorišta", "poslovni ulazi", "parking mesta"],
   },
   {
     slug: "vrsac",
-    name: "Vrsac",
+    name: "Vršac",
     intro:
-      "Ugradnja behatona u Vrscu sa fokusom na uredjenje dvorista, staza i pristupnih povrsina.",
-    focus: ["staze", "prilazi", "dvorisni platoi"],
+      "Ugradnja behatona u Vršcu sa fokusom na uređenje dvorišta, staza i pristupnih površina.",
+    focus: ["staze", "prilazi", "dvorišni platoi"],
   },
   {
     slug: "kikinda",
     name: "Kikinda",
     intro:
       "Behaton za Kikindu i sever Banata uz savet oko formata, boje i stabilne podloge.",
-    focus: ["kolski prilazi", "pesacke staze", "parking"],
+    focus: ["kolski prilazi", "pešačke staze", "parking"],
   },
   {
     slug: "sremska-mitrovica",
     name: "Sremska Mitrovica",
     intro:
-      "Prodaja behatona u Sremskoj Mitrovici za dvorista, prilaze i poslovne povrsine uz dogovor oko termina.",
-    focus: ["dvorista", "prilazi objektima", "poslovni platoi"],
+      "Prodaja behatona u Sremskoj Mitrovici za dvorišta, prilaze i poslovne površine uz dogovor oko termina.",
+    focus: ["dvorišta", "prilazi objektima", "poslovni platoi"],
   },
   {
     slug: "indjija",
-    name: "Indjija",
+    name: "Inđija",
     intro:
-      "Behaton resenja u Indjiji sa logistickom podrskom za privatne i investitorske projekte.",
+      "Behaton rešenja u Inđiji sa logističkom podrskom za privatne i investitorske projekte.",
     focus: ["stambeni prilazi", "parking", "staze oko objekta"],
   },
   {
     slug: "ruma",
     name: "Ruma",
     intro:
-      "Ugradnja behatona u Rumi sa preporukama za podlogu, nivelaciju i odrzavanje povrsina.",
-    focus: ["prilazi", "dvorista", "pesacke povrsine"],
+      "Ugradnja behatona u Rumi sa preporukama za podlogu, nivelaciju i održavanje površina.",
+    focus: ["prilazi", "dvorišta", "pešačke površine"],
   },
   {
     slug: "sabac",
-    name: "Sabac",
+    name: "Šabac",
     intro:
-      "Behaton za Sabac i Macvanski okrug uz procenu kolicine i savet za privatne i komercijalne povrsine.",
-    focus: ["parking povrsine", "dvorista", "trotoari"],
+      "Behaton za Šabac i Mačvanski okrug uz procenu količine i savet za privatne i komercijalne površine.",
+    focus: ["parking površine", "dvorišta", "trotoari"],
   },
   {
     slug: "loznica",
     name: "Loznica",
     intro:
       "Prodaja behatona u Loznici sa organizacijom isporuke i predlogom modela prema nameni terena.",
-    focus: ["ulazi", "staze", "dvorisni platoi"],
+    focus: ["ulazi", "staze", "dvorišni platoi"],
   },
   {
     slug: "valjevo",
     name: "Valjevo",
     intro:
-      "Behaton resenja u Valjevu za uredjenje privatnih i poslovnih povrsina uz brzu pripremu ponude.",
-    focus: ["dvorista", "prilazi", "parking prostori"],
+      "Behaton rešenja u Valjevu za uređenje privatnih i poslovnih površina uz brzu pripremu ponude.",
+    focus: ["dvorišta", "prilazi", "parking prostori"],
   },
   {
     slug: "kragujevac",
     name: "Kragujevac",
     intro:
-      "Behaton za Kragujevac i sumadijski region uz savet za opterecenje, debljinu i plan ugradnje.",
+      "Behaton za Kragujevac i šumadijski region uz savet za opterećenje, debljinu i plan ugradnje.",
     focus: ["stambeni blokovi", "prilazi", "parking"],
   },
   {
     slug: "jagodina",
     name: "Jagodina",
     intro:
-      "Ugradnja behatona u Jagodini sa fokusom na izdrzljivost, ravnu podlogu i uredan zavrsni izgled.",
-    focus: ["dvorista", "staze", "ulazi u objekte"],
+      "Ugradnja behatona u Jagodini sa fokusom na izdržljivost, ravnu podlogu i uredan završni izgled.",
+    focus: ["dvorišta", "staze", "ulazi u objekte"],
   },
   {
     slug: "cuprija",
-    name: "Cuprija",
+    name: "Ćuprija",
     intro:
-      "Behaton za Cupriju i okolinu uz preporuku modela za privatne kuce, prilaze i parkinge.",
-    focus: ["kolski prilazi", "dvorista", "parking mesta"],
+      "Behaton za Ćupriju i okolinu uz preporuku modela za privatne kuće, prilaze i parkinge.",
+    focus: ["kolski prilazi", "dvorišta", "parking mesta"],
   },
   {
     slug: "arandjelovac",
-    name: "Arandjelovac",
+    name: "Aranđelovac",
     intro:
-      "Prodaja i ugradnja behatona u Arandjelovcu za stambene i turisticke objekte uz plan logistike.",
-    focus: ["staze", "hotelski prilazi", "dvorisni platoi"],
+      "Prodaja i ugradnja behatona u Aranđelovcu za stambene i turističke objekte uz plan logistike.",
+    focus: ["staze", "hotelski prilazi", "dvorišni platoi"],
   },
   {
     slug: "krusevac",
-    name: "Krusevac",
+    name: "Kruševac",
     intro:
-      "Behaton resenja u Krusevcu za privatne i poslovne objekte sa savetom za pripremu terena.",
-    focus: ["parking", "prilazi", "pesacke povrsine"],
+      "Behaton rešenja u Kruševcu za privatne i poslovne objekte sa savetom za pripremu terena.",
+    focus: ["parking", "prilazi", "pešačke površine"],
   },
   {
     slug: "kraljevo",
     name: "Kraljevo",
     intro:
-      "Behaton za Kraljevo i okolinu uz dogovor oko isporuke, podloge i zavrsne ugradnje.",
-    focus: ["dvorista", "pristupni putevi", "parking povrsine"],
+      "Behaton za Kraljevo i okolinu uz dogovor oko isporuke, podloge i završne ugradnje.",
+    focus: ["dvorišta", "pristupni putevi", "parking površine"],
   },
   {
     slug: "cacak",
-    name: "Cacak",
+    name: "Čačak",
     intro:
-      "Ugradnja behatona u Cacku sa fokusom na trajne povrsine koje se lako odrzavaju i obnavljaju.",
+      "Ugradnja behatona u Čačku sa fokusom na trajne površine koje se lako održavaju i obnavljaju.",
     focus: ["prilazi kucama", "staze", "platoi"],
   },
   {
     slug: "uzice",
-    name: "Uzice",
+    name: "Užice",
     intro:
-      "Behaton ponuda u Uzicu za dvorista, parkinge i terene sa zahtevnijim pristupom i nivelacijom.",
-    focus: ["dvorista", "parking", "pesacke zone"],
+      "Behaton ponuda u Užicu za dvorišta, parkinge i terene sa zahtevnijim pristupom i nivelacijom.",
+    focus: ["dvorišta", "parking", "pešačke zone"],
   },
   {
     slug: "gornji-milanovac",
     name: "Gornji Milanovac",
     intro:
-      "Prodaja behatona u Gornjem Milanovcu uz savet za podlogu i izbor formata prema vrsti povrsine.",
+      "Prodaja behatona u Gornjem Milanovcu uz savet za podlogu i izbor formata prema vrsti površine.",
     focus: ["staze", "kolski prilazi", "ulazi"],
   },
   {
     slug: "novi-pazar",
     name: "Novi Pazar",
     intro:
-      "Behaton za Novi Pazar i Raski region uz logisticku organizaciju i preporuku modela za veca opterecenja.",
-    focus: ["komercijalne povrsine", "dvorista", "parking"],
+      "Behaton za Novi Pazar i Raški region uz logističku organizaciju i preporuku modela za veća opterećenja.",
+    focus: ["komercijalne površine", "dvorišta", "parking"],
   },
 ];
 
@@ -395,7 +395,7 @@ export const behatonCities: BehatonCity[] = [...southSerbiaCities, ...nationwide
 export const betonCities: BetonCity[] = southSerbiaCities.map((city) => ({
   slug: city.slug,
   name: city.name,
-  intro: `Isporuka gotovog betona i betonske pumpe za ${city.name}. Organizujemo termin, logistiku i podrsku na gradilistu.`,
+  intro: `Isporuka gotovog betona i betonske pumpe za ${city.name}. Organizujemo termin, logistiku i podršku na gradilištu.`,
   focus: [
     "isporuka betona mikserima",
     "beton pumpa i visinske pumpe",

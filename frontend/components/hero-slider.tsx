@@ -79,7 +79,7 @@ export default function HeroSlider({ slides }: Props) {
   }, [index]);
 
   const words = useMemo(() => activeSlide.title.split(" "), [activeSlide.title]);
-  const label = "Betonska baza u Nisu · isporuka · pumpe · zemljani radovi";
+  const label = "Betonska baza u Nišu · isporuka · pumpe · zemljani radovi";
 
   function goTo(i: number) {
     setIndex(i);
@@ -251,7 +251,7 @@ export default function HeroSlider({ slides }: Props) {
             </button>
             <button
               type="button"
-              aria-label="Sledeci slajd"
+              aria-label="Sledeći slajd"
               onClick={goToNext}
               className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/8 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/16 active:scale-95"
             >

@@ -1,29 +1,42 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Barlow_Condensed, DM_Sans } from "next/font/google";
+import { Archivo, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import HeroUIProviders from "@/components/heroui-provider";
+import { QuickInquiryProvider } from "@/components/quick-inquiry";
 import JsonLd from "@/components/json-ld";
+import Preloader from "@/components/preloader";
+import SmoothScroll from "@/components/smooth-scroll";
+import Cursor from "@/components/cursor";
+import AutoReveal from "@/components/motion/auto-reveal";
 import { company } from "@/content/site";
 import { SITE_URL } from "@/lib/seo";
 
-const barlowCondensed = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-  style: ["normal", "italic"],
+const archivo = Archivo({
+  subsets: ["latin", "latin-ext"],
+  axes: ["wdth"],
   variable: "--font-display",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin", "latin-ext"],
   variable: "--font-body",
   display: "swap",
 });
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
+// Runs before first paint: decides whether the preloader curtain plays.
+const preloaderGate = `(function(){try{var d=document.documentElement,p=location.pathname;var skip=p.indexOf('/admin')===0||sessionStorage.getItem('pk-seen')||matchMedia('(prefers-reduced-motion: reduce)').matches;d.classList.add(skip?'pk-skip':'pk-loading');}catch(e){document.documentElement.classList.add('pk-skip');}})();`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -103,8 +116,16 @@ export default function RootLayout({
   const googleAdsId = process.env.NEXT_PUBLIC_GADS_ID || "AW-17801652604";
 
   return (
-    <html lang="sr-Latn-RS" className={`${barlowCondensed.variable} ${dmSans.variable}`}>
+    <html
+      lang="sr-Latn-RS"
+      className={`${archivo.variable} ${instrumentSans.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: preloaderGate }} />
+      </head>
       <body>
+        <Preloader />
         <JsonLd
           id="prevozkop-jsonld"
           data={{
@@ -225,9 +246,14 @@ export default function RootLayout({
         )}
 
         <HeroUIProviders>
-          <Navigation />
-          <main>{children}</main>
-          <Footer />
+          <QuickInquiryProvider>
+            <SmoothScroll />
+            <Cursor />
+            <AutoReveal />
+            <Navigation />
+            <main>{children}</main>
+            <Footer />
+          </QuickInquiryProvider>
         </HeroUIProviders>
         <Analytics />
       </body>

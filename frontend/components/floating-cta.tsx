@@ -1,9 +1,13 @@
 "use client";
 
 import { getCurrentPathWithSearch, trackEvent, trackGoogleAdsConversion } from "@/lib/tracking";
+import { useQuickInquiry, type QuickInquiryService } from "@/components/quick-inquiry";
 
 type FloatingCtaProps = {
   phone: string;
+  /** Kad je zadato, primarno dugme otvara Brzi upit modal umesto skrola na formu. */
+  quickService?: QuickInquiryService;
+  quickProduct?: string;
   formHref?: string;
   formLabel?: string;
   callLabel?: string;
@@ -13,16 +17,41 @@ type FloatingCtaProps = {
   whatsappNumber?: string;
 };
 
+const primaryCtaClass =
+  "flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-3.5 text-sm font-bold text-ink transition-all active:scale-95";
+
+function PrimaryCtaContent({ label }: { label: string }) {
+  return (
+    <>
+      <svg
+        className="h-4 w-4 shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+      <span className="truncate font-display font-extrabold uppercase tracking-[0.06em] [font-stretch:80%]">{label}</span>
+    </>
+  );
+}
+
 export default function FloatingCta({
   phone,
+  quickService,
+  quickProduct,
   formHref = "#forma",
-  formLabel = "Posalji upit",
+  formLabel = "Pošalji upit",
   callLabel = "Pozovi",
   whatsappLabel = "WhatsApp",
   message,
   callNumber,
   whatsappNumber,
 }: FloatingCtaProps) {
+  const quickInquiry = useQuickInquiry();
   const callDigits = (callNumber || phone).replace(/\D/g, "");
   const whatsappDigits = (whatsappNumber || phone).replace(/\D/g, "");
 
@@ -47,36 +76,43 @@ export default function FloatingCta({
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       {/* Safe area + backdrop */}
-      <div className="border-t border-black/8 bg-white/96 px-3 pb-safe-bottom pt-2.5 shadow-[0_-8px_32px_rgba(0,0,0,0.10)] backdrop-blur-xl"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 10px)" }}
+      <div className="mx-2 mb-2 rounded-full border border-white/10 bg-ink/85 p-1.5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+        style={{ marginBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}
       >
-        <div className="mx-auto flex max-w-md items-center gap-2">
+        <div className="mx-auto flex max-w-md items-center gap-1.5">
           {/* PRIMARY — Form CTA */}
-          <a
-            href={formHref}
-            onClick={() => trackCta("click_form_cta_mobile")}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-dark shadow-[0_8px_28px_rgba(244,161,0,0.38)] transition-all active:scale-95"
-            aria-label="Posalji upit"
-          >
-            <svg
-              className="h-4 w-4 shrink-0"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {quickService ? (
+            <button
+              type="button"
+              onClick={() => {
+                trackCta("click_form_cta_mobile");
+                quickInquiry.open({
+                  service: quickService,
+                  product: quickProduct,
+                  origin: "floating_cta_mobile",
+                });
+              }}
+              className={primaryCtaClass}
+              aria-label={formLabel}
             >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            <span className="truncate font-display uppercase tracking-wide">{formLabel}</span>
-          </a>
+              <PrimaryCtaContent label={formLabel} />
+            </button>
+          ) : (
+            <a
+              href={formHref}
+              onClick={() => trackCta("click_form_cta_mobile")}
+              className={primaryCtaClass}
+              aria-label={formLabel}
+            >
+              <PrimaryCtaContent label={formLabel} />
+            </a>
+          )}
 
           {/* SECONDARY — Call */}
           <a
             href={`tel:${callDigits ? `+${callDigits}` : phone}`}
             onClick={() => trackCta("click_tel_cta", googleAdsPhoneSendTo)}
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-black/10 bg-white px-4 py-3.5 text-sm font-bold text-dark shadow-sm transition-all active:scale-95"
+            className="flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-4 py-3.5 text-sm font-bold text-white transition-all active:scale-95"
             aria-label={`Pozovi ${phone}`}
           >
             <svg
@@ -90,7 +126,7 @@ export default function FloatingCta({
             >
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
             </svg>
-            <span className="font-display uppercase tracking-wide">{callLabel}</span>
+            <span className="font-display font-extrabold uppercase tracking-[0.06em] [font-stretch:80%]">{callLabel}</span>
           </a>
 
           {/* ICON — WhatsApp */}
@@ -99,7 +135,7 @@ export default function FloatingCta({
             target="_blank"
             rel="noreferrer"
             onClick={() => trackCta("click_whatsapp_cta", googleAdsWhatsappSendTo)}
-            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white shadow-sm transition-all active:scale-95"
+            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#25D366]/15 transition-all active:scale-95"
             aria-label="WhatsApp"
           >
             <svg

@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHero from "@/components/page-hero";
 import JsonLd from "@/components/json-ld";
 import ContactForm from "@/components/contact-form";
-import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
+import { ConcreteCalculator } from "@/components/beton/concrete-tools";
+import {
+  ChipLinks,
+  CityIndex,
+  CtaBand,
+  FaqList,
+  FormSection,
+  MarqueeBand,
+  NumberedCards,
+  RuleList,
+  SectionHead,
+} from "@/components/sections";
 import { betonCities } from "@/content/behaton";
 import { company } from "@/content/site";
 import { buildMetadata, SITE_URL, srEnLanguages } from "@/lib/seo";
@@ -22,12 +32,12 @@ export function generateStaticParams() {
 
 const betonFaq = [
   {
-    q: "Kako da porucim beton u svom gradu?",
-    a: "Posaljite upit sa kolicinom, lokacijom i terminom, a nas tim potvrduje raspolozivost i logistiku.",
+    q: "Kako da poručim beton u svom gradu?",
+    a: "Pošaljite upit sa količinom, lokacijom i terminom, a nas tim potvrđuje raspoloživost i logistiku.",
   },
   {
     q: "Da li je dostupna pumpa za beton?",
-    a: "Da. Po potrebi saljemo pumpu ili visinsku pumpu kada je prilaz otezan ili je betoniranje na visini.",
+    a: "Da. Po potrebi šaljemo pumpu ili visinsku pumpu kada je prilaz otežan ili je betoniranje na visini.",
   },
   {
     q: "Da li radite i pripremu terena?",
@@ -50,9 +60,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (city.slug === "nis") {
     return buildMetadata({
-      title: "Isporuka betona Nis - gotov beton, pumpa i termin",
+      title: "Isporuka betona Niš - gotov beton, pumpa i termin",
       description:
-        "Isporuka gotovog betona u Nisu uz miksere, beton pumpu, visinske pumpe i podrsku na gradilistu.",
+        "Isporuka gotovog betona u Nišu uz miksere, beton pumpu, visinske pumpe i podršku na gradilištu.",
       path: `/beton/grad/${city.slug}`,
       image: "/img/kamionislika2.webp",
       languages: srEnLanguages(`/beton/grad/${city.slug}`, "/en/order-concrete"),
@@ -79,33 +89,33 @@ export default async function BetonCityPage({ params }: PageProps) {
   const localFaq = isNis
     ? [
         {
-          q: "Kako ide isporuka betona u Nisu?",
-          a: "Prvo proveravamo lokaciju, prilaz, kolicinu i termin, a zatim organizujemo mikser i po potrebi beton pumpu ili visinsku pumpu.",
+          q: "Kako ide isporuka betona u Nišu?",
+          a: "Prvo proveravamo lokaciju, prilaz, količinu i termin, a zatim organizujemo mikser i po potrebi beton pumpu ili visinsku pumpu.",
         },
         {
-          q: "Da li saljete beton pumpu za Nis i okolna naselja?",
-          a: "Da. Beton pumpu saljemo kada je potreban duzi doseg, istovar preko ograde ili rad na visini i nepristupacnim pozicijama.",
+          q: "Da li šaljete beton pumpu za Niš i okolna naselja?",
+          a: "Da. Beton pumpu šaljemo kada je potreban duži doseg, istovar preko ograde ili rad na visini i nepristupačnim pozicijama.",
         },
         {
-          q: "Da li radite i pripremu terena pre betoniranja u Nisu?",
+          q: "Da li radite i pripremu terena pre betoniranja u Nišu?",
           a: "Da. Po dogovoru radimo zemljane radove, tamponiranje i pripremu pristupa za mikser i pumpu.",
         },
       ]
     : betonFaq;
   const relatedLinks = isNis
     ? [
-        { href: "/porucivanje-betona", label: "Porucivanje betona" },
+        { href: "/porucivanje-betona", label: "Poručivanje betona" },
         { href: "/usluge", label: "Sve usluge" },
-        { href: "/behaton/grad/nis", label: "Behaton Nis" },
+        { href: "/behaton/grad/nis", label: "Behaton Niš" },
         { href: "/kontakt", label: "Kontakt i hitan upit" },
       ]
     : [
-        { href: "/porucivanje-betona", label: "Porucivanje betona" },
+        { href: "/porucivanje-betona", label: "Poručivanje betona" },
         { href: "/usluge", label: "Sve usluge" },
       ];
 
   return (
-    <div className="space-y-16 sm:space-y-24">
+    <div className="bg-cement">
       <PageHero
         title={`Isporuka betona ${city.name}`}
         kicker="Lokalna beton logistika"
@@ -113,163 +123,95 @@ export default async function BetonCityPage({ params }: PageProps) {
         background="/img/kamionislika2.webp"
         priority
         actions={[
+          { label: "Pošalji upit", href: "#forma" },
           { label: "Pozovi odmah", href: "tel:+381605887471" },
-          { label: "Posalji upit", href: "#forma" },
         ]}
       />
 
-      <section className="content-section space-y-8">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <ScrollReveal className="space-y-3">
-            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Beton i pumpa
-            </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Isporuka i beton pumpa za {city.name}
+      <section className="content-section py-24 sm:py-32">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <p className="section-label mb-5">Beton i pumpa</p>
+            <h2 className="font-display text-5xl font-black uppercase leading-[0.88] text-ink [font-stretch:62%] sm:text-7xl">
+              Isporuka i beton pumpa za <span className="text-primary">{city.name}</span>
             </h2>
-            <p className="text-sm text-gray-700">
-              Radimo isporuku gotovog betona, obezbedjujemo pumpu i organizujemo teren da betoniranje
+            <p className="mt-6 max-w-lg font-body text-base leading-relaxed text-muted">
+              Radimo isporuku gotovog betona, obezbeđujemo pumpu i organizujemo teren da betoniranje
               ide bez zastoja.
             </p>
-          </ScrollReveal>
-          <StaggerReveal className="grid gap-3">
-            {city.focus.map((item) => (
-              <ScrollReveal key={item} from="up">
-                <div className="rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm font-semibold text-dark shadow-sm">
-                  {item}
-                </div>
-              </ScrollReveal>
-            ))}
-          </StaggerReveal>
+          </div>
+          <RuleList items={city.focus} big />
         </div>
       </section>
 
-      <section className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Lokalne zone
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Gde najcesce isporucujemo beton u {city.name}
-          </h2>
-          <p className="max-w-3xl text-sm text-gray-700">
-            {isNis
-              ? "Najcesce radimo temelje, ploce, privatne kuce, manje stambene objekte i komercijalna betoniranja sirom Nisa."
-              : `Najcesce radimo isporuku betona za temelje, ploce i gradilista u ${city.name}.`}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {localAreas.map((area) => (
-            <span
-              key={area}
-              className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-dark"
-            >
-              {area}
-            </span>
-          ))}
+      <section className="bg-ink py-24 text-white sm:py-32">
+        <div className="content-section">
+          <SectionHead
+            tone="dark"
+            label="Kako radimo"
+            lines={["Od poziva", { text: "do betoniranja", className: "text-primary" }]}
+          />
+          <NumberedCards
+            items={[
+              { title: "Brza procena", text: "Na osnovu lokacije i količine predlažemo vozila i termin." },
+              { title: "Tačan dolazak", text: "Organizujemo dolazak miksera i pumpe prema dinamici gradilišta." },
+              { title: "Podrška na terenu", text: "Po potrebi radimo pripremu terena i koordinaciju istovara." },
+            ]}
+          />
         </div>
       </section>
 
-      <section className="content-section space-y-6">
-        <div className="grid gap-6 rounded-3xl border border-black/5 bg-white px-6 py-8 shadow-xl lg:grid-cols-3">
-          {[
-            {
-              title: "Brza procena",
-              text: "Na osnovu lokacije i kolicine predlazemo vozila i termin.",
-            },
-            {
-              title: "Tacan dolazak",
-              text: "Organizujemo dolazak miksera i pumpe prema dinamici gradilista.",
-            },
-            {
-              title: "Podrska na terenu",
-              text: "Po potrebi radimo pripremu terena i koordinaciju istovara.",
-            },
-          ].map((item) => (
-            <div key={item.title} className="rounded-2xl border border-black/5 bg-gray-50 p-5">
-              <h3 className="text-lg font-semibold text-dark">{item.title}</h3>
-              <p className="mt-2 text-sm text-gray-700">{item.text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Povezane stranice
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Korisni linkovi za beton i gradiliste
-          </h2>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {relatedLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">FAQ</span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">Cesta pitanja</h2>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-3">
-          {localFaq.map((item) => (
-            <div key={item.q} className="rounded-3xl border border-black/5 bg-white p-6 shadow-lg">
-              <h3 className="text-base font-semibold text-dark">{item.q}</h3>
-              <p className="mt-2 text-sm text-gray-700">{item.a}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="forma" className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Upit</span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Posaljite upit za beton u {city.name}
-          </h2>
-          <p className="max-w-3xl text-sm text-gray-700">
-            Navedite kolicinu, klasu i termin. Potvrdujemo raspolozivost i logistiku.
-          </p>
-        </div>
+      <FormSection
+        lines={["Upit za beton", { text: `u ${city.name}`, className: "text-primary" }]}
+        text="Navedite količinu, klasu i termin. Potvrđujemo raspoloživost i logistiku."
+      >
         <ContactForm
           defaultSubject={`Beton ${city.name} - upit`}
           subjectPlaceholder={`Beton i pumpa za ${city.name}`}
           showQuantity
-          quantityLabel="Kolicina betona (opciono)"
+          quantityLabel="Količina betona (opciono)"
           quantityPlaceholder="npr. 20"
           quantityUnitLabel="Jedinica"
           quantityUnits={["m3", "m2"]}
         />
+      </FormSection>
+
+      <MarqueeBand words={localAreas} />
+
+      <section className="content-section py-24 sm:py-32">
+        <SectionHead
+          label="Kalkulator"
+          lines={["Koliko betona", { text: `za ${city.name}?`, className: "text-outline" }]}
+          text={
+            isNis
+              ? "Najčešće radimo temelje, ploče, privatne kuće, manje stambene objekte i komercijalna betoniranja širom Niša."
+              : `Najčešće radimo isporuku betona za temelje, ploče i gradilišta u ${city.name}.`
+          }
+          aside={<ChipLinks links={relatedLinks} />}
+        />
+        <ConcreteCalculator />
       </section>
 
-      <section className="content-section">
-        <div className="rounded-3xl border border-black/5 bg-dark px-6 py-10 text-white shadow-2xl sm:px-10">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h3 className="text-3xl font-bold sm:text-4xl">Treba vam beton u {city.name}?</h3>
-              <p className="mt-2 text-sm text-gray-200">
-                Pozovite {company.phone} za brzu potvrdu termina i logistike.
-              </p>
-            </div>
-            <Link
-              href="tel:+381605887471"
-              className="inline-flex items-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-dark shadow-[0_12px_40px_rgba(244,161,0,0.4)]"
-            >
-              Pozovi odmah
-            </Link>
-          </div>
+      <section className="bg-paper py-24 sm:py-32">
+        <div className="content-section">
+          <FaqList items={localFaq} />
         </div>
       </section>
+
+      <section className="content-section py-24 sm:py-32">
+        <SectionHead label="Ostali gradovi" lines={["Beton", "po gradovima"]} size="md" />
+        <CityIndex cities={betonCities} hrefBase="/beton/grad" prefix="Beton" current={city.slug} />
+      </section>
+
+      <CtaBand
+        lines={[`Treba vam beton`, { text: `u ${city.name}?`, className: "text-primary" }]}
+        text={`Pozovite ${company.phone} za brzu potvrdu termina i logistike.`}
+        image="/img/mikseri.webp"
+      >
+        <a href="tel:+381605887471" className="btn-primary">
+          Pozovi odmah
+        </a>
+      </CtaBand>
 
       <JsonLd
         id="beton-city-breadcrumbs"

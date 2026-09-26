@@ -46,17 +46,13 @@ function StatCard({ stat, delay }: { stat: Stat; delay: number }) {
   const count = useCountUp(rawNum, 1600, visible);
 
   return (
-    <div
-      ref={ref}
-      className="flex flex-col items-center gap-2 py-2 text-center"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <span className="font-display text-5xl font-black leading-none text-primary sm:text-6xl lg:text-7xl">
-        {visible ? count : 0}
-        {suffix}
+    <div ref={ref} className="group relative flex flex-col justify-between gap-10 border-white/10 p-6 sm:p-8 [&:not(:last-child)]:border-b lg:[&:not(:last-child)]:border-b-0 lg:[&:not(:last-child)]:border-r">
+      <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/45">
+        {String(delay / 100 + 1).padStart(2, "0")} — {stat.label}
       </span>
-      <span className="font-body text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
-        {stat.label}
+      <span className="font-display text-[5.5rem] font-black leading-[0.8] text-white [font-stretch:62%] transition-colors duration-500 group-hover:text-primary sm:text-[7.5rem] xl:text-[9rem]">
+        {visible ? count : 0}
+        <span className="text-primary">{suffix}</span>
       </span>
     </div>
   );
@@ -66,33 +62,14 @@ type Props = { stats: Stat[] };
 
 export default function StatsSection({ stats }: Props) {
   return (
-    <section
-      className="relative overflow-hidden"
-      style={{ background: "var(--c-dark)" }}
-    >
-      {/* Gold gradient edge */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(244,161,0,0.5) 40%, rgba(244,161,0,0.5) 60%, transparent)" }}
-      />
-      {/* Ambient glow */}
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(244,161,0,0.6) 0%, transparent 70%)" }}
-      />
-
-      <div className="content-section relative z-10 py-14 sm:py-20">
-        <div className="grid grid-cols-2 gap-8 sm:gap-12 lg:grid-cols-4">
+    <section className="relative overflow-hidden bg-ink text-white" data-reveal-skip>
+      <div className="content-section py-6 sm:py-10">
+        <div className="grid overflow-hidden rounded-[28px] border border-white/10 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, i) => (
             <StatCard key={stat.label} stat={stat} delay={i * 100} />
           ))}
         </div>
       </div>
-
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(244,161,0,0.3) 40%, rgba(244,161,0,0.3) 60%, transparent)" }}
-      />
     </section>
   );
 }

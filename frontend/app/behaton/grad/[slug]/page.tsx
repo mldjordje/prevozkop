@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHero from "@/components/page-hero";
 import ContactForm from "@/components/contact-form";
 import JsonLd from "@/components/json-ld";
-import { ScrollReveal, StaggerReveal } from "@/components/motion/reveal";
+import BehatonCatalog from "@/components/behaton/catalog";
+import { isRealBehatonProduct, toCatalogItem } from "@/components/behaton/catalog-utils";
+import {
+  ChipLinks,
+  CityIndex,
+  FaqList,
+  FormSection,
+  MarqueeBand,
+  NumberedCards,
+  RuleList,
+  SectionHead,
+} from "@/components/sections";
 import {
   behatonBenefits,
   behatonCities,
@@ -43,9 +53,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (city.slug === "nis") {
     return buildMetadata({
-      title: "Behaton Nis - prodaja, cena, isporuka i ugradnja",
+      title: "Behaton Niš - prodaja, cena, isporuka i ugradnja",
       description:
-        "Behaton u Nisu za dvorista, prilaze i parkinge: prodaja, cena, preporuka modela, isporuka i ugradnja.",
+        "Behaton u Nišu za dvorišta, prilaze i parkinge: prodaja, cena, preporuka modela, isporuka i ugradnja.",
       path: `/behaton/grad/${city.slug}`,
       image: "/img/behaton/optimized/SLI_4930.webp",
       languages: srEnLanguages(`/behaton/grad/${city.slug}`, "/en"),
@@ -71,7 +81,7 @@ export default async function BehatonCityPage({ params }: PageProps) {
 
   let products: Product[] = [];
   try {
-    const res = await getProducts({ category: "behaton", limit: 50, offset: 0 });
+    const res = await getProducts({ category: "behaton", limit: 120, offset: 0 });
     products =
       res.data?.filter((item) => item.category?.trim().toLowerCase() === "behaton") || [];
   } catch {
@@ -86,15 +96,15 @@ export default async function BehatonCityPage({ params }: PageProps) {
   const localFaq = isNis
     ? [
         {
-          q: "Da li radite behaton u Nisu za dvorista i garazne prilaze?",
-          a: "Da. U Nisu najcesce radimo privatna dvorista, garazne prilaze, parking mesta i staze oko objekata, uz savet za podlogu i odvodnjavanje.",
+          q: "Da li radite behaton u Nišu za dvorišta i garažne prilaze?",
+          a: "Da. U Nišu najčešće radimo privatna dvorišta, garažne prilaze, parking mesta i staze oko objekata, uz savet za podlogu i odvodnjavanje.",
         },
         {
-          q: "Kako ide procena za behaton u Nisu?",
-          a: "Posaljete kvadraturu, lokaciju i namenu povrsine, a mi predlazemo odgovarajuci model, debljinu, okvirnu kolicinu i logistiku isporuke.",
+          q: "Kako ide procena za behaton u Nišu?",
+          a: "Pošaljete kvadraturu, lokaciju i namenu površine, a mi predlažemo odgovarajući model, debljinu, okvirnu količinu i logistiku isporuke.",
         },
         {
-          q: "Da li organizujete i ugradnju behatona u Nisu?",
+          q: "Da li organizujete i ugradnju behatona u Nišu?",
           a: "Da. Po dogovoru organizujemo i ugradnju, posebno kada je potrebna priprema podloge, nivelacija i jasna dinamika radova.",
         },
       ]
@@ -102,8 +112,8 @@ export default async function BehatonCityPage({ params }: PageProps) {
   const relatedLinks = isNis
     ? [
         { href: "/behaton", label: "Glavna behaton stranica" },
-        { href: "/porucivanje-betona", label: "Isporuka betona Nis" },
-        { href: "/beton/grad/nis", label: "Beton Nis" },
+        { href: "/porucivanje-betona", label: "Isporuka betona Niš" },
+        { href: "/beton/grad/nis", label: "Beton Niš" },
         { href: "/kontakt", label: "Kontakt i upit" },
       ]
     : [
@@ -111,212 +121,118 @@ export default async function BehatonCityPage({ params }: PageProps) {
         { href: "/kontakt", label: "Kontakt" },
       ];
 
+  const catalog = products.filter(isRealBehatonProduct).map(toCatalogItem);
+  const localTriplet = isNis
+    ? [
+        {
+          title: "Behaton Niš cena",
+          text: "Okvirna cena zavisi od modela, debljine, količine, boje i logistike isporuke do lokacije u Nišu.",
+        },
+        {
+          title: "Behaton Niš prodaja",
+          text: "Pomažemo pri izboru modela i količine za dvorišta, prilaze, parkinge i poslovne površine u Nišu.",
+        },
+        {
+          title: "Behaton Niš ugradnja",
+          text: "Po dogovoru organizujemo i ugradnju uz plan podloge, nivelaciju i raspored radova na terenu.",
+        },
+      ]
+    : behatonProcess.map((step) => ({ title: step.title, text: step.description }));
+
   return (
-    <div className="space-y-16 sm:space-y-24">
+    <div className="bg-cement">
       <PageHero
         title={`Behaton ${city.name}`}
         kicker="Lokalna ponuda"
         description={city.intro}
-        background="/img/napolje2.webp"
+        background="/img/behaton/optimized/SLI_4930.webp"
         priority
         actions={[
+          { label: "Pošalji upit", href: "#forma" },
           { label: "Pozovi odmah", href: "tel:+381605887471" },
-          { label: "Posalji upit", href: "#forma" },
         ]}
       />
 
-      <section className="content-section space-y-8">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <ScrollReveal className="space-y-3">
-            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Lokalni fokus
-            </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Behaton resenja za {city.name}
+      {/* ── Local focus ───────────────────────────────────── */}
+      <section className="content-section py-24 sm:py-32">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <p className="section-label mb-5">Lokalni fokus</p>
+            <h2 className="font-display text-5xl font-black uppercase leading-[0.88] text-ink [font-stretch:62%] sm:text-7xl">
+              Behaton rešenja za <span className="text-primary">{city.name}</span>
             </h2>
-            <p className="text-sm text-gray-700">
+            <p className="mt-6 max-w-lg font-body text-base leading-relaxed text-muted">
               Organizujemo isporuku i ugradnju behatona u {city.name}. Fokus je na stabilnoj podlozi,
               preciznoj nivelaciji i brzom dogovoru termina.
             </p>
-          </ScrollReveal>
-          <StaggerReveal className="grid gap-3">
-            {city.focus.map((item) => (
-              <ScrollReveal key={item} from="up">
-                <div className="rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm font-semibold text-dark shadow-sm">
-                  {item}
-                </div>
-              </ScrollReveal>
-            ))}
-          </StaggerReveal>
-        </div>
-      </section>
-
-      <section className="content-section space-y-6">
-        <div className="grid gap-6 rounded-3xl border border-black/5 bg-white px-6 py-8 shadow-xl lg:grid-cols-3">
-          {isNis
-            ? [
-                {
-                  title: "Behaton Nis cena",
-                  text: "Okvirna cena zavisi od modela, debljine, kolicine, boje i logistike isporuke do lokacije u Nisu.",
-                },
-                {
-                  title: "Behaton Nis prodaja",
-                  text: "Pomazemo pri izboru modela i kolicine za dvorista, prilaze, parkinge i poslovne povrsine u Nisu.",
-                },
-                {
-                  title: "Behaton Nis ugradnja",
-                  text: "Po dogovoru organizujemo i ugradnju uz plan podloge, nivelaciju i raspored radova na terenu.",
-                },
-              ].map((item) => (
-                <div key={item.title} className="rounded-2xl border border-black/5 bg-gray-50 p-5">
-                  <h3 className="text-lg font-semibold text-dark">{item.title}</h3>
-                  <p className="mt-2 text-sm text-gray-700">{item.text}</p>
-                </div>
-              ))
-            : null}
-        </div>
-      </section>
-
-      <section className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Lokalne zone
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Gde se behaton najcesce trazi u {city.name}
-          </h2>
-          <p className="max-w-3xl text-sm text-gray-700">
-            {isNis
-              ? "Najcesci upiti iz Nisa dolaze za dvorista, prilaze i parkinge oko porodicnih kuca, manjih zgrada i poslovnih objekata."
-              : `Najcesci upiti u ${city.name} dolaze za prilaze, staze, parkinge i uredjenje oko objekata.`}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {localAreas.map((area) => (
-            <span
-              key={area}
-              className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-dark"
-            >
-              {area}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className="content-section space-y-6">
-        <ScrollReveal>
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Namena
-            </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Najcesce behaton povrsine u {city.name}
-            </h2>
           </div>
-        </ScrollReveal>
-        <StaggerReveal className="grid gap-6 md:grid-cols-3">
-          {behatonUseCases.map((item) => (
-            <ScrollReveal key={item.title} from="up">
-              <div className="rounded-3xl border border-black/5 bg-white p-6 shadow-lg">
-                <h3 className="text-lg font-semibold text-dark">{item.title}</h3>
-                <p className="mt-2 text-sm text-gray-700">{item.description}</p>
-              </div>
-            </ScrollReveal>
-          ))}
-        </StaggerReveal>
+          <RuleList items={city.focus} big />
+        </div>
       </section>
 
-      <section className="content-section space-y-6">
-        <ScrollReveal>
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Prednosti
-            </span>
-            <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-              Zasto investitori biraju behaton
-            </h2>
-          </div>
-        </ScrollReveal>
-        <StaggerReveal className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {behatonBenefits.map((benefit) => (
-            <ScrollReveal key={benefit} from="up">
-              <div className="rounded-2xl border border-black/5 bg-white px-4 py-4 text-sm font-semibold text-dark shadow-sm">
-                {benefit}
-              </div>
-            </ScrollReveal>
-          ))}
-        </StaggerReveal>
-      </section>
-
-      {products.length > 0 && (
-        <section className="content-section space-y-6">
-          <ScrollReveal>
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-                Modeli
-              </span>
-              <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-                Preporuceni modeli behatona
-              </h2>
-            </div>
-          </ScrollReveal>
-          <div className="grid gap-4 md:grid-cols-3">
-            {products.map((product) => (
-              <Link
-                key={product.id}
-                href={`/behaton/${product.slug}`}
-                className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm transition hover:-translate-y-1"
-              >
-                <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                  {product.product_type || "Behaton"}
-                </p>
-                <h3 className="mt-2 text-lg font-semibold text-dark">{product.name}</h3>
-                {product.short_description && (
-                  <p className="mt-2 text-sm text-gray-600">{product.short_description}</p>
-                )}
-                <span className="mt-4 inline-flex text-sm font-semibold text-primary">
-                  Detalji {"->"}
-                </span>
-              </Link>
-            ))}
+      {/* ── Catalog strip ─────────────────────────────────── */}
+      {catalog.length > 0 && (
+        <section className="bg-ink py-24 text-white sm:py-32">
+          <div className="content-section">
+            <SectionHead
+              tone="dark"
+              label="Modeli"
+              lines={["Preporučeni", { text: "modeli behatona", className: "text-primary" }]}
+              text={`Kompletan katalog je dostupan i za ${city.name} — izaberite model i pošaljite upit.`}
+            />
+            <BehatonCatalog items={catalog} />
           </div>
         </section>
       )}
 
-      <section className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Povezane stranice
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Korisni linkovi za behaton i logistiku
-          </h2>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {relatedLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-dark transition hover:border-primary hover:text-primary"
-            >
-              {link.label}
-            </Link>
+      <section className="content-section py-24 sm:py-32">
+        <SectionHead
+          label={isNis ? "Behaton Niš" : "Saradnja"}
+          lines={isNis ? ["Cena, prodaja", "i ugradnja"] : ["Kako izgleda", "saradnja"]}
+          text="Lokalni tim dolazi na teren, meri i priprema plan ugradnje. Termin se dogovara brzo."
+        />
+        <NumberedCards items={localTriplet} tone="light" />
+      </section>
+
+      <MarqueeBand words={localAreas} tone="ink" />
+
+      {/* ── Zones + use cases ─────────────────────────────── */}
+      <section className="content-section py-24 sm:py-32">
+        <SectionHead
+          label="Lokalne zone"
+          lines={[`Gde se behaton`, { text: `traži u ${city.name}`, className: "text-outline" }]}
+          text={
+            isNis
+              ? "Najčešći upiti iz Niša dolaze za dvorišta, prilaze i parkinge oko porodičnih kuća, manjih zgrada i poslovnih objekata."
+              : `Najčešći upiti u ${city.name} dolaze za prilaze, staze, parkinge i uređenje oko objekata.`
+          }
+        />
+        <div className="grid gap-4 md:grid-cols-3">
+          {behatonUseCases.map((item) => (
+            <div key={item.title} className="rounded-[24px] bg-paper p-7 ring-1 ring-ink/10">
+              <h3 className="font-display text-3xl font-black uppercase leading-none text-ink [font-stretch:62%]">{item.title}</h3>
+              <p className="mt-3 font-body text-[15px] leading-relaxed text-muted">{item.description}</p>
+            </div>
           ))}
+        </div>
+        <div className="mt-16 grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="section-label mb-5">Prednosti</p>
+            <h2 className="font-display text-5xl font-black uppercase leading-[0.9] text-ink [font-stretch:62%] sm:text-6xl">
+              Zašto investitori biraju behaton
+            </h2>
+            <div className="mt-8">
+              <ChipLinks links={relatedLinks} />
+            </div>
+          </div>
+          <RuleList items={behatonBenefits} big />
         </div>
       </section>
 
-      <section className="content-section space-y-6" id="forma">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            Upit
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">
-            Posaljite upit za behaton u {city.name}
-          </h2>
-          <p className="max-w-3xl text-sm text-gray-700">
-            Navedite lokaciju, povrsinu i namenu. Dobicete odgovor sa preporukom i logistikom.
-          </p>
-        </div>
+      <FormSection
+        lines={["Upit za behaton", { text: `u ${city.name}`, className: "text-primary" }]}
+        text="Navedite lokaciju, površinu i namenu. Dobićete odgovor sa preporukom i logistikom."
+      >
         <ContactForm
           defaultSubject={`Behaton ${city.name} - upit`}
           subjectPlaceholder={`Behaton za ${city.name}`}
@@ -324,55 +240,22 @@ export default async function BehatonCityPage({ params }: PageProps) {
           selectPlaceholder="Izaberite model behatona"
           selectOptions={products.map((item) => getProductSelectLabel(item))}
           showQuantity
-          quantityLabel="Kolicina behatona (opciono)"
+          quantityLabel="Količina behatona (opciono)"
           quantityPlaceholder="npr. 120"
           quantityUnitLabel="Jedinica"
           quantityUnits={["m2", "m3", "kom", "paleta"]}
         />
-      </section>
+      </FormSection>
 
-      <section className="content-section">
-        <div className="grid gap-6 rounded-3xl border border-black/5 bg-white px-6 py-10 shadow-xl sm:px-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <ScrollReveal className="space-y-3">
-            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Proces
-            </span>
-            <h3 className="text-2xl font-bold text-dark sm:text-3xl">Kako izgleda saradnja</h3>
-            <p className="text-sm text-gray-700">
-              Lokalni tim dolazi na teren, meri i priprema plan ugradnje. Termin se dogovara brzo.
-            </p>
-          </ScrollReveal>
-          <StaggerReveal className="grid gap-4 sm:grid-cols-2">
-            {behatonProcess.map((step, idx) => (
-              <ScrollReveal key={step.title} from="up">
-                <div className="rounded-2xl border border-black/5 bg-gray-50 px-4 py-5 text-sm shadow-sm">
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    {String(idx + 1).padStart(2, "0")}
-                  </div>
-                  <h4 className="text-base font-semibold text-dark">{step.title}</h4>
-                  <p className="text-gray-700">{step.description}</p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </StaggerReveal>
+      <section className="bg-paper py-24 sm:py-32">
+        <div className="content-section">
+          <FaqList items={localFaq} />
         </div>
       </section>
 
-      <section className="content-section space-y-6">
-        <div className="space-y-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-            FAQ
-          </span>
-          <h2 className="text-3xl font-bold text-dark sm:text-4xl">Cesta pitanja</h2>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          {localFaq.map((item) => (
-            <div key={item.q} className="rounded-3xl border border-black/5 bg-white p-6 shadow-lg">
-              <h3 className="text-base font-semibold text-dark">{item.q}</h3>
-              <p className="mt-2 text-sm text-gray-700">{item.a}</p>
-            </div>
-          ))}
-        </div>
+      <section className="content-section py-24 sm:py-32">
+        <SectionHead label="Ostali gradovi" lines={["Behaton", "širom Srbije"]} size="md" />
+        <CityIndex cities={behatonCities} hrefBase="/behaton/grad" prefix="Behaton" current={city.slug} />
       </section>
 
       <JsonLd

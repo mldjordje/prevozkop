@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import PageHero from "@/components/page-hero";
+import { CtaBand } from "@/components/sections";
 import { getProject, getProjects } from "@/lib/api";
 
 export const revalidate = 300;
@@ -54,58 +56,73 @@ export default async function ProjectPage({ params }: Props) {
     notFound();
   }
 
+  const gallery = project.gallery ?? [];
+
   return (
-    <div className="mx-auto max-w-5xl space-y-8 px-6 py-12">
-      <Link href="/projekti" className="text-sm text-gray-600 hover:text-primary">
-        ← Nazad na projekte
-      </Link>
-      <div className="space-y-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-          Projekat
-        </p>
-        <h1 className="text-3xl font-bold">{project.title}</h1>
-        {project.excerpt && <p className="text-lg text-gray-700">{project.excerpt}</p>}
-      </div>
+    <div className="bg-cement">
+      <PageHero
+        title={project.title}
+        kicker="Projekat"
+        description={project.excerpt || undefined}
+        background={project.hero_image || "/img/napolje1.webp"}
+        priority
+        actions={[{ label: "Sličan projekat? Pošalji upit", href: "/porucivanje-betona#forma" }]}
+      />
 
-      {project.hero_image && (
-        <div className="relative aspect-[16/9] overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-          <Image
-            src={project.hero_image}
-            alt={project.title}
-            fill
-            sizes="(max-width: 1024px) 100vw, 80rem"
-            className="object-cover"
-          />
-        </div>
-      )}
+      <section className="content-section py-20 sm:py-28">
+        <Link
+          href="/projekti"
+          className="mb-12 inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.2em] text-muted transition-colors hover:text-ink"
+        >
+          <span className="grid h-9 w-9 place-items-center rounded-full border border-ink/20">←</span>
+          Nazad na projekte
+        </Link>
 
-      {project.body && (
-        <article className="prose prose-lg max-w-none">
-          <div dangerouslySetInnerHTML={{ __html: project.body }} />
-        </article>
-      )}
-
-      {project.gallery && project.gallery.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold">Galerija</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {project.gallery.map((img, idx) => (
-              <div
-                key={`${img.src}-${idx}`}
-                className="relative aspect-[4/3] overflow-hidden rounded-lg border border-gray-200 bg-gray-100"
-              >
-                <Image
-                  src={img.src}
-                  alt={img.alt || project.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                  className="object-cover"
-                />
-              </div>
-            ))}
+        {project.body && (
+          <div className="grid gap-10 lg:grid-cols-[0.35fr_0.65fr]">
+            <p className="section-label">Opis radova</p>
+            <article className="rich-text" dangerouslySetInnerHTML={{ __html: project.body }} />
           </div>
-        </div>
+        )}
+      </section>
+
+      {gallery.length > 0 && (
+        <section className="bg-ink py-20 text-white sm:py-28">
+          <div className="content-section">
+            <p className="section-label mb-10">Galerija · {gallery.length}</p>
+            <div className="columns-1 gap-4 sm:columns-2 lg:columns-3 [&>*]:mb-4">
+              {gallery.map((img, idx) => (
+                <figure key={`${img.src}-${idx}`} className="group relative break-inside-avoid overflow-hidden rounded-[20px]" data-cursor="view">
+                  <Image
+                    src={img.src}
+                    alt={img.alt || project.title}
+                    width={1200}
+                    height={900}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="h-auto w-full transition-transform duration-[1.2s] [transition-timing-function:var(--ease-out)] group-hover:scale-[1.04]"
+                  />
+                  <figcaption className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 font-mono text-[10px] tracking-[0.16em] text-white/80 backdrop-blur">
+                    {String(idx + 1).padStart(2, "0")}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
+
+      <CtaBand
+        label="Vaš projekat"
+        lines={["Sledeće gradilište", { text: "može biti vaše", className: "text-primary" }]}
+        image={project.hero_image || "/img/mikseri.webp"}
+      >
+        <Link href="/porucivanje-betona#forma" className="btn-primary">
+          Pošalji upit
+        </Link>
+        <Link href="/projekti" className="btn-outline-white">
+          Svi projekti
+        </Link>
+      </CtaBand>
     </div>
   );
 }

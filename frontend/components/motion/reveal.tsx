@@ -17,11 +17,11 @@ type ScrollRevealProps<T extends ElementType> = {
 } & Omit<ComponentPropsWithoutRef<T>, "as" | "children" | "className">;
 
 const directionVariants: Record<Direction, { hidden: Record<string, unknown>; visible: Record<string, unknown> }> = {
-  up: { hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0 } },
-  down: { hidden: { opacity: 0, y: -28 }, visible: { opacity: 1, y: 0 } },
-  left: { hidden: { opacity: 0, x: 32 }, visible: { opacity: 1, x: 0 } },
-  right: { hidden: { opacity: 0, x: -32 }, visible: { opacity: 1, x: 0 } },
-  scale: { hidden: { opacity: 0, scale: 0.94 }, visible: { opacity: 1, scale: 1 } },
+  up: { hidden: { opacity: 0, y: 44, filter: "blur(8px)" }, visible: { opacity: 1, y: 0, filter: "blur(0px)" } },
+  down: { hidden: { opacity: 0, y: -44, filter: "blur(8px)" }, visible: { opacity: 1, y: 0, filter: "blur(0px)" } },
+  left: { hidden: { opacity: 0, x: 56, filter: "blur(8px)" }, visible: { opacity: 1, x: 0, filter: "blur(0px)" } },
+  right: { hidden: { opacity: 0, x: -56, filter: "blur(8px)" }, visible: { opacity: 1, x: 0, filter: "blur(0px)" } },
+  scale: { hidden: { opacity: 0, scale: 0.9, filter: "blur(8px)" }, visible: { opacity: 1, scale: 1, filter: "blur(0px)" } },
 };
 
 export function ScrollReveal<T extends ElementType = "div">({
@@ -31,8 +31,8 @@ export function ScrollReveal<T extends ElementType = "div">({
   delay = 0,
   from = "up",
   once = true,
-  amount = 0.3,
-  duration = 0.9,
+  amount = 0.2,
+  duration = 1.1,
   ...rest
 }: ScrollRevealProps<T>) {
   const ref = useRef<HTMLElement | null>(null);
@@ -49,6 +49,7 @@ export function ScrollReveal<T extends ElementType = "div">({
       variants={variants}
       transition={{ duration, ease: [0.22, 1, 0.36, 1], delay }}
       className={className}
+      data-reveal-skip
       {...rest}
     >
       {children}
@@ -68,12 +69,13 @@ export function StaggerReveal({ children, className, stagger = 0.08, delay = 0 }
     <motion.div
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.3 }}
+      viewport={{ once: true, amount: 0.15 }}
       variants={{
         hidden: {},
         visible: { transition: { staggerChildren: stagger, delayChildren: delay } },
       }}
       className={className}
+      data-reveal-skip
     >
       {children}
     </motion.div>
