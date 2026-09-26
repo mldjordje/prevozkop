@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import HeroSlider from "@/components/hero-slider";
+import HeroVideo from "@/components/hero-video";
 import FloatingCta from "@/components/floating-cta";
 import JsonLd from "@/components/json-ld";
 import StatsSection from "@/components/stats-section";
@@ -88,11 +88,13 @@ export default async function HomePage() {
 
   return (
     <div className="pb-24 md:pb-0">
-      <h1 className="sr-only">
-        Prevozkop - isporuka betona, visinske pumpe za beton i zemljani radovi u Nisu
-      </h1>
-
-      <HeroSlider slides={heroSlides} />
+      <HeroVideo
+        title={heroSlides[0].title}
+        kicker={heroSlides[0].kicker}
+        description={heroSlides[0].description}
+        ctaLabel={heroSlides[0].ctaLabel}
+        ctaHref={heroSlides[0].ctaHref}
+      />
 
       {/* ── Stats ────────────────────────────────────────── */}
       <StatsSection stats={stats} />
