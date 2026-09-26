@@ -37,6 +37,8 @@ const behatonProductMedia: Record<string, ProductMediaOverride> = {
   "ploca-vodilja-taktilna-dimenzija-30x30-d-6-cm": generatedMedia("ploca-vodilja-taktilna-dimenzija-30x30-d-6-cm"),
   "ploca-eco-dimenzija-20x20-d-8-cm": generatedMedia("ploca-eco-dimenzija-20x20-d-8-cm"),
   "ploca-raster-dimenzija-60x40-d-10-cm": generatedMedia("ploca-raster-dimenzija-60x40-d-10-cm"),
+  "1": generatedMedia("1"),
+  "2": generatedMedia("2"),
 };
 
 function dedupeMedia(items: ProductMediaItem[]) {

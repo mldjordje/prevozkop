@@ -11,8 +11,8 @@ const manifestPath = resolve(
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 const approved = manifest.products.filter((product) => product.status === "approved");
 
-if (approved.length !== 17) {
-  throw new Error(`Expected 17 approved products, found ${approved.length}.`);
+if (approved.length !== 19) {
+  throw new Error(`Expected 19 approved products, found ${approved.length}.`);
 }
 
 const outputs = [];
@@ -48,8 +48,8 @@ for (const product of approved) {
   }
 }
 
-if (outputs.length !== 34) {
-  throw new Error(`Expected 34 optimized images, created ${outputs.length}.`);
+if (outputs.length !== 38) {
+  throw new Error(`Expected 38 optimized images, created ${outputs.length}.`);
 }
 
 console.log(JSON.stringify({ count: outputs.length, outputs }, null, 2));

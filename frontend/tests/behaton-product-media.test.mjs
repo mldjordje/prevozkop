@@ -24,7 +24,7 @@ const detailClientSource = await readFile(
 
 const approved = manifest.products.filter((product) => product.status === "approved");
 test("all approved behaton products have two generated catalog images", () => {
-  assert.equal(approved.length, 17);
+  assert.equal(approved.length, 19);
 
   for (const product of approved) {
     assert.ok(existsSync(resolve(repoRoot, product.mainPublic)), `${product.slug}: missing main image`);

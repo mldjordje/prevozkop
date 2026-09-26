@@ -186,6 +186,28 @@
       "mainPublic": "frontend/public/img/behaton/products/generated/ploca-raster-dimenzija-60x40-d-10-cm-main.webp",
       "groupPublic": "frontend/public/img/behaton/products/generated/ploca-raster-dimenzija-60x40-d-10-cm-group.webp",
       "status": "approved"
+    },
+    {
+      "id": 5,
+      "slug": "1",
+      "label": "API proizvod 1 - braon talasasta behaton ploca",
+      "reference": "katalog/_radni/imagegen/references/api-product-5-reference.jpg",
+      "mainMaster": "katalog/_radni/imagegen/masters/1-main.png",
+      "groupMaster": "katalog/_radni/imagegen/masters/1-group.png",
+      "mainPublic": "frontend/public/img/behaton/products/generated/1-main.webp",
+      "groupPublic": "frontend/public/img/behaton/products/generated/1-group.webp",
+      "status": "approved"
+    },
+    {
+      "id": 6,
+      "slug": "2",
+      "label": "API proizvod 2 - cement-siva talasasta behaton ploca",
+      "reference": "katalog/_radni/imagegen/references/api-product-6-reference.jpg",
+      "mainMaster": "katalog/_radni/imagegen/masters/2-main.png",
+      "groupMaster": "katalog/_radni/imagegen/masters/2-group.png",
+      "mainPublic": "frontend/public/img/behaton/products/generated/2-main.webp",
+      "groupPublic": "frontend/public/img/behaton/products/generated/2-group.webp",
+      "status": "approved"
     }
   ]
 }
