@@ -1,0 +1,11 @@
+Use case: precise-object-edit
+Asset type: main product image for an online concrete paving catalog
+Primary request: Edit the referenced photograph into a premium, photorealistic square studio catalog image. Show exactly one isolated instance of the referenced concrete paving product at a natural three-quarter camera angle so its top surface and true edge thickness are clearly visible.
+Input image: Image 1 is the authoritative product reference and edit target.
+Scene/backdrop: Seamless pure white #FFFFFF background with no visible horizon.
+Style/medium: Honest professional product photography, never an illustration or CGI render.
+Composition/framing: Centered product, consistent generous margins, no cropping.
+Lighting/mood: Soft neutral studio lighting, accurate white balance, and one subtle physically plausible contact shadow directly beneath the product.
+Materials/textures: Preserve the real concrete aggregate, surface roughness, imperfections, and source color variation.
+Constraints: Preserve the real product exactly: silhouette, proportions, dimensions, corner treatment, edge profile, openings, grooves, spacers, surface pattern, and thickness. Change only the setting, cleanup, framing, and lighting. Do not redesign, beautify, straighten, smooth, recolor, repair, or add pieces.
+Avoid: All original surroundings, people, hands, shoes, pallets, straps, dirt, gravel, mud, weeds, vehicles, adjacent products, labels, text, logos, watermarks, invented geometry, invented openings, invented joints, invented colors, invented bevels, glossy concrete, plastic surfaces, overly smooth concrete, tight cropping.
